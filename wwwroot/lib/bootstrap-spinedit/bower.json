@@ -1,0 +1,23 @@
+{
+  "name": "bootstrap-spinedit",
+  "version": "0.0.1",
+  "homepage": "https://github.com/BrandyMint/bootstrap-spinedit",
+  "authors": [
+    "Alexander Mescheryakov <sibsfinx@ya.ru>"
+  ],
+  "description": "bootstrap spinedit (numeric stepper)",
+  "main": "js/bootstrap-spinedit.js",
+  "keywords": [
+    "spinedit",
+    "bootstrap",
+    "stepper"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}

@@ -1,0 +1,12 @@
+﻿[
+    {
+        "outputFile": "wwwroot/styles/default/styles.css",
+        "inputFile": "wwwroot/styles/default/styles.scss",
+        "sourceMap": true
+    },
+    {
+        "outputFile": "wwwroot/Styles/webForms.css",
+        "inputFile": "wwwroot/Styles/webForms.scss",
+        "sourceMap": true
+    }
+]

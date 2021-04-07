@@ -1,0 +1,42 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "olive/*": [
+        "wwwroot/lib/olive.mvc/typings/*"
+      ],
+      "app/*": [
+        "wwwroot/scripts/*"
+      ]
+    },
+    "types": [],
+    "skipLibCheck": true,
+    "typeRoots": [
+      "wwwroot/lib/olive.mvc/typings/*",
+      "wwwroot/lib/olive.mvc/typings-lib/*",
+      "node_modules/@types",
+      "./types",
+      "./node_modules/@types"
+    ],
+    "module": "amd",
+    "target": "es6",
+    "outDir": "wwwroot/dist",
+    "sourceMap": true,
+    "noImplicitUseStrict": true,
+    "noImplicitAny": false,
+    "noEmitOnError": true,
+    "removeComments": false
+  },
+  "compileOnSave": true,
+  "exclude": [
+    "types",
+    "typings",
+    "typings-lib",
+    "wwwroot/lib/olive.mvc/src",
+    "wwwroot/lib/find-up",
+    "wwwroot/lib/ansi-styles",
+    "wwwroot/lib/yargs",
+    "bin",
+    "obj"
+  ]
+}
