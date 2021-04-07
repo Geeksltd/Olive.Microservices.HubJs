@@ -8,7 +8,10 @@
     "dist",
     "types",
     "typings",
-    "typings-lib"
+    "typings-lib",
+    "!tsconfig.json",
+    "!wwwroot",
+    "!lib"
   ],
   "engines": {
     "yarn": ">= 1.0.0"

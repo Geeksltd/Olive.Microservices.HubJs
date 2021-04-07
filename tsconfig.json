@@ -37,6 +37,9 @@
     "wwwroot/lib/ansi-styles",
     "wwwroot/lib/yargs",
     "bin",
-    "obj"
+    "obj",
+    "tsconfig.json",
+    "wwwroot",
+    "lib"
   ]
 }
