@@ -4,6 +4,12 @@
   "version": "1.0.1",
   "license": "GPL-3.0",
   "private": false,
+  "files": [
+    "dist",
+    "types",
+    "typings",
+    "typings-lib"
+  ],
   "engines": {
     "yarn": ">= 1.0.0"
   },
