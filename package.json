@@ -1,7 +1,7 @@
 {
-  "name": "hubjs",
+  "name": "olive.microservices.hubjs",
   "author": "Geeks Ltd",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "license": "GPL-3.0",
   "private": false,
   "engines": {
