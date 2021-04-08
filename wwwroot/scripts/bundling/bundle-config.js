@@ -23,7 +23,7 @@
         "chosen": "chosen-js/chosen.jquery",
         "jquery-elastic": "jquery-mentions-input/lib/jquery.elastic",
         "jquery-events-input": "jquery-mentions-input/lib/jquery.events.input",
-
+        "requirejs":"requirejs/require",
         // Bootstrap
         "popper": "popper.js/dist/umd/popper",
         "bootstrap": "bootstrap/dist/js/bootstrap",
@@ -51,6 +51,7 @@
         }
     },
     shim: {
+        "requirejs":"requirejs/require",
         "underscore": {
             exports: '_'
         },
