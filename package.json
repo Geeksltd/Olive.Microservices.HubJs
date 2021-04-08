@@ -1,29 +1,24 @@
 {
-  "name": "@Geeksltd/olive.microservices.hubjs",
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com/"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/Geeksltd/Olive.Microservices.HubJs.git"
-  },
+  "name": "olive.microservices.hubjs",
   "author": "Geeks Ltd",
-  "version": "1.0.4",
-  "license": "GPL-3.0",
+  "license": "GPL",
   "private": false,
-  "files": [
-    "dist",
-    "types",
-    "typings",
-    "typings-lib",
-    "!tsconfig.json",
-    "!wwwroot",
-    "!lib"
-  ],
- 
   "engines": {
     "yarn": ">= 1.0.0"
   },
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "test",
+    "tests",
+    "tsconfig.json",
+    "Build.bat",
+    "LocalTest.bat",
+    "require.config.js.map",
+    "require.config.js",
+    "packages.config",
+    "bower.json"
+],
   "devDependencies": {
     "@fortawesome/fontawesome-free": "npm:@fortawesome/fontawesome-free@^5.4.2",
     "alertify": "fabien-d/alertify.js-shim#~0.3.10",
