@@ -29,9 +29,6 @@
   },
   "compileOnSave": true,
   "exclude": [
-    "types",
-    "typings",
-    "typings-lib",
     "wwwroot/lib/olive.mvc/src",
     "wwwroot/lib/find-up",
     "wwwroot/lib/ansi-styles",
