@@ -2,6 +2,7 @@
   "name": "olive.microservices.hubjs",
   "author": "Geeks Ltd",
   "license": "GPL",
+  "version": "1.0.6",
   "private": false,
   "engines": {
     "yarn": ">= 1.0.0"
