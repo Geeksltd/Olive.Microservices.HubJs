@@ -41,7 +41,8 @@
     },
     map: {
         "*": {
-            "popper.js": "popper",
+        "requirejs":"require",
+        "popper.js": "popper",
             '../moment': 'moment',
             'olive': "olive.mvc/dist",
             "app": "../scripts",
@@ -51,11 +52,10 @@
         }
     },
     shim: {
-        "requirejs":"requirejs/require",
         "underscore": {
             exports: '_'
         },
-        "bootstrap": ["jquery", "popper"],
+        "bootstrap": ["jquery", "popper","requirejs"],
         "bootstrap-select": ['jquery', 'bootstrap'],
         "bootstrapToggle": ["jquery"],
         "jquery-validate": ['jquery'],
