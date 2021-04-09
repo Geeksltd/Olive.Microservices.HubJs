@@ -23,7 +23,7 @@
         "chosen": "chosen-js/chosen.jquery",
         "jquery-elastic": "jquery-mentions-input/lib/jquery.elastic",
         "jquery-events-input": "jquery-mentions-input/lib/jquery.events.input",
-        "requirejs":"requirejs/require",
+        "requirejs": "requirejs/require",
         // Bootstrap
         "popper": "popper.js/dist/umd/popper",
         "bootstrap": "bootstrap/dist/js/bootstrap",
@@ -41,8 +41,8 @@
     },
     map: {
         "*": {
-        "requirejs":"require",
-        "popper.js": "popper",
+            "requirejs": "requirejs/require",
+            "popper.js": "popper",
             '../moment': 'moment',
             'olive': "olive.mvc/dist",
             "app": "../scripts",
@@ -55,7 +55,7 @@
         "underscore": {
             exports: '_'
         },
-        "bootstrap": ["jquery", "popper","requirejs"],
+        "bootstrap": ["jquery", "popper"],
         "bootstrap-select": ['jquery', 'bootstrap'],
         "bootstrapToggle": ["jquery"],
         "jquery-validate": ['jquery'],
@@ -74,8 +74,8 @@
             deps: ['jquery', "jquery-validate-unobtrusive"]
         },
         "olive/olivePage": ["alertify", "olive/extensions/jQueryExtensions", "olive/extensions/systemExtensions", "combodate"],
-        "app/appPage": ["jquery", "olive/olivePage"],
-        "app/model/service": ["app/appPage", "olive/extensions/systemExtensions"],
+        "app/hubPage": ["jquery", "olive/olivePage"],
+        "app/model/service": ["app/hubPage", "olive/extensions/systemExtensions"],
         "app/featuresMenu/featuresMenu": ["app/model/service"],
         "app/featuresMenu/breadcrumbMenu": ["app/featuresMenu/featuresMenu"],
         "app/hub": ["app/featuresMenu/breadcrumbMenu"],
@@ -86,6 +86,6 @@
     optimize: "none",
     //generateSourceMaps: false,
     //preserveLicenseComments: false,    
-    name: "../scripts/appPage",
+    name: "../scripts/hubPage",
     out: "../../../dist/bundle-built.js"
 });
