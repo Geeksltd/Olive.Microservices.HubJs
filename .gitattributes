@@ -8,3 +8,4 @@ tests export-ignore
 *.pyc export-ignore
 wwwroot export-ignore
 tsconfig.json export-ignore
+package.json export-ignore
