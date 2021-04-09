@@ -1,0 +1,10 @@
+my_script.py export-subst
+Makefile export-ignore
+README.md export-ignore
+.gitattributes export-ignore
+.gitignore export-ignore
+hooks export-ignore
+tests export-ignore
+*.pyc export-ignore
+wwwroot export-ignore
+tsconfig.json export-ignore
