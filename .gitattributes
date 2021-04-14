@@ -6,6 +6,9 @@ README.md export-ignore
 hooks export-ignore
 tests export-ignore
 *.pyc export-ignore
-wwwroot export-ignore
+src export-ignore
 tsconfig.json export-ignore
 package.json export-ignore
+.npmignore export-ignore
+yarn-error.log export-ignore
+yarn.lock  export-ignore

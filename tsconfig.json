@@ -3,24 +3,24 @@
     "baseUrl": ".",
     "paths": {
       "olive/*": [
-        "wwwroot/lib/olive.mvc/typings/*"
+        "lib/olive.mvc/typings/*"
       ],
       "app/*": [
-        "wwwroot/scripts/*"
+        "src/*"
       ]
     },
     "types": [],
     "skipLibCheck": true,
     "typeRoots": [
-      "wwwroot/lib/olive.mvc/typings/*",
-      "wwwroot/lib/olive.mvc/typings-lib/*",
+      "lib/olive.mvc/typings/*",
+      "lib/olive.mvc/typings-lib/*",
       "node_modules/@types",
-      "./types",
+      "dist/types/hub/*",
       "./node_modules/@types"
     ],
     "module": "amd",
     "target": "es6",
-    "outDir": "wwwroot/dist",
+    "outDir": "compiled",
     "sourceMap": true,
     "noImplicitUseStrict": true,
     "noImplicitAny": false,
@@ -29,14 +29,14 @@
   },
   "compileOnSave": true,
   "exclude": [
-    "wwwroot/lib/olive.mvc/src",
-    "wwwroot/lib/find-up",
-    "wwwroot/lib/ansi-styles",
-    "wwwroot/lib/yargs",
+    "lib/olive.mvc/src",
+    "lib/find-up",
+    "lib/ansi-styles",
+    "dist/types/hub/*",
+    "lib/yargs",
     "bin",
     "obj",
     "tsconfig.json",
-    "wwwroot",
     "lib"
   ]
 }

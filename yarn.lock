@@ -2,7 +2,7 @@
 # yarn lockfile v1
 
 
-"@fortawesome/fontawesome-free@npm:@fortawesome/fontawesome-free@^5.4.2", "fontawesome-free@npm:@fortawesome/fontawesome-free@^5.4.2":
+"@fortawesome/fontawesome-free@npm:@fortawesome/fontawesome-free@^5.4.2":
   version "5.15.3"
   resolved "https://registry.yarnpkg.com/@fortawesome/fontawesome-free/-/fontawesome-free-5.15.3.tgz#c36ffa64a2a239bf948541a97b6ae8d729e09a9a"
   integrity sha512-rFnSUN/QOtnOAgqFRooTA3H57JLDm0QEG/jPdk+tLQNL/eWd+Aok8g3qCI+Q1xuDPWpGW/i9JySpJVsq8Q0s9w==
@@ -18,53 +18,6 @@ alertify@fabien-d/alertify.js-shim#~0.3.10:
 alertifyjs@alertifyjs/alertify.js#~0.3.18:
   version "0.3.18"
   resolved "https://codeload.github.com/alertifyjs/alertify.js/tar.gz/92b4996a4d4c0a2a99f93e168a8dc8ac35166669"
-
-ali8465testhubjs@2.4.0:
-  version "2.4.0"
-  resolved "https://registry.yarnpkg.com/ali8465testhubjs/-/ali8465testhubjs-2.4.0.tgz#476f3c15838115aa0e96a9828b8fbd3538bdc54c"
-  integrity sha512-CUX8GoWvsz/DVNoTdQOldGE4Q5EstrgSHiCJRzVBmauK/jnu1ot++EmcPD5XhAbWBfyJtaCigCP1XXpXZDSwSA==
-  dependencies:
-    alertify fabien-d/alertify.js-shim#~0.3.10
-    alertify-bootstrap-3 dbtek/alertify-bootstrap-3#~1.1.1
-    alertifyjs alertifyjs/alertify.js#~0.3.18
-    blueimp-canvas-to-blob blueimp/JavaScript-Canvas-to-Blob#>=2.1.1
-    blueimp-load-image blueimp/JavaScript-Load-Image#>=1.13.0
-    blueimp-tmpl blueimp/JavaScript-Templates#>=2.5.4
-    bootstrap twbs/bootstrap#>=4.0.0
-    bootstrap-filestyle markusslima/bootstrap-filestyle#2.1.0
-    bootstrap-spinedit BrandyMint/bootstrap-spinedit#*
-    bootstrap-toggle minhur/bootstrap-toggle#*
-    chosen-js "1.8.7"
-    ckeditor ckeditor/ckeditor-releases#full/4.6.x
-    combodate vitalets/combodate#*
-    eonasdan-bootstrap-datetimepicker Eonasdan/bootstrap-datetimepicker#~4.7.14
-    flickity metafizzy/flickity#2.2.1
-    fontawesome-free "npm:@fortawesome/fontawesome-free@^5.4.2"
-    hammer.js hammerjs/hammer.js#^2.0.8
-    hammerjs EightMedia/hammer.js#^2.0.0
-    handlebars components/handlebars.js#^4.0.11
-    jquery jquery/jquery-dist#3.2.1
-    jquery-file-upload blueimp/jQuery-File-Upload#*
-    jquery-mentions-input "^1.6.0"
-    jquery-typeahead running-coder/jquery-typeahead#2.10.4
-    jquery-ui components/jqueryui#^1.12.1
-    jquery-validation jzaefferer/jquery-validation#1.19.1
-    jquery-validation-bootstrap-tooltip Thrilleratplay/jquery-validation-bootstrap-tooltip#*
-    jquery-validation-unobtrusive aspnet/jquery-validation-unobtrusive#3.2.11
-    js-cookie js-cookie/js-cookie#^2.2.0
-    modernizr Modernizr/Modernizr#*
-    moment moment/moment#2.8.0
-    muuri haltu/muuri#^0.5.4
-    olive.mvc Geeksltd/Olive.MvcJs#2.0.61
-    popper.js "^1.14.4"
-    pwstrength-bootstrap ablanco/jquery.pwstrength.bootstrap#~1.2.7
-    requirejs jrburke/requirejs-bower#*
-    seiyria-bootstrap-slider seiyria/bootstrap-slider#11.0.2
-    smartmenus vadikom/smartmenus#1.0.0-beta1
-    underscore "1.8.3"
-    web-animations-js web-animations/web-animations-js#^2.0.9
-    which-pm-runs "^1.0.0"
-    zxcvbn dropbox/zxcvbn#^4.2.0
 
 ansi-regex@^5.0.0:
   version "5.0.0"
@@ -462,14 +415,10 @@ require-main-filename@^2.0.0:
   resolved "https://registry.yarnpkg.com/require-main-filename/-/require-main-filename-2.0.0.tgz#d0b329ecc7cc0f61649f62215be69af54aa8989b"
   integrity sha512-NKN5kMDylKuldxYLSUfrbo5Tuzh4hd+2E8NPPX02mZtn1VuREQToYe/ZdlJy+J3uCpfaiGF05e7B8W0iXbQHmg==
 
-requirejs@^2.3.6:
+requirejs@2.3.6, requirejs@^2.3.6:
   version "2.3.6"
   resolved "https://registry.yarnpkg.com/requirejs/-/requirejs-2.3.6.tgz#e5093d9601c2829251258c0b9445d4d19fa9e7c9"
   integrity sha512-ipEzlWQe6RK3jkzikgCupiTbTvm4S0/CAU5GlgptkN5SO6F3u0UD0K18wy6ErDqiCyP4J4YYe1HuAShvsxePLg==
-
-requirejs@jrburke/requirejs-bower#*:
-  version "0.0.0"
-  resolved "https://codeload.github.com/jrburke/requirejs-bower/tar.gz/3596b04fa67953d2fb06456ecb92cf833b462b82"
 
 seiyria-bootstrap-slider@seiyria/bootstrap-slider#11.0.2:
   version "11.0.2"

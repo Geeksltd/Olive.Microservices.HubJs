@@ -17,7 +17,6 @@
     "typings",
     "typings-lib",
     "!tsconfig.json",
-    "!wwwroot",
     "!lib"
   ],
  
@@ -65,6 +64,7 @@
     "underscore": "1.8.3",
     "web-animations-js": "web-animations/web-animations-js#^2.0.9",
     "which-pm-runs": "^1.0.0",
-    "zxcvbn": "dropbox/zxcvbn#^4.2.0"
+    "zxcvbn": "dropbox/zxcvbn#^4.2.0",
+    "requirejs":"2.3.6"
   }
 }
