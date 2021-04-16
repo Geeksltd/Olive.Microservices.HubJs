@@ -1,6 +1,4 @@
-﻿requirejs(["app/appPage"], function () { });
-
-
+﻿//requirejs(["app/appPage"], function () { });
 
 window.loadModule = function (path, onLoaded) {
     if (path.indexOf("/") === 0) path = "./.." + path; // To fix baseUrl

@@ -23,7 +23,7 @@
         "chosen": "chosen-js/chosen.jquery",
         "jquery-elastic": "jquery-mentions-input/lib/jquery.elastic",
         "jquery-events-input": "jquery-mentions-input/lib/jquery.events.input",
-        "requirejs": "requirejs/require",
+        //"requirejs": "requirejs/require",
         // Bootstrap
         "popper": "popper.js/dist/umd/popper",
         "bootstrap": "bootstrap/dist/js/bootstrap",
@@ -41,7 +41,7 @@
     },
     map: {
         "*": {
-            "requirejs": "requirejs",
+            //"requirejs": "requirejs",
             "popper.js": "popper",
             '../moment': 'moment',
             'olive': "olive.mvc/dist",
@@ -55,8 +55,8 @@
         "underscore": {
             exports: '_'
         },
-        "bootstrap": ["jquery", "popper","requirejs"],
-        "bootstrap-select": ['jquery', 'bootstrap',"requirejs"],
+        "bootstrap": ["jquery", "popper"],//,"requirejs"
+        "bootstrap-select": ['jquery', 'bootstrap'],//,"requirejs"
         "bootstrapToggle": ["jquery"],
         "jquery-validate": ['jquery'],
         "validation-style": ['jquery', "jquery-validate", "bootstrap"],
