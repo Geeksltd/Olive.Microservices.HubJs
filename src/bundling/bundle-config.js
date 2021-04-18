@@ -45,7 +45,7 @@
             "popper.js": "popper",
             '../moment': 'moment',
             'olive': "olive.mvc/dist",
-            "app": "../src",
+            "app": "../compiled",
             "jquery-validation": "jquery-validate",
             "jquery.validate.unobtrusive": "jquery-validate-unobtrusive",
             "jquery-sortable": "jquery-ui/ui/widgets/sortable"
@@ -76,7 +76,8 @@
         "olive/olivePage": ["alertify", "olive/extensions/jQueryExtensions", "olive/extensions/systemExtensions", "combodate"],
         "app/hubPage": ["jquery", "olive/olivePage"],
         "app/model/service": ["app/hubPage", "olive/extensions/systemExtensions"],
-        "app/featuresMenu/featuresMenu": ["app/model/service"],
+        "app/featuresMenu/fullMenuFiltering": ["app/featuresMenu/fullMenuFiltering"],
+        "app/featuresMenu/featuresMenu": ["app/model/service","app/featuresMenu/fullMenuFiltering"],
         "app/featuresMenu/breadcrumbMenu": ["app/featuresMenu/featuresMenu"],
         "app/hub": ["app/featuresMenu/breadcrumbMenu"],
         "jquery-elastic": ["jquery"],
@@ -86,6 +87,6 @@
     optimize: "none",
     //generateSourceMaps: false,
     //preserveLicenseComments: false,    
-    name: "../src/hubPage",
+    name: "../compiled/hubPage",
     out: "../../dist/bundle-built.js"
 });

@@ -6,6 +6,8 @@ import ToggleCheckbox from './toggleCheckbox';
 import WidgetModule from './widgetModule';
 import ExpandCollapse from './expandCollapse';
 import BreadcrumbMenu from './featuresMenu/breadcrumbMenu';
+import FullMenuFiltering  from './featuresMenu/fullMenuFiltering';
+import MenuFiltering  from './featuresMenu/menuFiltering';
 import { ServiceContainer } from 'olive/di/serviceContainer';
 import Services from 'olive/di/services';
 import HubAjaxRedirect from './overrides/hubAjaxRedirect';
@@ -59,6 +61,7 @@ export default class HubPage extends OlivePage {
 
     constructor() {
         super();
+        new FullMenuFiltering();
 
         this.getService<Hub>(HubServices.Hub).initialize();
         setTimeout(() => BadgeNumber.enableBadgeNumber($("a[data-badgeurl]")), 4 * 1000);

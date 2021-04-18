@@ -53,4 +53,4 @@ define(["require", "exports"], function (require, exports) {
         new FullMenuFiltering().ShowHideItems();
     });
 });
-//# sourceMappingURL=FullMenuFiltering.js.map
+//# sourceMappingURL=fullMenuFiltering.js.map

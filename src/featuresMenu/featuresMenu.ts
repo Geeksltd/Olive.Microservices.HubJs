@@ -2,6 +2,7 @@
 import Service from 'app/model/service';
 import Waiting from 'olive/components/waiting'
 import AjaxRedirect from 'olive/mvc/ajaxRedirect';
+import FullMenuFiltering  from 'featuresMenu/fullMenuFiltering';
 declare var requirejs: any;
 
 export class FeaturesMenuFactory implements IService {
