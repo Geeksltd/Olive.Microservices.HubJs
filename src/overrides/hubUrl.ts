@@ -24,9 +24,9 @@ export default class HubUrl extends Url {
         //$("#iFrameHolder").hide(); //hide any opened iFrame content after ajax call.
         $("iframe.view-frame").attr("src", "").attr("style", ""); // remove previous path
         let serviceName: string;
-        let serviceContainer = trigger ? trigger.closest("service[of]") : $("service[of]");
+        let serviceContainer = trigger ? trigger.closest("service[of]") : $("service[of]").first();
 
-        if (serviceContainer.length === 0) serviceContainer = $("service[of]");
+        if (serviceContainer.length === 0) serviceContainer = $("service[of]").first();
 
         if (serviceContainer.length === 0)
             throw new Error("<service of='...' /> is not found on the page.");
