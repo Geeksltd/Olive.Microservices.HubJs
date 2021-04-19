@@ -52,6 +52,6 @@
     }
 }
 
-$('#InstantSearch').keyup(function () {
+$(document).on('keyup','#InstantSearch',function () {
     new FullMenuFiltering().ShowHideItems();
 });

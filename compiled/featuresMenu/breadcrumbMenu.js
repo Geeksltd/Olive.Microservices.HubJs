@@ -33,6 +33,11 @@ define(["require", "exports"], function (require, exports) {
             });
         }
         onBreadcrumbLinkClicked(link) {
+            if ($("#" + $(link).attr("data-itemid") + " a[href='" + $(link).attr("href") + "']").length == 0)
+                $("[data-module=SideBarTopModule] .logo img").click();
+            else
+                $("#" + $(link).attr("data-itemid") + " a[href='" + $(link).attr("href") + "']").attr("no-collapse", "no-collapse").click();
+            return false;
             let parent = $(".breadcrumb").find(link).parent();
             parent.nextAll().remove();
             var leftMenu = $(".feature-menu-item").find(`a[href="${link[0]["pathname"]}"]`);

@@ -28978,9 +28978,9 @@ String.prototype.trimHttpProtocol = function () {
     return this.toLowerCase().trimStart("http://").trimStart("https://");
 };
 //# sourceMappingURL=extensions.js.map;
-define("../compiled/extensions", function(){});
+define("app/extensions", function(){});
 
-define('../compiled/model/service',["require", "exports", "app/extensions"], function (require, exports) {
+define('app/model/service',["require", "exports", "app/extensions"], function (require, exports) {
     Object.defineProperty(exports, "__esModule", { value: true });
     /// <amd-dependency path='app/extensions' />
     class Service {
@@ -29041,7 +29041,7 @@ define('../compiled/model/service',["require", "exports", "app/extensions"], fun
     Service.FirstPageLoad = true;
 });
 //# sourceMappingURL=service.js.map;
-define('../compiled/featuresMenu/featuresMenu',["require", "exports", "app/model/service"], function (require, exports, service_1) {
+define('app/featuresMenu/featuresMenu',["require", "exports", "app/model/service"], function (require, exports, service_1) {
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.FeaturesMenuFactory = void 0;
     class FeaturesMenuFactory {
@@ -29221,7 +29221,8 @@ define('../compiled/featuresMenu/featuresMenu',["require", "exports", "app/model
             let wrapper = link.closest(".feature-menu-item");
             if (wrapper.attr("expand") == "true") {
                 // Collapse the wrapper
-                wrapper.attr("expand", "false");
+                if (!$(event.target).parent().hasClass("breadcrumb-item"))
+                    wrapper.attr("expand", "false");
             }
             else {
                 // Expand the wrapper
@@ -29316,7 +29317,7 @@ define('../compiled/featuresMenu/featuresMenu',["require", "exports", "app/model
     exports.default = FeaturesMenu;
 });
 //# sourceMappingURL=featuresMenu.js.map;
-define('../compiled/appContent',["require", "exports", "./model/service"], function (require, exports, service_1) {
+define('app/appContent',["require", "exports", "./model/service"], function (require, exports, service_1) {
     Object.defineProperty(exports, "__esModule", { value: true });
     class AppContent {
         constructor(waiting, ajaxRedirect, input) {
@@ -29385,7 +29386,7 @@ define('../compiled/appContent',["require", "exports", "./model/service"], funct
     exports.default = AppContent;
 });
 //# sourceMappingURL=appContent.js.map;
-define('../compiled/badgeNumber',["require", "exports"], function (require, exports) {
+define('app/badgeNumber',["require", "exports"], function (require, exports) {
     Object.defineProperty(exports, "__esModule", { value: true });
     class BadgeNumber {
         constructor(targetInput) {
@@ -29435,7 +29436,7 @@ define('../compiled/badgeNumber',["require", "exports"], function (require, expo
     exports.default = BadgeNumber;
 });
 //# sourceMappingURL=badgeNumber.js.map;
-define('../compiled/toggleCheckbox',["require", "exports"], function (require, exports) {
+define('app/toggleCheckbox',["require", "exports"], function (require, exports) {
     Object.defineProperty(exports, "__esModule", { value: true });
     class ToggleCheckbox {
         constructor(targetInput) {
@@ -29456,7 +29457,7 @@ define('../compiled/toggleCheckbox',["require", "exports"], function (require, e
     exports.default = ToggleCheckbox;
 });
 //# sourceMappingURL=toggleCheckbox.js.map;
-define('../compiled/widgetModule',["require", "exports"], function (require, exports) {
+define('app/widgetModule',["require", "exports"], function (require, exports) {
     Object.defineProperty(exports, "__esModule", { value: true });
     class WidgetModule {
         constructor(targetInput) {
@@ -29486,7 +29487,7 @@ define('../compiled/widgetModule',["require", "exports"], function (require, exp
     exports.default = WidgetModule;
 });
 //# sourceMappingURL=widgetModule.js.map;
-define('../compiled/expandCollapse',["require", "exports"], function (require, exports) {
+define('app/expandCollapse',["require", "exports"], function (require, exports) {
     Object.defineProperty(exports, "__esModule", { value: true });
     class ExpandCollapse {
         constructor(button, panelKey) {
@@ -29543,7 +29544,7 @@ define('../compiled/expandCollapse',["require", "exports"], function (require, e
     exports.default = ExpandCollapse;
 });
 //# sourceMappingURL=expandCollapse.js.map;
-define('../compiled/featuresMenu/breadcrumbMenu',["require", "exports"], function (require, exports) {
+define('app/featuresMenu/breadcrumbMenu',["require", "exports"], function (require, exports) {
     Object.defineProperty(exports, "__esModule", { value: true });
     class BreadcrumbMenu {
         constructor(ajaxRedirect) {
@@ -29578,6 +29579,11 @@ define('../compiled/featuresMenu/breadcrumbMenu',["require", "exports"], functio
             });
         }
         onBreadcrumbLinkClicked(link) {
+            if ($("#" + $(link).attr("data-itemid") + " a[href='" + $(link).attr("href") + "']").length == 0)
+                $("[data-module=SideBarTopModule] .logo img").click();
+            else
+                $("#" + $(link).attr("data-itemid") + " a[href='" + $(link).attr("href") + "']").click();
+            return true;
             let parent = $(".breadcrumb").find(link).parent();
             parent.nextAll().remove();
             var leftMenu = $(".feature-menu-item").find(`a[href="${link[0]["pathname"]}"]`);
@@ -29650,7 +29656,7 @@ define('../compiled/featuresMenu/breadcrumbMenu',["require", "exports"], functio
     exports.default = BreadcrumbMenu;
 });
 //# sourceMappingURL=breadcrumbMenu.js.map;
-define('../compiled/featuresMenu/fullMenuFiltering',["require", "exports"], function (require, exports) {
+define('app/featuresMenu/fullMenuFiltering',["require", "exports"], function (require, exports) {
     Object.defineProperty(exports, "__esModule", { value: true });
     class FullMenuFiltering {
         ShowHideItems(container = '.full-menu-container') {
@@ -29701,7 +29707,7 @@ define('../compiled/featuresMenu/fullMenuFiltering',["require", "exports"], func
         }
     }
     exports.default = FullMenuFiltering;
-    $('#InstantSearch').keyup(function () {
+    $(document).on('keyup', '#InstantSearch', function () {
         new FullMenuFiltering().ShowHideItems();
     });
 });
@@ -29728,9 +29734,9 @@ var errorTemplates;
 `;
 })(errorTemplates || (errorTemplates = {}));
 //# sourceMappingURL=errorTemplates.js.map;
-define("../compiled/error/errorTemplates", function(){});
+define("app/error/errorTemplates", function(){});
 
-define('../compiled/error/errorViewsNavigator',["require", "exports", "../model/service", "../error/errorTemplates", "../extensions"], function (require, exports) {
+define('app/error/errorViewsNavigator',["require", "exports", "../model/service", "../error/errorTemplates", "../extensions"], function (require, exports) {
     Object.defineProperty(exports, "__esModule", { value: true });
     class ErrorViewsNavigator {
         static goToServiceError(service, url) {
@@ -29743,7 +29749,7 @@ define('../compiled/error/errorViewsNavigator',["require", "exports", "../model/
     exports.default = ErrorViewsNavigator;
 });
 //# sourceMappingURL=errorViewsNavigator.js.map;
-define('../compiled/overrides/hubAjaxRedirect',["require", "exports", "olive/mvc/ajaxRedirect", "app/model/service", "app/error/errorViewsNavigator"], function (require, exports, ajaxRedirect_1, service_1, errorViewsNavigator_1) {
+define('overrides/hubAjaxRedirect',["require", "exports", "olive/mvc/ajaxRedirect", "app/model/service", "app/error/errorViewsNavigator"], function (require, exports, ajaxRedirect_1, service_1, errorViewsNavigator_1) {
     Object.defineProperty(exports, "__esModule", { value: true });
     class HubAjaxRedirect extends ajaxRedirect_1.default {
         constructor(url, responseProcessor, waiting) {
@@ -29763,7 +29769,7 @@ define('../compiled/overrides/hubAjaxRedirect',["require", "exports", "olive/mvc
     exports.default = HubAjaxRedirect;
 });
 //# sourceMappingURL=hubAjaxRedirect.js.map;
-define('../compiled/overrides/hubForm',["require", "exports", "olive/components/form"], function (require, exports, form_1) {
+define('overrides/hubForm',["require", "exports", "olive/components/form"], function (require, exports, form_1) {
     Object.defineProperty(exports, "__esModule", { value: true });
     class HubForm extends form_1.default {
         constructor(url, validate, waiting, ajaxRedirect) {
@@ -29780,7 +29786,7 @@ define('../compiled/overrides/hubForm',["require", "exports", "olive/components/
     exports.default = HubForm;
 });
 //# sourceMappingURL=hubForm.js.map;
-define('../compiled/hubServices',["require", "exports"], function (require, exports) {
+define('app/hubServices',["require", "exports"], function (require, exports) {
     Object.defineProperty(exports, "__esModule", { value: true });
     const HubServices = {
         FeaturesMenuFactory: "featuresMenuFactory",
@@ -29791,7 +29797,7 @@ define('../compiled/hubServices',["require", "exports"], function (require, expo
     exports.default = HubServices;
 });
 //# sourceMappingURL=hubServices.js.map;
-define('../compiled/hubInstantSearch',["require", "exports"], function (require, exports) {
+define('app/hubInstantSearch',["require", "exports"], function (require, exports) {
     Object.defineProperty(exports, "__esModule", { value: true });
     class HubInstantSearch {
         constructor(input) {
@@ -29826,7 +29832,7 @@ define('../compiled/hubInstantSearch',["require", "exports"], function (require,
 });
 //# sourceMappingURL=hubInstantSearch.js.map;
 /// <amd-dependency path='olive/olivePage' />
-define('../compiled/hub',["require", "exports", "olive/components/crossDomainEvent", "./model/service", "app/hubInstantSearch", "olive/olivePage"], function (require, exports, crossDomainEvent_1, service_1, hubInstantSearch_1) {
+define('app/hub',["require", "exports", "olive/components/crossDomainEvent", "./model/service", "app/hubInstantSearch", "olive/olivePage"], function (require, exports, crossDomainEvent_1, service_1, hubInstantSearch_1) {
     Object.defineProperty(exports, "__esModule", { value: true });
     class Hub {
         constructor(url, ajaxRedirect, featuresMenuFactory, breadcrumbMenu, responseProcessor) {
@@ -29983,7 +29989,7 @@ define('../compiled/hub',["require", "exports", "olive/components/crossDomainEve
     exports.default = Hub;
 });
 //# sourceMappingURL=hub.js.map;
-define('../compiled/overrides/hubUrl',["require", "exports", "olive/components/url", "app/model/service"], function (require, exports, url_1, service_1) {
+define('overrides/hubUrl',["require", "exports", "olive/components/url", "app/model/service"], function (require, exports, url_1, service_1) {
     Object.defineProperty(exports, "__esModule", { value: true });
     class HubUrl extends url_1.default {
         constructor() {
@@ -30048,7 +30054,7 @@ define('../compiled/overrides/hubUrl',["require", "exports", "olive/components/u
     exports.default = HubUrl;
 });
 //# sourceMappingURL=hubUrl.js.map;
-define('../compiled/hubModal',["require", "exports", "olive/components/modal"], function (require, exports, modal_1) {
+define('app/hubModal',["require", "exports", "olive/components/modal"], function (require, exports, modal_1) {
     Object.defineProperty(exports, "__esModule", { value: true });
     class HubModal extends modal_1.ModalHelper {
         constructor(hubUrl, hubAjaxRedirect, hubresponseProcessor) {
@@ -72306,11 +72312,9 @@ return Flickity;
 }));
 
 
-define('../compiled/hubPage',["require", "exports", "olive/olivePage", "./featuresMenu/featuresMenu", "./appContent", "./badgeNumber", "./toggleCheckbox", "./widgetModule", "./expandCollapse", "./featuresMenu/breadcrumbMenu", "./featuresMenu/fullMenuFiltering", "olive/di/services", "overrides/hubAjaxRedirect", "overrides/hubForm", "app/hubServices", "app/hub", "overrides/hubUrl", "app/hubModal", "jquery", "jquery-ui-all", "jquery-validate", "jquery-validate-unobtrusive", "underscore", "alertify", "smartmenus", "file-upload", "jquery-typeahead", "combodate", "js-cookie", "handlebars", "hammerjs", "jquery-mentions", "chosen", "jquery-elastic", "jquery-events-input", "popper", "bootstrap", "validation-style", "file-style", "spinedit", "password-strength", "slider", "moment", "moment-locale", "datepicker", "bootstrapToggle", "bootstrap-select", "flickity"], function (require, exports, olivePage_1, featuresMenu_1, appContent_1, badgeNumber_1, toggleCheckbox_1, widgetModule_1, expandCollapse_1, breadcrumbMenu_1, fullMenuFiltering_1, services_1, hubAjaxRedirect_1, hubForm_1, hubServices_1, hub_1, hubUrl_1, hubModal_1) {
+define('app/hubPage',["require", "exports", "olive/olivePage", "./featuresMenu/featuresMenu", "./appContent", "./badgeNumber", "./toggleCheckbox", "./widgetModule", "./expandCollapse", "./featuresMenu/breadcrumbMenu", "./featuresMenu/fullMenuFiltering", "olive/di/services", "overrides/hubAjaxRedirect", "overrides/hubForm", "app/hubServices", "app/hub", "overrides/hubUrl", "app/hubModal", "jquery", "jquery-ui-all", "jquery-validate", "jquery-validate-unobtrusive", "underscore", "alertify", "smartmenus", "file-upload", "jquery-typeahead", "combodate", "js-cookie", "handlebars", "hammerjs", "jquery-mentions", "chosen", "jquery-elastic", "jquery-events-input", "popper", "bootstrap", "validation-style", "file-style", "spinedit", "password-strength", "slider", "moment", "moment-locale", "datepicker", "bootstrapToggle", "bootstrap-select", "flickity"], function (require, exports, olivePage_1, featuresMenu_1, appContent_1, badgeNumber_1, toggleCheckbox_1, widgetModule_1, expandCollapse_1, breadcrumbMenu_1, fullMenuFiltering_1, services_1, hubAjaxRedirect_1, hubForm_1, hubServices_1, hub_1, hubUrl_1, hubModal_1) {
     Object.defineProperty(exports, "__esModule", { value: true });
     class HubPage extends olivePage_1.default {
-        // Here you can override any of the base standard functions.
-        // e.g: To use a different AutoComplete library, simply override handleAutoComplete(input).
         constructor() {
             super();
             new fullMenuFiltering_1.default();
@@ -72373,10 +72377,11 @@ define('../compiled/hubPage',["require", "exports", "olive/olivePage", "./featur
                 //currentMenu = $("a[href='/[" + path.substring(0, pos) + "]" + path.substring(pos) + "']:not(.feature-button)");
                 currentMenu = $("a[href='" + pathname.pathnameWithBrackets + "']:not(.feature-button)");
             }
-            if (currentMenu.length > 0 && event == undefined) {
+            if (currentMenu.length > 0 && HubPage.IsFirstPageLoad == true) {
                 if (currentMenu.parent().attr("is-side-menu-child") == "true")
                     currentMenu.parent().parent().parent().addClass("active").attr("expand", "true");
                 currentMenu.addClass("active");
+                HubPage.IsFirstPageLoad = false;
                 currentMenu.first().click();
             }
             // This function is called upon every Ajax update as well as the initial page load.
@@ -72384,6 +72389,9 @@ define('../compiled/hubPage',["require", "exports", "olive/olivePage", "./featur
         }
     }
     exports.default = HubPage;
+    // Here you can override any of the base standard functions.
+    // e.g: To use a different AutoComplete library, simply override handleAutoComplete(input).
+    HubPage.IsFirstPageLoad = true;
 });
 //window["page"] = new AppPage();
 //# sourceMappingURL=hubPage.js.map;

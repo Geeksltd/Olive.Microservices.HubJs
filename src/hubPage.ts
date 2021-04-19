@@ -7,7 +7,6 @@ import WidgetModule from './widgetModule';
 import ExpandCollapse from './expandCollapse';
 import BreadcrumbMenu from './featuresMenu/breadcrumbMenu';
 import FullMenuFiltering  from './featuresMenu/fullMenuFiltering';
-import MenuFiltering  from './featuresMenu/menuFiltering';
 import { ServiceContainer } from 'olive/di/serviceContainer';
 import Services from 'olive/di/services';
 import HubAjaxRedirect from './overrides/hubAjaxRedirect';
@@ -58,6 +57,7 @@ export default class HubPage extends OlivePage {
 
     // Here you can override any of the base standard functions.
     // e.g: To use a different AutoComplete library, simply override handleAutoComplete(input).
+    public static IsFirstPageLoad: boolean = true;
 
     constructor() {
         super();
@@ -146,10 +146,13 @@ export default class HubPage extends OlivePage {
             //currentMenu = $("a[href='/[" + path.substring(0, pos) + "]" + path.substring(pos) + "']:not(.feature-button)");
             currentMenu = $("a[href='" + pathname.pathnameWithBrackets + "']:not(.feature-button)");
         }
-        if (currentMenu.length > 0 && event == undefined) {
+        if (currentMenu.length > 0 && HubPage.IsFirstPageLoad == true) {
             if (currentMenu.parent().attr("is-side-menu-child") == "true")
                 currentMenu.parent().parent().parent().addClass("active").attr("expand", "true");
             currentMenu.addClass("active");
+
+            HubPage.IsFirstPageLoad=false;
+
             currentMenu.first().click();
         }
         // This function is called upon every Ajax update as well as the initial page load.

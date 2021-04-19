@@ -2,7 +2,7 @@
 import Service from 'app/model/service';
 import Waiting from 'olive/components/waiting'
 import AjaxRedirect from 'olive/mvc/ajaxRedirect';
-import FullMenuFiltering  from 'featuresMenu/fullMenuFiltering';
+import FullMenuFiltering from 'featuresMenu/fullMenuFiltering';
 declare var requirejs: any;
 
 export class FeaturesMenuFactory implements IService {
@@ -39,8 +39,8 @@ export default class FeaturesMenu {
     enableIFrameClientSideRedirection(selector: JQuery) {
         selector.each((ind, el) => {
             $(el).click(e => {
-                if(event == undefined || event.target == undefined )
-                return;
+                if (event == undefined || event.target == undefined)
+                    return;
                 $("main").show();
 
                 let iFrameHolder = $("#iFrameHolder");
@@ -210,7 +210,10 @@ export default class FeaturesMenu {
 
         if (wrapper.attr("expand") == "true") {
             // Collapse the wrapper
-            wrapper.attr("expand", "false");
+            if (!$(link).parent().attr("no-collapse") != undefined)
+                $(link).parent().removeAttr("no-collapse")
+            else
+                wrapper.attr("expand", "false");
         }
         else {
             // Expand the wrapper

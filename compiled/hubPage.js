@@ -1,8 +1,6 @@
 define(["require", "exports", "olive/olivePage", "./featuresMenu/featuresMenu", "./appContent", "./badgeNumber", "./toggleCheckbox", "./widgetModule", "./expandCollapse", "./featuresMenu/breadcrumbMenu", "./featuresMenu/fullMenuFiltering", "olive/di/services", "./overrides/hubAjaxRedirect", "./overrides/hubForm", "./hubServices", "./hub", "./overrides/hubUrl", "./hubModal", "jquery", "jquery-ui-all", "jquery-validate", "jquery-validate-unobtrusive", "underscore", "alertify", "smartmenus", "file-upload", "jquery-typeahead", "combodate", "js-cookie", "handlebars", "hammerjs", "jquery-mentions", "chosen", "jquery-elastic", "jquery-events-input", "popper", "bootstrap", "validation-style", "file-style", "spinedit", "password-strength", "slider", "moment", "moment-locale", "datepicker", "bootstrapToggle", "bootstrap-select", "flickity"], function (require, exports, olivePage_1, featuresMenu_1, appContent_1, badgeNumber_1, toggleCheckbox_1, widgetModule_1, expandCollapse_1, breadcrumbMenu_1, fullMenuFiltering_1, services_1, hubAjaxRedirect_1, hubForm_1, hubServices_1, hub_1, hubUrl_1, hubModal_1) {
     Object.defineProperty(exports, "__esModule", { value: true });
     class HubPage extends olivePage_1.default {
-        // Here you can override any of the base standard functions.
-        // e.g: To use a different AutoComplete library, simply override handleAutoComplete(input).
         constructor() {
             super();
             new fullMenuFiltering_1.default();
@@ -65,10 +63,11 @@ define(["require", "exports", "olive/olivePage", "./featuresMenu/featuresMenu", 
                 //currentMenu = $("a[href='/[" + path.substring(0, pos) + "]" + path.substring(pos) + "']:not(.feature-button)");
                 currentMenu = $("a[href='" + pathname.pathnameWithBrackets + "']:not(.feature-button)");
             }
-            if (currentMenu.length > 0 && event == undefined) {
+            if (currentMenu.length > 0 && HubPage.IsFirstPageLoad == true) {
                 if (currentMenu.parent().attr("is-side-menu-child") == "true")
                     currentMenu.parent().parent().parent().addClass("active").attr("expand", "true");
                 currentMenu.addClass("active");
+                HubPage.IsFirstPageLoad = false;
                 currentMenu.first().click();
             }
             // This function is called upon every Ajax update as well as the initial page load.
@@ -76,6 +75,9 @@ define(["require", "exports", "olive/olivePage", "./featuresMenu/featuresMenu", 
         }
     }
     exports.default = HubPage;
+    // Here you can override any of the base standard functions.
+    // e.g: To use a different AutoComplete library, simply override handleAutoComplete(input).
+    HubPage.IsFirstPageLoad = true;
 });
 //window["page"] = new AppPage();
 //# sourceMappingURL=hubPage.js.map

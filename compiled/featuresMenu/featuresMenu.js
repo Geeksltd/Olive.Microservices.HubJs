@@ -178,7 +178,10 @@ define(["require", "exports", "app/model/service"], function (require, exports, 
             let wrapper = link.closest(".feature-menu-item");
             if (wrapper.attr("expand") == "true") {
                 // Collapse the wrapper
-                wrapper.attr("expand", "false");
+                if (!$(link).parent().attr("no-collapse") != undefined)
+                    $(link).parent().removeAttr("no-collapse");
+                else
+                    wrapper.attr("expand", "false");
             }
             else {
                 // Expand the wrapper

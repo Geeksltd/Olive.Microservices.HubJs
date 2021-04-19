@@ -43,7 +43,11 @@ export default class BreadcrumbMenu implements IService{
     }
 
     onBreadcrumbLinkClicked(link: JQuery) {
-
+        if ($("#" + $(link).attr("data-itemid") + " a[href='" + $(link).attr("href") + "']").length == 0)
+            $("[data-module=SideBarTopModule] .logo img").click();
+        else
+            $("#" + $(link).attr("data-itemid") + " a[href='" + $(link).attr("href") + "']").attr("no-collapse", "no-collapse").click();
+        return false;
         let parent = $(".breadcrumb").find(link).parent();
         parent.nextAll().remove();
 
