@@ -48,8 +48,8 @@ export default class Service {
 
         var url = service.GetAddressBarValueFor(fullUrl);
 
-        if (!this.FirstPageLoad)
-            window.history.pushState(null, windowTitle, url);
+        //if (!this.FirstPageLoad)
+        window.history.pushState(null, windowTitle, url);
 
         if (this.FirstPageLoad)
             this.FirstPageLoad = false;
