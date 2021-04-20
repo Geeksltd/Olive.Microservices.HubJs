@@ -31,8 +31,8 @@ define(["require", "exports", "app/extensions"], function (require, exports) {
         static onNavigated(fullUrl, windowTitle) {
             let service = this.fromUrl(fullUrl);
             var url = service.GetAddressBarValueFor(fullUrl);
-            if (!this.FirstPageLoad)
-                window.history.pushState(null, windowTitle, url);
+            //if (!this.FirstPageLoad)
+            window.history.pushState(null, windowTitle, url);
             if (this.FirstPageLoad)
                 this.FirstPageLoad = false;
             if (windowTitle)
