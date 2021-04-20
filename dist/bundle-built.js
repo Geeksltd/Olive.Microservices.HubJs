@@ -29221,7 +29221,9 @@ define('app/featuresMenu/featuresMenu',["require", "exports", "app/model/service
             let wrapper = link.closest(".feature-menu-item");
             if (wrapper.attr("expand") == "true") {
                 // Collapse the wrapper
-                if (!$(event.target).parent().hasClass("breadcrumb-item"))
+                if (!$(link).parent().attr("no-collapse") != undefined)
+                    $(link).parent().removeAttr("no-collapse");
+                else
                     wrapper.attr("expand", "false");
             }
             else {
@@ -29582,8 +29584,8 @@ define('app/featuresMenu/breadcrumbMenu',["require", "exports"], function (requi
             if ($("#" + $(link).attr("data-itemid") + " a[href='" + $(link).attr("href") + "']").length == 0)
                 $("[data-module=SideBarTopModule] .logo img").click();
             else
-                $("#" + $(link).attr("data-itemid") + " a[href='" + $(link).attr("href") + "']").click();
-            return true;
+                $("#" + $(link).attr("data-itemid") + " a[href='" + $(link).attr("href") + "']").attr("no-collapse", "no-collapse").click();
+            return false;
             let parent = $(".breadcrumb").find(link).parent();
             parent.nextAll().remove();
             var leftMenu = $(".feature-menu-item").find(`a[href="${link[0]["pathname"]}"]`);
@@ -30016,9 +30018,9 @@ define('overrides/hubUrl',["require", "exports", "olive/components/url", "app/mo
                 //$("#iFrameHolder").hide(); //hide any opened iFrame content after ajax call.
                 $("iframe.view-frame").attr("src", "").attr("style", ""); // remove previous path
                 let serviceName;
-                let serviceContainer = trigger ? trigger.closest("service[of]") : $("service[of]");
+                let serviceContainer = trigger ? trigger.closest("service[of]") : $("service[of]").first();
                 if (serviceContainer.length === 0)
-                    serviceContainer = $("service[of]");
+                    serviceContainer = $("service[of]").first();
                 if (serviceContainer.length === 0)
                     throw new Error("<service of='...' /> is not found on the page.");
                 serviceName = serviceContainer.attr("of").toLocaleLowerCase();

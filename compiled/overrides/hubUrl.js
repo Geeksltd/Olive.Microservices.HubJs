@@ -25,9 +25,9 @@ define(["require", "exports", "olive/components/url", "app/model/service"], func
                 //$("#iFrameHolder").hide(); //hide any opened iFrame content after ajax call.
                 $("iframe.view-frame").attr("src", "").attr("style", ""); // remove previous path
                 let serviceName;
-                let serviceContainer = trigger ? trigger.closest("service[of]") : $("service[of]");
+                let serviceContainer = trigger ? trigger.closest("service[of]") : $("service[of]").first();
                 if (serviceContainer.length === 0)
-                    serviceContainer = $("service[of]");
+                    serviceContainer = $("service[of]").first();
                 if (serviceContainer.length === 0)
                     throw new Error("<service of='...' /> is not found on the page.");
                 serviceName = serviceContainer.attr("of").toLocaleLowerCase();
