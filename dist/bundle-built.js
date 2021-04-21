@@ -29081,7 +29081,7 @@ define('app/featuresMenu/featuresMenu',["require", "exports", "app/model/service
         enableIFrameClientSideRedirection(selector) {
             selector.each((ind, el) => {
                 $(el).click(e => {
-                    if (event == undefined || event.target == undefined)
+                    if (e == undefined || e.target == undefined)
                         return;
                     $("main").show();
                     let iFrameHolder = $("#iFrameHolder");
