@@ -1,9 +1,10 @@
-define(["require", "exports", "olive/olivePage", "./featuresMenu/featuresMenu", "./appContent", "./badgeNumber", "./toggleCheckbox", "./widgetModule", "./expandCollapse", "./featuresMenu/breadcrumbMenu", "./featuresMenu/fullMenuFiltering", "olive/di/services", "./overrides/hubAjaxRedirect", "./overrides/hubForm", "./hubServices", "./hub", "./overrides/hubUrl", "./hubModal", "jquery", "jquery-ui-all", "jquery-validate", "jquery-validate-unobtrusive", "underscore", "alertify", "smartmenus", "file-upload", "jquery-typeahead", "combodate", "js-cookie", "handlebars", "hammerjs", "jquery-mentions", "chosen", "jquery-elastic", "jquery-events-input", "popper", "bootstrap", "validation-style", "file-style", "spinedit", "password-strength", "slider", "moment", "moment-locale", "datepicker", "bootstrapToggle", "bootstrap-select", "flickity"], function (require, exports, olivePage_1, featuresMenu_1, appContent_1, badgeNumber_1, toggleCheckbox_1, widgetModule_1, expandCollapse_1, breadcrumbMenu_1, fullMenuFiltering_1, services_1, hubAjaxRedirect_1, hubForm_1, hubServices_1, hub_1, hubUrl_1, hubModal_1) {
+define(["require", "exports", "olive/olivePage", "./featuresMenu/featuresMenu", "./appContent", "./badgeNumber", "./toggleCheckbox", "./widgetModule", "./expandCollapse", "./featuresMenu/breadcrumbMenu", "./featuresMenu/fullMenuFiltering", "olive/di/services", "./overrides/hubAjaxRedirect", "./overrides/hubForm", "./hubServices", "./hub", "./overrides/hubUrl", "./hubModal", "./boardComponents", "jquery", "jquery-ui-all", "jquery-validate", "jquery-validate-unobtrusive", "underscore", "alertify", "smartmenus", "file-upload", "jquery-typeahead", "combodate", "js-cookie", "handlebars", "hammerjs", "jquery-mentions", "chosen", "jquery-elastic", "jquery-events-input", "popper", "bootstrap", "validation-style", "file-style", "spinedit", "password-strength", "slider", "moment", "moment-locale", "datepicker", "bootstrapToggle", "bootstrap-select", "flickity"], function (require, exports, olivePage_1, featuresMenu_1, appContent_1, badgeNumber_1, toggleCheckbox_1, widgetModule_1, expandCollapse_1, breadcrumbMenu_1, fullMenuFiltering_1, services_1, hubAjaxRedirect_1, hubForm_1, hubServices_1, hub_1, hubUrl_1, hubModal_1, boardComponents_1) {
     Object.defineProperty(exports, "__esModule", { value: true });
     class HubPage extends olivePage_1.default {
         constructor() {
             super();
             new fullMenuFiltering_1.default();
+            new boardComponents_1.default(null);
             this.getService(hubServices_1.default.Hub).initialize();
             setTimeout(() => badgeNumber_1.default.enableBadgeNumber($("a[data-badgeurl]")), 4 * 1000);
             //every 5 min badge numbers should be updated
@@ -68,7 +69,16 @@ define(["require", "exports", "olive/olivePage", "./featuresMenu/featuresMenu", 
                     currentMenu.parent().parent().parent().addClass("active").attr("expand", "true");
                 currentMenu.addClass("active");
                 HubPage.IsFirstPageLoad = false;
-                currentMenu.first().click();
+                if (window.location.search != "") {
+                    var origUrl = currentMenu.attr("href");
+                    currentMenu.attr("href", origUrl + window.location.search);
+                    currentMenu.first().click();
+                    setTimeout(function () {
+                        currentMenu.attr("href", origUrl);
+                    }, 500);
+                }
+                else
+                    currentMenu.first().click();
             }
             // This function is called upon every Ajax update as well as the initial page load.
             // Any custom initiation goes here.

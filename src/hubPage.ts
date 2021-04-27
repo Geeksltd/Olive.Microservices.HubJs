@@ -20,6 +20,7 @@ import HubServices from './hubServices';
 import Hub from './hub';
 import HubUrl from './overrides/hubUrl';
 import HubModal from './hubModal';
+import BoardComponents from './boardComponents';
 
 //loading all modules
 import 'jquery';
@@ -62,6 +63,7 @@ export default class HubPage extends OlivePage {
     constructor() {
         super();
         new FullMenuFiltering();
+        new BoardComponents(null);
 
         this.getService<Hub>(HubServices.Hub).initialize();
         setTimeout(() => BadgeNumber.enableBadgeNumber($("a[data-badgeurl]")), 4 * 1000);
@@ -153,7 +155,16 @@ export default class HubPage extends OlivePage {
 
             HubPage.IsFirstPageLoad=false;
 
-            currentMenu.first().click();
+            if (window.location.search != "") {
+                var origUrl = currentMenu.attr("href")
+                currentMenu.attr("href", origUrl + window.location.search)
+                currentMenu.first().click();
+                setTimeout(function () {
+                    currentMenu.attr("href", origUrl)
+                }, 500);
+            }
+            else
+                currentMenu.first().click();
         }
         // This function is called upon every Ajax update as well as the initial page load.
         // Any custom initiation goes here.
