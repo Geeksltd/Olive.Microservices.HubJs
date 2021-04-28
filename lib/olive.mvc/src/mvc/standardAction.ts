@@ -104,6 +104,18 @@ export default class StandardAction implements IService {
 
         if (action.OutOfModal && window.isModal()) parent.window.location.href = action.Redirect;
         else if (action.Target == '$modal') this.openModal({ currentTarget: trigger }, action.Redirect, null);
+        else if (action.Target && action.Target === '_parent' && action.WithAjax === true && window.isModal())
+        {
+            let serviceName;
+            let serviceContainer = trigger ? trigger.closest("service[of]") : $("service[of]").first();
+            if (serviceContainer.length === 0)
+                serviceContainer = $("service[of]").first();
+            if (serviceContainer.length === 0)
+                throw new Error("<service of='...' /> is not found on the page.");
+            serviceName = serviceContainer.attr("of").toLocaleLowerCase();
+            action.Redirect = "/" + serviceName + action.Redirect;
+            window.open(action.Redirect, action.Target);
+        }
         else if (action.Target && action.Target != '') window.open(action.Redirect, action.Target);
         else if (action.WithAjax === false) location.replace(action.Redirect);
         else if ((trigger && trigger.is("[data-redirect=ajax]")) || action.WithAjax == true)
