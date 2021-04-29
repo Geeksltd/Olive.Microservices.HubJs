@@ -29771,6 +29771,32 @@ define('overrides/hubAjaxRedirect',["require", "exports", "olive/mvc/ajaxRedirec
     exports.default = HubAjaxRedirect;
 });
 //# sourceMappingURL=hubAjaxRedirect.js.map;
+define('app/overrides/hubStandardAction',["require", "exports", "olive/mvc/standardAction"], function (require, exports, standardAction_1) {
+    Object.defineProperty(exports, "__esModule", { value: true });
+    class HubStandardAction extends standardAction_1.default {
+        constructor(alert, form, waiting, ajaxRedirect, responseProcessor, select, modalHelper, serviceLocator) {
+            super(alert, form, waiting, ajaxRedirect, responseProcessor, select, modalHelper, serviceLocator);
+        }
+        redirect(action, trigger) {
+            if (action.Target && action.Target === '_parent' && action.WithAjax === true && window.isModal()) {
+                let serviceName;
+                let serviceContainer = trigger ? trigger.closest("service[of]") : $("service[of]").first();
+                if (serviceContainer.length === 0)
+                    serviceContainer = $("service[of]").first();
+                if (serviceContainer.length === 0)
+                    throw new Error("<service of='...' /> is not found on the page.");
+                serviceName = serviceContainer.attr("of").toLocaleLowerCase();
+                action.Redirect = "/" + serviceName + action.Redirect;
+                window.open(action.Redirect, action.Target);
+            }
+            else {
+                super.redirect(action, trigger);
+            }
+        }
+    }
+    exports.default = HubStandardAction;
+});
+//# sourceMappingURL=hubStandardAction.js.map;
 define('overrides/hubForm',["require", "exports", "olive/components/form"], function (require, exports, form_1) {
     Object.defineProperty(exports, "__esModule", { value: true });
     class HubForm extends form_1.default {
@@ -30179,7 +30205,7 @@ define('app/boardComponents',["require", "exports"], function (require, exports)
                 });
             }
             $(document).click(function (e) {
-                if ($(e.target).is($("#AddableItemsButton")))
+                if (!$(e.target).closest("a").is($("#AddableItemsButton")))
                     $(".board-addable-items-container").fadeOut();
             });
         }
@@ -72552,7 +72578,7 @@ return Flickity;
 }));
 
 
-define('app/hubPage',["require", "exports", "olive/olivePage", "./featuresMenu/featuresMenu", "./appContent", "./badgeNumber", "./toggleCheckbox", "./widgetModule", "./expandCollapse", "./featuresMenu/breadcrumbMenu", "./featuresMenu/fullMenuFiltering", "olive/di/services", "overrides/hubAjaxRedirect", "overrides/hubForm", "app/hubServices", "app/hub", "overrides/hubUrl", "app/hubModal", "./boardComponents", "jquery", "jquery-ui-all", "jquery-validate", "jquery-validate-unobtrusive", "underscore", "alertify", "smartmenus", "file-upload", "jquery-typeahead", "combodate", "js-cookie", "handlebars", "hammerjs", "jquery-mentions", "chosen", "jquery-elastic", "jquery-events-input", "popper", "bootstrap", "validation-style", "file-style", "spinedit", "password-strength", "slider", "moment", "moment-locale", "datepicker", "bootstrapToggle", "bootstrap-select", "flickity"], function (require, exports, olivePage_1, featuresMenu_1, appContent_1, badgeNumber_1, toggleCheckbox_1, widgetModule_1, expandCollapse_1, breadcrumbMenu_1, fullMenuFiltering_1, services_1, hubAjaxRedirect_1, hubForm_1, hubServices_1, hub_1, hubUrl_1, hubModal_1, boardComponents_1) {
+define('app/hubPage',["require", "exports", "olive/olivePage", "./featuresMenu/featuresMenu", "./appContent", "./badgeNumber", "./toggleCheckbox", "./widgetModule", "./expandCollapse", "./featuresMenu/breadcrumbMenu", "./featuresMenu/fullMenuFiltering", "olive/di/services", "overrides/hubAjaxRedirect", "./overrides/hubStandardAction", "overrides/hubForm", "app/hubServices", "app/hub", "overrides/hubUrl", "app/hubModal", "./boardComponents", "jquery", "jquery-ui-all", "jquery-validate", "jquery-validate-unobtrusive", "underscore", "alertify", "smartmenus", "file-upload", "jquery-typeahead", "combodate", "js-cookie", "handlebars", "hammerjs", "jquery-mentions", "chosen", "jquery-elastic", "jquery-events-input", "popper", "bootstrap", "validation-style", "file-style", "spinedit", "password-strength", "slider", "moment", "moment-locale", "datepicker", "bootstrapToggle", "bootstrap-select", "flickity"], function (require, exports, olivePage_1, featuresMenu_1, appContent_1, badgeNumber_1, toggleCheckbox_1, widgetModule_1, expandCollapse_1, breadcrumbMenu_1, fullMenuFiltering_1, services_1, hubAjaxRedirect_1, hubStandardAction_1, hubForm_1, hubServices_1, hub_1, hubUrl_1, hubModal_1, boardComponents_1) {
     Object.defineProperty(exports, "__esModule", { value: true });
     class HubPage extends olivePage_1.default {
         constructor() {
@@ -72580,6 +72606,8 @@ define('app/hubPage',["require", "exports", "olive/olivePage", "./featuresMenu/f
                 .withDependencies(services_1.default.AjaxRedirect);
             services.addSingleton(services_1.default.AjaxRedirect, (url, responseProcessor, waiting) => new hubAjaxRedirect_1.default(url, responseProcessor, waiting))
                 .withDependencies(services_1.default.Url, services_1.default.ResponseProcessor, services_1.default.Waiting);
+            services.addSingleton(services_1.default.StandardAction, (alert, form, waiting, ajaxRedirect, responseProcessor, select, modalHelper, serviceLocator) => new hubStandardAction_1.default(alert, form, waiting, ajaxRedirect, responseProcessor, select, modalHelper, serviceLocator))
+                .withDependencies(services_1.default.Alert, services_1.default.Form, services_1.default.Waiting, services_1.default.AjaxRedirect, services_1.default.ResponseProcessor, services_1.default.Select, services_1.default.ModalHelper, services_1.default.ServiceLocator);
             services.addSingleton(services_1.default.Form, (url, validate, waiting, ajaxRedirect) => new hubForm_1.default(url, validate, waiting, ajaxRedirect))
                 .withDependencies(services_1.default.Url, services_1.default.Validate, services_1.default.Waiting, services_1.default.AjaxRedirect);
             services.addSingleton(services_1.default.ModalHelper, (url, ajaxRedirect, responseProcessor) => new hubModal_1.default(url, ajaxRedirect, responseProcessor))

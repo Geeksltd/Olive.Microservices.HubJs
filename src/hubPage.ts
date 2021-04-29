@@ -10,6 +10,11 @@ import FullMenuFiltering  from './featuresMenu/fullMenuFiltering';
 import { ServiceContainer } from 'olive/di/serviceContainer';
 import Services from 'olive/di/services';
 import HubAjaxRedirect from './overrides/hubAjaxRedirect';
+import HubStandardAction from './overrides/hubStandardAction';
+import Alert from 'olive/components/alert'
+import Select from 'olive/plugins/select'
+import Form from 'olive/components/form'
+import { ModalHelper } from 'olive/components/modal'
 import Url from 'olive/components/url';
 import ResponseProcessor from 'olive/mvc/responseProcessor';
 import Waiting from 'olive/components/waiting';
@@ -101,6 +106,12 @@ export default class HubPage extends OlivePage {
             new HubAjaxRedirect(url, responseProcessor, waiting))
             .withDependencies(Services.Url, Services.ResponseProcessor, Services.Waiting);
 
+        services.addSingleton(Services.StandardAction, (alert: Alert, form: Form, waiting: Waiting, ajaxRedirect: AjaxRedirect, 
+            responseProcessor: ResponseProcessor, select: Select, modalHelper: ModalHelper, serviceLocator: IServiceLocator) =>
+            new HubStandardAction(alert, form, waiting, ajaxRedirect, responseProcessor, select, modalHelper, serviceLocator))
+            .withDependencies(Services.Alert, Services.Form, Services.Waiting, Services.AjaxRedirect, 
+                Services.ResponseProcessor, Services.Select, Services.ModalHelper, Services.ServiceLocator);
+    
         services.addSingleton(Services.Form, (url: Url, validate: Validate, waiting: Waiting, ajaxRedirect: AjaxRedirect) =>
             new HubForm(url, validate, waiting, ajaxRedirect))
             .withDependencies(Services.Url, Services.Validate, Services.Waiting, Services.AjaxRedirect);
