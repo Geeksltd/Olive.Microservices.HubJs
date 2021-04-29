@@ -99,6 +99,10 @@ define(["require", "exports"], function (require, exports) {
                     error: (jqXhr) => this.onError(ajaxObject, context.boardHolder, jqXhr),
                 });
             }
+            $(document).click(function (e) {
+                if ($(e.target).is($("#AddableItemsButton")))
+                    $(".board-addable-items-container").fadeOut();
+            });
         }
         createSearchItems(sender, context, items) {
             for (let i = 0; i < items.length && i < 10; i++) {
@@ -140,16 +144,16 @@ define(["require", "exports"], function (require, exports) {
             return $("<div class=\"item\">")
                 .append($("<a href='#' id=\"AddableItemsButton\">")
                 .append($("<div class='icon'>").append($("<i class='fas fa-plus'></i>")))
-                .append("Addabled Items")
                 .append($("<small>")));
         }
         bindAddableItemsButtonClick() {
             $("#AddableItemsButton").click(function (e) {
                 e.preventDefault();
+                var top = $(e.target).is("a") ? $(e.target).position().top : $(e.target).closest("a").position().top;
                 $(".board-addable-items-container")
                     .css("left", $(e.target).position().left + $(e.target).width())
-                    .css("top", $(e.target).position().top)
-                    .fadeIn();
+                    .css("top", top + 15)
+                    .fadeToggle();
             });
         }
         showIcon(item) {
