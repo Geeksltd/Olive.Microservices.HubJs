@@ -1,8 +1,0 @@
-node_modules
-website
-/coverage
-/website
-/demos
-*.log
-*.env
-*.DS_Store
