@@ -22,7 +22,7 @@ export default class HubUrl extends Url {
     effectiveUrlProvider = (url: string, trigger?: JQuery): string => {
 
         //$("#iFrameHolder").hide(); //hide any opened iFrame content after ajax call.
-        $("iframe.view-frame").attr("src", "").attr("style", ""); // remove previous path
+        //$("iframe.view-frame").attr("src", "").attr("style", ""); // remove previous path
         let serviceName: string;
         let serviceContainer = trigger ? trigger.closest("service[of]") : $("service[of]").first();
 
