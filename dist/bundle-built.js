@@ -30042,7 +30042,7 @@ define('overrides/hubUrl',["require", "exports", "olive/components/url", "app/mo
             };
             this.effectiveUrlProvider = (url, trigger) => {
                 //$("#iFrameHolder").hide(); //hide any opened iFrame content after ajax call.
-                $("iframe.view-frame").attr("src", "").attr("style", ""); // remove previous path
+                //$("iframe.view-frame").attr("src", "").attr("style", ""); // remove previous path
                 let serviceName;
                 let serviceContainer = trigger ? trigger.closest("service[of]") : $("service[of]").first();
                 if (serviceContainer.length === 0)
