@@ -76,6 +76,7 @@
         "olive/olivePage": ["alertify", "olive/extensions/jQueryExtensions", "olive/extensions/systemExtensions", "combodate"],
         "app/hubPage": ["jquery", "olive/olivePage"],
         "app/model/service": ["app/hubPage", "olive/extensions/systemExtensions"],
+        "app/boardComponents": ["app/boardComponents"],
         "app/featuresMenu/fullMenuFiltering": ["app/featuresMenu/fullMenuFiltering"],
         "app/featuresMenu/featuresMenu": ["app/model/service","app/featuresMenu/fullMenuFiltering"],
         "app/featuresMenu/breadcrumbMenu": ["app/featuresMenu/featuresMenu"],

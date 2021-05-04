@@ -39,7 +39,7 @@ export default class FeaturesMenu {
     enableIFrameClientSideRedirection(selector: JQuery) {
         selector.each((ind, el) => {
             $(el).click(e => {
-                if (event == undefined || event.target == undefined)
+                if (e == undefined || e.target == undefined)
                     return;
                 $("main").show();
 
@@ -243,7 +243,7 @@ export default class FeaturesMenu {
         let currentMenuparent = currentMenu.is("a") ? currentMenu.parent().parent() : currentMenu.parent();
         let parentHasChild = currentMenu.is("a") ? currentMenu.parent().find("ul").length > 0 : currentMenu.find("ul").length > 0;
 
-        if (hasChild || (link.parent().attr("side-menu-parent") != currentMenuLi.attr("id") && link.parent().attr("side-menu-parent") != currentMenuLi.attr("side-menu-parent"))) //|| (parent.first().is(link.parent().parent()) && parentHasChild && hasChild)
+        if (hasChild || link.parent().attr("side-menu-parent") == undefined || (link.parent().attr("side-menu-parent") != currentMenuLi.attr("id") && link.parent().attr("side-menu-parent") != currentMenuLi.attr("side-menu-parent"))) //|| (parent.first().is(link.parent().parent()) && parentHasChild && hasChild)
             $(".features-sub-menu").empty();
         // Set the active item
         $(".active").removeClass("active");
