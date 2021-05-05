@@ -22,4 +22,15 @@ export default class HubAjaxRedirect extends AjaxRedirect {
         else
             super.onRedirectionFailed(url, response);
     }
+    
+    public go(
+        url: string,
+        trigger: JQuery = null,
+        isBack: boolean = false,
+        keepScroll: boolean = false,
+        addToHistory = true,
+        onComplete?: (successful: boolean) => void): boolean {
+        $("iframe.view-frame").attr("src", "").attr("style", "");
+        return super.go(url,trigger,isBack,keepScroll,addToHistory,onComplete);
+    }
 }
