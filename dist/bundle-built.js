@@ -29767,6 +29767,10 @@ define('overrides/hubAjaxRedirect',["require", "exports", "olive/mvc/ajaxRedirec
             else
                 super.onRedirectionFailed(url, response);
         }
+        go(url, trigger = null, isBack = false, keepScroll = false, addToHistory = true, onComplete) {
+            $("iframe.view-frame").attr("src", "").attr("style", "");
+            return super.go(url, trigger, isBack, keepScroll, addToHistory, onComplete);
+        }
     }
     exports.default = HubAjaxRedirect;
 });
