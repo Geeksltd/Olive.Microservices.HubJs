@@ -140,7 +140,7 @@
                 .append($("<div>").append((item.IconUrl === null || item.IconUrl === undefined) ?  $("<div class='icon'>") : this.showIcon(item))
                 .append($("<span>").append(item.Type))
                 .append("<br />")
-                .append($("<span>").append(item.Name))
+                .append($("<span class=\"board-component-name\">").append(item.Name))
                 )
                 .append($("<span>").html(item.Body)));
     }
