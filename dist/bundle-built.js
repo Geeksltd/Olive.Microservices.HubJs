@@ -30241,11 +30241,11 @@ define('app/boardComponents',["require", "exports"], function (require, exports)
         createItem(item, context) {
             return $("<div class=\"item\">")
                 .append($("<a href='" + item.Url + "'>")
-                .append((item.IconUrl === null || item.IconUrl === undefined) ?
-                $("<div class='icon'>") : this.showIcon(item))
-                .append(item.Name)
-                .append($("<small>")
-                .html(item.Body)));
+                .append($("<div>").append((item.IconUrl === null || item.IconUrl === undefined) ? $("<div class='icon'>") : this.showIcon(item))
+                .append($("<span>").append(item.Type))
+                .append("<br />")
+                .append($("<span>").append(item.Name)))
+                .append($("<span>").html(item.Body)));
         }
         createAddableItem(item, context) {
             return $("<div class=\"item\">")

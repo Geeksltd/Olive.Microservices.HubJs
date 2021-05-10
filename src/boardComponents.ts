@@ -137,11 +137,12 @@
     protected createItem(item: IResultItemDto, context: IBoardContext) {
         return $("<div class=\"item\">")
             .append($("<a href='" + item.Url + "'>")
-                .append((item.IconUrl === null || item.IconUrl === undefined) ?
-                    $("<div class='icon'>") : this.showIcon(item))
-                .append(item.Name)
-                .append($("<small>")
-                    .html(item.Body)));
+                .append($("<div>").append((item.IconUrl === null || item.IconUrl === undefined) ?  $("<div class='icon'>") : this.showIcon(item))
+                .append($("<span>").append(item.Type))
+                .append("<br />")
+                .append($("<span>").append(item.Name))
+                )
+                .append($("<span>").html(item.Body)));
     }
     protected createAddableItem(item: IResultItemDto, context: IBoardContext) {
         return $("<div class=\"item\">")
@@ -277,6 +278,7 @@ export interface IAjaxObject {
 
 export interface IResultItemDto {
     Name: string;
+    Type: string;
     Body: string;
     IconUrl: string;
     Url: string;
