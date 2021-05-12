@@ -30309,8 +30309,8 @@ define('app/boardComponents',["require", "exports"], function (require, exports)
         isValidResult(item, context) {
             let resfilter = false;
             if (context.boardItemId) {
-                if ((item.Body !== null &&
-                    item.Body !== undefined)) {
+                if ((item.Url !== null &&
+                    item.Url !== undefined)) {
                     resfilter = true;
                 }
             }
