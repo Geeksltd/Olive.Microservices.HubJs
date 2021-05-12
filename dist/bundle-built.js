@@ -30193,6 +30193,7 @@ define('app/boardComponents',["require", "exports"], function (require, exports)
             });
             const context = {
                 ajaxList,
+                ajaxCallCount: 0,
                 resultCount: 0,
                 resultPanel,
                 addableItemsPanel,
@@ -30225,22 +30226,21 @@ define('app/boardComponents',["require", "exports"], function (require, exports)
                 context.resultCount++;
                 context.boardHolder.append(this.createItem(items[i], context));
             }
-            if (items.length === 0) {
-                context.boardHolder.addClass("d-none");
-            }
         }
         createAddableItems(sender, context, items) {
             for (let i = 0; i < items.length && i < 10; i++) {
                 //context.resultCount++;
-                context.addabledItemsHolder.append(this.createItem(items[i], context));
+                context.addabledItemsHolder.append(this.createAddableItem(items[i], context));
             }
-            if (items.length === 0) {
-                context.addabledItemsHolder.addClass("d-none");
-            }
+        }
+        addColour(item) {
+            if (item.Colour != undefined && item.Colour != null && item.Colour != "")
+                return "background-color:" + item.Colour + ";";
+            return "";
         }
         createItem(item, context) {
             return $("<div class=\"item\">")
-                .append($("<a href='" + item.Url + "'>")
+                .append($("<a href='" + item.Url + "' style=\"" + this.addColour(item) + "\" >")
                 .append($("<div>").append((item.IconUrl === null || item.IconUrl === undefined) ? $("<div class='icon'>") : this.showIcon(item))
                 .append($("<span>").append(item.Type))
                 .append("<br />")
@@ -30320,6 +30320,7 @@ define('app/boardComponents',["require", "exports"], function (require, exports)
             return resfilter;
         }
         onComplete(context, jqXHR) {
+            context.ajaxCallCount++;
             if (context.ajaxList.filter((p) => p.state === 0).length === 0) {
                 //this.waiting.hide();
                 if (context.resultCount === 0) {
@@ -30328,7 +30329,7 @@ define('app/boardComponents',["require", "exports"], function (require, exports)
                     context.resultPanel.append(ulNothing);
                 }
             }
-            if (this.input.parent().find(".board-components-result .list-items .item").length == context.ajaxList.length) {
+            if (context.ajaxCallCount == context.ajaxList.length) {
                 context.boardHolder.append(this.createAddableButton(context));
                 this.bindAddableItemsButtonClick();
             }

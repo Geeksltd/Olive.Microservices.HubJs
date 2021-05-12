@@ -84,6 +84,7 @@
 
         const context: IBoardContext = {
             ajaxList,
+            ajaxCallCount:0,
             resultCount: 0,
             resultPanel,
             addableItemsPanel,
@@ -107,8 +108,8 @@
                     error: (jqXhr) => this.onError(ajaxObject, context.boardHolder, jqXhr),
                 });
         }
-        $(document).click(function(e){
-            if(!$(e.target).closest("a").is($("#AddableItemsButton")))
+        $(document).click(function (e) {
+            if (!$(e.target).closest("a").is($("#AddableItemsButton")))
                 $(".board-addable-items-container").fadeOut();
         })
     }
@@ -118,29 +119,26 @@
             context.resultCount++;
             context.boardHolder.append(this.createItem(items[i], context));
         }
-
-        if (items.length === 0) {
-            context.boardHolder.addClass("d-none");
-        }
     }
     protected createAddableItems(sender: IAjaxObject, context: IBoardContext, items: IResultItemDto[]) {
 
         for (let i = 0; i < items.length && i < 10; i++) {
             //context.resultCount++;
-            context.addabledItemsHolder.append(this.createItem(items[i], context));
+            context.addabledItemsHolder.append(this.createAddableItem(items[i], context));
         }
-
-        if (items.length === 0) {
-            context.addabledItemsHolder.addClass("d-none");
-        }
+    }
+    protected addColour(item: IResultItemDto) {
+        if (item.Colour != undefined && item.Colour != null && item.Colour != "")
+            return "background-color:" + item.Colour + ";"
+        return "";
     }
     protected createItem(item: IResultItemDto, context: IBoardContext) {
         return $("<div class=\"item\">")
-            .append($("<a href='" + item.Url + "'>")
-                .append($("<div>").append((item.IconUrl === null || item.IconUrl === undefined) ?  $("<div class='icon'>") : this.showIcon(item))
-                .append($("<span>").append(item.Type))
-                .append("<br />")
-                .append($("<span class=\"board-component-name\">").append(item.Name))
+            .append($("<a href='" + item.Url + "' style=\"" + this.addColour(item) + "\" >")
+                .append($("<div>").append((item.IconUrl === null || item.IconUrl === undefined) ? $("<div class='icon'>") : this.showIcon(item))
+                    .append($("<span>").append(item.Type))
+                    .append("<br />")
+                    .append($("<span class=\"board-component-name\">").append(item.Name))
                 )
                 .append($("<span>").html(item.Body)));
     }
@@ -149,9 +147,9 @@
             .append($("<a href='" + item.Url + "'>")
                 .append((item.IconUrl === null || item.IconUrl === undefined) ?
                     $("<div class='icon'>") : this.showIcon(item)
-                .append(item.Name)
-                .append($("<small>")
-                    .html(item.Body))));
+                        .append(item.Name)
+                        .append($("<small>")
+                            .html(item.Body))));
     }
 
     protected createAddableButton(context: IBoardContext) {
@@ -161,17 +159,17 @@
                 .append($("<small>")));
     }
     protected bindAddableItemsButtonClick() {
-        $("#AddableItemsButton").click(function(e){
+        $("#AddableItemsButton").click(function (e) {
             e.preventDefault();
-            var top = $(e.target).is("a") ?$(e.target).position().top :$(e.target).closest("a").position().top; 
-             $(".board-addable-items-container")
-             .css("left",$(e.target).position().left + $(e.target).width() )
-             .css("top",top +15)
-             .fadeToggle();   
+            var top = $(e.target).is("a") ? $(e.target).position().top : $(e.target).closest("a").position().top;
+            $(".board-addable-items-container")
+                .css("left", $(e.target).position().left + $(e.target).width())
+                .css("top", top + 15)
+                .fadeToggle();
 
         });
 
-     }
+    }
     protected showIcon(item: any): JQuery {
         if (item.IconUrl.indexOf("fa-") > 0) {
             return $("<div class='icon'>").append($("<i class='" + item.IconUrl + "'></i>"));
@@ -231,6 +229,8 @@
         return resfilter;
     }
     protected onComplete(context: IBoardContext, jqXHR: JQueryXHR) {
+        context.ajaxCallCount++;
+
         if (context.ajaxList.filter((p) => p.state === 0).length === 0) {
             //this.waiting.hide();
             if (context.resultCount === 0) {
@@ -239,7 +239,7 @@
                 context.resultPanel.append(ulNothing);
             }
         }
-        if (this.input.parent().find(".board-components-result .list-items .item").length == context.ajaxList.length) {
+        if (context.ajaxCallCount == context.ajaxList.length) {
             context.boardHolder.append(this.createAddableButton(context))
             this.bindAddableItemsButtonClick();
         }
@@ -256,6 +256,7 @@
 }
 
 export interface IBoardContext {
+    ajaxCallCount:number;
     ajaxList: IAjaxObject[];
     resultPanel: JQuery;
     addableItemsPanel: JQuery;
@@ -283,6 +284,7 @@ export interface IResultItemDto {
     IconUrl: string;
     Url: string;
     GroupTitle: string;
+    Colour: string;
 }
 
 export interface IBoardResultDto {
