@@ -217,8 +217,8 @@
         if (context.boardItemId) {
             if (
                 (
-                    item.Body !== null &&
-                    item.Body !== undefined
+                    item.Url !== null &&
+                    item.Url !== undefined
                 )
             ) {
                 resfilter = true;
