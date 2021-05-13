@@ -187,11 +187,7 @@
             const boardItem = this.createSearchItems(sender, context, resultfiltered);
             //context.boardHolder.append(boardItem);
 
-            if (context.beginSearchStarted && resultfiltered.length > 0) {
-                context.beginSearchStarted = false;
-                context.resultPanel.append(context.boardHolder);
-            }
-
+            context.resultPanel.append(context.boardHolder);
 
             if (result !== null && result !== undefined && typeof (result.AddabledItems) === typeof ([])) {
                 sender.state = AjaxState.success;
