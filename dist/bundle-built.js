@@ -30139,7 +30139,7 @@ define('app/boardComponents',["require", "exports"], function (require, exports)
         onChanged(event) {
             this.filterInput = this.filterInput || $(event.currentTarget);
             let keywords = this.filterInput.val().toLowerCase().split(' ');
-            let rows = this.filterInput.closest('.board-components-result').find(".item");
+            let rows = this.filterInput.parent().parent().find('.board-components-result .item');
             rows.each((index, e) => {
                 let row = $(e);
                 let content = row.text().toLowerCase();
@@ -30307,17 +30307,20 @@ define('app/boardComponents',["require", "exports"], function (require, exports)
             }
         }
         isValidResult(item, context) {
-            let resfilter = false;
-            if (context.boardItemId) {
-                if ((item.Url !== null &&
-                    item.Url !== undefined)) {
-                    resfilter = true;
-                }
-            }
-            else {
-                resfilter = true;
-            }
-            return resfilter;
+            // let resfilter = false;
+            // if (context.boardItemId) {
+            //     if (
+            //         (
+            //             item.Url !== null &&
+            //             item.Url !== undefined
+            //         )
+            //     ) {
+            //         resfilter = true;
+            //     }
+            // } else {
+            //     resfilter = true;
+            // }
+            return true;
         }
         onComplete(context, jqXHR) {
             context.ajaxCallCount++;
