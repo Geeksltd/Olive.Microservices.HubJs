@@ -30222,13 +30222,13 @@ define('app/boardComponents',["require", "exports"], function (require, exports)
             });
         }
         createSearchItems(sender, context, items) {
-            for (let i = 0; i < items.length && i < 10; i++) {
+            for (let i = 0; i < items.length; i++) {
                 context.resultCount++;
                 context.boardHolder.append(this.createItem(items[i], context));
             }
         }
         createAddableItems(sender, context, items) {
-            for (let i = 0; i < items.length && i < 10; i++) {
+            for (let i = 0; i < items.length; i++) {
                 //context.resultCount++;
                 context.addabledItemsHolder.append(this.createAddableItem(items[i], context));
             }

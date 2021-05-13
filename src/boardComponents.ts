@@ -115,14 +115,14 @@
     }
     protected createSearchItems(sender: IAjaxObject, context: IBoardContext, items: IResultItemDto[]) {
 
-        for (let i = 0; i < items.length && i < 10; i++) {
+        for (let i = 0; i < items.length; i++) {
             context.resultCount++;
             context.boardHolder.append(this.createItem(items[i], context));
         }
     }
     protected createAddableItems(sender: IAjaxObject, context: IBoardContext, items: IResultItemDto[]) {
 
-        for (let i = 0; i < items.length && i < 10; i++) {
+        for (let i = 0; i < items.length; i++) {
             //context.resultCount++;
             context.addabledItemsHolder.append(this.createAddableItem(items[i], context));
         }
