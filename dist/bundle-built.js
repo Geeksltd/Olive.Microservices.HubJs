@@ -30217,21 +30217,40 @@ define('app/boardComponents',["require", "exports"], function (require, exports)
                 });
             }
             $(document).click(function (e) {
-                if (!$(e.target).closest("a").is($("#AddableItemsButton")))
-                    $(".board-addable-items-container").fadeOut();
+                if (!$(e.target).closest("a").is($(".manage-button,.add-button")))
+                    $(".board-addable-items-container,.board-manage-items-container").fadeOut();
             });
         }
-        createSearchItems(sender, context, items) {
+        createBoardItems(sender, context, items) {
+            if (items.length == 0)
+                return null;
+            const searchItem = $("<div class='board-group'>");
+            searchItem.append($('<h3 >').html(items[0].Type));
             for (let i = 0; i < items.length; i++) {
                 context.resultCount++;
-                context.boardHolder.append(this.createItem(items[i], context));
+                searchItem.append(this.createItem(items[i], context));
             }
+            return searchItem;
         }
         createAddableItems(sender, context, items) {
+            const result = $(".board-addable-items-container");
             for (let i = 0; i < items.length; i++) {
                 //context.resultCount++;
-                context.addabledItemsHolder.append(this.createAddableItem(items[i], context));
+                result.append(this.createAddableItem(items[i], context));
             }
+            return result;
+        }
+        createManageItems(sender, context, items) {
+            let result = $(".board-manage-items-container");
+            if (result.length == 0) {
+                result = $("<div class='board-manage-items-container'>");
+                context.resultPanel.parent().append(result);
+            }
+            for (let i = 0; i < items.length; i++) {
+                //context.resultCount++;
+                result.append(this.createAddableItem(items[i], context));
+            }
+            return result;
         }
         addColour(item) {
             if (item.Colour != undefined && item.Colour != null && item.Colour != "")
@@ -30248,27 +30267,25 @@ define('app/boardComponents',["require", "exports"], function (require, exports)
                 .append($("<span>").html(item.Body)));
         }
         createAddableItem(item, context) {
-            return $("<div class=\"item\">")
-                .append($("<a href='" + item.Url + "'>")
+            return $("<div class=\"menu-item\">")
+                .append($("<a href='" + item.AddUrl + "'>")
                 .append((item.IconUrl === null || item.IconUrl === undefined) ?
                 $("<div class='icon'>") : this.showIcon(item)
                 .append(item.Name)
                 .append($("<small>")
                 .html(item.Body))));
         }
-        createAddableButton(context) {
-            return $("<div class=\"item\">")
-                .append($("<a href='#' id=\"AddableItemsButton\">")
-                .append($("<div class='icon'>").append($("<i class='fas fa-plus'></i>")))
-                .append($("<small>")));
-        }
-        bindAddableItemsButtonClick() {
-            $("#AddableItemsButton").click(function (e) {
+        bindAddableItemsButtonClick(context) {
+            context.resultPanel.parent().find(".add-button").click(function (e) {
                 e.preventDefault();
-                var top = $(e.target).is("a") ? $(e.target).position().top : $(e.target).closest("a").position().top;
-                $(".board-addable-items-container")
-                    .css("left", $(e.target).position().left + $(e.target).width())
-                    .css("top", top + 15)
+                $(".board-manage-items-container,.board-addable-items-container ").fadeOut();
+                $(this).parent().parent().find(".board-addable-items-container")
+                    .fadeToggle();
+            });
+            context.resultPanel.parent().find(".manage-button").click(function (e) {
+                e.preventDefault();
+                $(".board-manage-items-container,.board-addable-items-container ").fadeOut();
+                $(this).parent().parent().find(".board-manage-items-container")
                     .fadeToggle();
             });
         }
@@ -30285,16 +30302,27 @@ define('app/boardComponents',["require", "exports"], function (require, exports)
             if (result !== null && result !== undefined && typeof (result.Results) === typeof ([])) {
                 sender.state = AjaxState.success;
                 const resultfiltered = result.Results.filter((p) => this.isValidResult(p, context));
-                const boardItem = this.createSearchItems(sender, context, resultfiltered);
-                //context.boardHolder.append(boardItem);
-                context.resultPanel.append(context.boardHolder);
-                if (result !== null && result !== undefined && typeof (result.AddabledItems) === typeof ([])) {
-                    sender.state = AjaxState.success;
-                    const resultfiltered = result.AddabledItems.filter((p) => this.isValidResult(p, context));
-                    const addabledItem = this.createAddableItems(sender, context, resultfiltered);
-                    //context.addabledItemsHolder.append(addabledItem);
-                    if (resultfiltered.length > 0) {
-                        context.addableItemsPanel.append(context.addabledItemsHolder);
+                const boardItem = this.createBoardItems(sender, context, resultfiltered);
+                if (boardItem != null) {
+                    context.boardHolder.append(boardItem);
+                    context.resultPanel.append(context.boardHolder);
+                    if (result !== null && result !== undefined && typeof (result.AddabledItems) === typeof ([])) {
+                        sender.state = AjaxState.success;
+                        var header = this.filterInput.parent();
+                        const managefiltered = result.AddabledItems.filter((p) => p.ManageUrl != null && p.ManageUrl != undefined);
+                        const manageItem = this.createManageItems(sender, context, managefiltered);
+                        if (managefiltered.length > 0) {
+                            //header.append(manageItem);
+                        }
+                        //context.addabledItemsHolder.append(addabledItem);
+                        const resultfiltered = result.AddabledItems.filter((p) => p.AddUrl != null && p.AddUrl != undefined);
+                        const addabledItem = this.createAddableItems(sender, context, resultfiltered);
+                        // if (resultfiltered.length > 0) {
+                        // }
+                        // this.bindAddableItemsButtonClick(boardItem);
+                        // if (resultfiltered.length > 0) {
+                        //     context.addableItemsPanel.append(context.addabledItemsHolder);
+                        // }
                     }
                 }
             }
@@ -30304,19 +30332,6 @@ define('app/boardComponents',["require", "exports"], function (require, exports)
             }
         }
         isValidResult(item, context) {
-            // let resfilter = false;
-            // if (context.boardItemId) {
-            //     if (
-            //         (
-            //             item.Url !== null &&
-            //             item.Url !== undefined
-            //         )
-            //     ) {
-            //         resfilter = true;
-            //     }
-            // } else {
-            //     resfilter = true;
-            // }
             return true;
         }
         onComplete(context, jqXHR) {
@@ -30330,8 +30345,14 @@ define('app/boardComponents',["require", "exports"], function (require, exports)
                 }
             }
             if (context.ajaxCallCount == context.ajaxList.length) {
-                context.boardHolder.append(this.createAddableButton(context));
-                this.bindAddableItemsButtonClick();
+                var header = this.filterInput.parent();
+                this.bindAddableItemsButtonClick(context);
+                if ($(".board-addable-items-container").children.length > 0) {
+                    $(".add-button").fadeIn();
+                }
+                if ($(".board-manage-items-container").children.length > 0) {
+                    $(".manage-button").fadeIn();
+                }
             }
         }
         onError(sender, boardHolder, jqXHR) {

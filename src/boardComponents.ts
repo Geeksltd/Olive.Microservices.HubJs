@@ -21,7 +21,7 @@
     private onChanged(event: any) {
         this.filterInput = this.filterInput || $(event.currentTarget);
         let keywords = this.filterInput.val().toLowerCase().split(' ');
-        let rows =this.filterInput.parent().parent().find('.board-components-result .item');
+        let rows = this.filterInput.parent().parent().find('.board-components-result .item');
 
         rows.each((index, e) => {
             let row = $(e);
@@ -84,7 +84,7 @@
 
         const context: IBoardContext = {
             ajaxList,
-            ajaxCallCount:0,
+            ajaxCallCount: 0,
             resultCount: 0,
             resultPanel,
             addableItemsPanel,
@@ -109,23 +109,40 @@
                 });
         }
         $(document).click(function (e) {
-            if (!$(e.target).closest("a").is($("#AddableItemsButton")))
-                $(".board-addable-items-container").fadeOut();
+            if (!$(e.target).closest("a").is($(".manage-button,.add-button")))
+                $(".board-addable-items-container,.board-manage-items-container").fadeOut();
         })
     }
-    protected createSearchItems(sender: IAjaxObject, context: IBoardContext, items: IResultItemDto[]) {
-
+    protected createBoardItems(sender: IAjaxObject, context: IBoardContext, items: IResultItemDto[]) {
+        if (items.length == 0) return null;
+        const searchItem = $("<div class='board-group'>");
+        searchItem.append($('<h3 >').html(items[0].Type));
         for (let i = 0; i < items.length; i++) {
             context.resultCount++;
-            context.boardHolder.append(this.createItem(items[i], context));
+            searchItem.append(this.createItem(items[i], context));
         }
+        return searchItem;
     }
-    protected createAddableItems(sender: IAjaxObject, context: IBoardContext, items: IResultItemDto[]) {
+    protected createAddableItems(sender: IAjaxObject, context: IBoardContext, items: IAddableItemDto[]) {
+        const result = $(".board-addable-items-container");
 
         for (let i = 0; i < items.length; i++) {
             //context.resultCount++;
-            context.addabledItemsHolder.append(this.createAddableItem(items[i], context));
+            result.append(this.createAddableItem(items[i], context));
         }
+        return result;
+    }
+    protected createManageItems(sender: IAjaxObject, context: IBoardContext, items: IAddableItemDto[]) {
+        let result = $(".board-manage-items-container");
+        if (result.length == 0) {
+            result = $("<div class='board-manage-items-container'>");
+            context.resultPanel.parent().append(result);
+        }
+        for (let i = 0; i < items.length; i++) {
+            //context.resultCount++;
+            result.append(this.createAddableItem(items[i], context));
+        }
+        return result;
     }
     protected addColour(item: IResultItemDto) {
         if (item.Colour != undefined && item.Colour != null && item.Colour != "")
@@ -142,9 +159,9 @@
                 )
                 .append($("<span>").html(item.Body)));
     }
-    protected createAddableItem(item: IResultItemDto, context: IBoardContext) {
-        return $("<div class=\"item\">")
-            .append($("<a href='" + item.Url + "'>")
+    protected createAddableItem(item: IAddableItemDto, context: IBoardContext) {
+        return $("<div class=\"menu-item\">")
+            .append($("<a href='" + item.AddUrl + "'>")
                 .append((item.IconUrl === null || item.IconUrl === undefined) ?
                     $("<div class='icon'>") : this.showIcon(item)
                         .append(item.Name)
@@ -152,23 +169,20 @@
                             .html(item.Body))));
     }
 
-    protected createAddableButton(context: IBoardContext) {
-        return $("<div class=\"item\">")
-            .append($("<a href='#' id=\"AddableItemsButton\">")
-                .append($("<div class='icon'>").append($("<i class='fas fa-plus'></i>")))
-                .append($("<small>")));
-    }
-    protected bindAddableItemsButtonClick() {
-        $("#AddableItemsButton").click(function (e) {
+    protected bindAddableItemsButtonClick(context: IBoardContext) {
+        context.resultPanel.parent().find(".add-button").click(function (e) {
             e.preventDefault();
-            var top = $(e.target).is("a") ? $(e.target).position().top : $(e.target).closest("a").position().top;
-            $(".board-addable-items-container")
-                .css("left", $(e.target).position().left + $(e.target).width())
-                .css("top", top + 15)
+            $(".board-manage-items-container,.board-addable-items-container ").fadeOut();
+            $(this).parent().parent().find(".board-addable-items-container")
                 .fadeToggle();
-
         });
 
+        context.resultPanel.parent().find(".manage-button").click(function (e) {
+            e.preventDefault();
+            $(".board-manage-items-container,.board-addable-items-container ").fadeOut();
+            $(this).parent().parent().find(".board-manage-items-container")
+                .fadeToggle();
+        });
     }
     protected showIcon(item: any): JQuery {
         if (item.IconUrl.indexOf("fa-") > 0) {
@@ -184,23 +198,37 @@
 
             const resultfiltered = result.Results.filter((p) => this.isValidResult(p, context));
 
-            const boardItem = this.createSearchItems(sender, context, resultfiltered);
-            //context.boardHolder.append(boardItem);
+            const boardItem = this.createBoardItems(sender, context, resultfiltered);
+            if (boardItem != null) {
+                context.boardHolder.append(boardItem);
 
-            context.resultPanel.append(context.boardHolder);
+                context.resultPanel.append(context.boardHolder);
 
-            if (result !== null && result !== undefined && typeof (result.AddabledItems) === typeof ([])) {
-                sender.state = AjaxState.success;
+                if (result !== null && result !== undefined && typeof (result.AddabledItems) === typeof ([])) {
+                    sender.state = AjaxState.success;
 
-                const resultfiltered = result.AddabledItems.filter((p) => this.isValidResult(p, context));
+                    var header = this.filterInput.parent();
 
-                const addabledItem = this.createAddableItems(sender, context, resultfiltered);
-                //context.addabledItemsHolder.append(addabledItem);
+                    const managefiltered = result.AddabledItems.filter((p) => p.ManageUrl != null && p.ManageUrl != undefined);
+                    const manageItem = this.createManageItems(sender, context, managefiltered);
+                    if (managefiltered.length > 0) {
+                        //header.append(manageItem);
+                    }
+                    //context.addabledItemsHolder.append(addabledItem);
+                    const resultfiltered = result.AddabledItems.filter((p) => p.AddUrl != null && p.AddUrl != undefined);
 
-                if (resultfiltered.length > 0) {
-                    context.addableItemsPanel.append(context.addabledItemsHolder);
+                    const addabledItem = this.createAddableItems(sender, context, resultfiltered);
+
+                    // if (resultfiltered.length > 0) {
+                      
+                    // }
+                    // this.bindAddableItemsButtonClick(boardItem);
+
+                    // if (resultfiltered.length > 0) {
+                    //     context.addableItemsPanel.append(context.addabledItemsHolder);
+                    // }
+
                 }
-
             }
 
         } else {
@@ -209,19 +237,6 @@
         }
     }
     protected isValidResult(item: IResultItemDto, context: IBoardContext) {
-        // let resfilter = false;
-        // if (context.boardItemId) {
-        //     if (
-        //         (
-        //             item.Url !== null &&
-        //             item.Url !== undefined
-        //         )
-        //     ) {
-        //         resfilter = true;
-        //     }
-        // } else {
-        //     resfilter = true;
-        // }
         return true;
     }
     protected onComplete(context: IBoardContext, jqXHR: JQueryXHR) {
@@ -236,8 +251,15 @@
             }
         }
         if (context.ajaxCallCount == context.ajaxList.length) {
-            context.boardHolder.append(this.createAddableButton(context))
-            this.bindAddableItemsButtonClick();
+            var header = this.filterInput.parent();
+            this.bindAddableItemsButtonClick(context);
+
+            if ($(".board-addable-items-container").children.length > 0) {
+                $(".add-button").fadeIn();
+            }
+            if ($(".board-manage-items-container").children.length > 0) {
+                $(".manage-button").fadeIn();
+            }
         }
     }
 
@@ -252,7 +274,7 @@
 }
 
 export interface IBoardContext {
-    ajaxCallCount:number;
+    ajaxCallCount: number;
     ajaxList: IAjaxObject[];
     resultPanel: JQuery;
     addableItemsPanel: JQuery;
@@ -279,13 +301,19 @@ export interface IResultItemDto {
     Body: string;
     IconUrl: string;
     Url: string;
-    GroupTitle: string;
     Colour: string;
 }
 
+export interface IAddableItemDto {
+    Name: string;
+    Body: string;
+    IconUrl: string;
+    AddUrl: string;
+    ManageUrl: string;
+}
 export interface IBoardResultDto {
     Results: IResultItemDto[];
-    AddabledItems: IResultItemDto[];
+    AddabledItems: IAddableItemDto[];
 }
 
 export enum AjaxState {
