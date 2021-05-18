@@ -30248,7 +30248,7 @@ define('app/boardComponents',["require", "exports"], function (require, exports)
             }
             for (let i = 0; i < items.length; i++) {
                 //context.resultCount++;
-                result.append(this.createAddableItem(items[i], context));
+                result.append(this.createManageItem(items[i], context));
             }
             return result;
         }
@@ -30269,6 +30269,15 @@ define('app/boardComponents',["require", "exports"], function (require, exports)
         createAddableItem(item, context) {
             return $("<div class=\"menu-item\">")
                 .append($("<a href='" + item.AddUrl + "'>")
+                .append((item.IconUrl === null || item.IconUrl === undefined) ?
+                $("<div class='icon'>") : this.showIcon(item)
+                .append(item.Name)
+                .append($("<small>")
+                .html(item.Body))));
+        }
+        createManageItem(item, context) {
+            return $("<div class=\"menu-item\">")
+                .append($("<a href='" + item.ManageUrl + "'>")
                 .append((item.IconUrl === null || item.IconUrl === undefined) ?
                 $("<div class='icon'>") : this.showIcon(item)
                 .append(item.Name)
@@ -30302,9 +30311,23 @@ define('app/boardComponents',["require", "exports"], function (require, exports)
             if (result !== null && result !== undefined && typeof (result.Results) === typeof ([])) {
                 sender.state = AjaxState.success;
                 const resultfiltered = result.Results.filter((p) => this.isValidResult(p, context));
-                const boardItem = this.createBoardItems(sender, context, resultfiltered);
-                if (boardItem != null) {
+                const groupBy = (array, key) => {
+                    // Return the end result
+                    return array.reduce((result, currentValue) => {
+                        // If an array already present for key, push it to the array. Else create an array and push the object
+                        (result[currentValue[key]] = result[currentValue[key]] || []).push(currentValue);
+                        // Return the current iteration `result` value, this will be taken as next iteration `result` value and accumulate
+                        return result;
+                    }, {}); // empty object is the initial value for result object
+                };
+                const personGroupedByType = groupBy(resultfiltered, 'Type');
+                var that = this;
+                $.each(personGroupedByType, function (element) {
+                    var result = resultfiltered.filter((p) => p.Type == element);
+                    const boardItem = that.createBoardItems(sender, context, result);
                     context.boardHolder.append(boardItem);
+                });
+                if (resultfiltered.length > 0) {
                     context.resultPanel.append(context.boardHolder);
                     if (result !== null && result !== undefined && typeof (result.AddabledItems) === typeof ([])) {
                         sender.state = AjaxState.success;

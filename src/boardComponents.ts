@@ -140,7 +140,7 @@
         }
         for (let i = 0; i < items.length; i++) {
             //context.resultCount++;
-            result.append(this.createAddableItem(items[i], context));
+            result.append(this.createManageItem(items[i], context));
         }
         return result;
     }
@@ -169,6 +169,15 @@
                             .html(item.Body))));
     }
 
+    protected createManageItem(item: IAddableItemDto, context: IBoardContext) {
+        return $("<div class=\"menu-item\">")
+            .append($("<a href='" + item.ManageUrl + "'>")
+                .append((item.IconUrl === null || item.IconUrl === undefined) ?
+                    $("<div class='icon'>") : this.showIcon(item)
+                        .append(item.Name)
+                        .append($("<small>")
+                            .html(item.Body))));
+    }
     protected bindAddableItemsButtonClick(context: IBoardContext) {
         context.resultPanel.parent().find(".add-button").click(function (e) {
             e.preventDefault();
@@ -197,10 +206,29 @@
             sender.state = AjaxState.success;
 
             const resultfiltered = result.Results.filter((p) => this.isValidResult(p, context));
+            const groupBy = (array, key) => {
+                // Return the end result
+                return array.reduce((result, currentValue) => {
+                    // If an array already present for key, push it to the array. Else create an array and push the object
+                    (result[currentValue[key]] = result[currentValue[key]] || []).push(
+                        currentValue
+                    );
+                    // Return the current iteration `result` value, this will be taken as next iteration `result` value and accumulate
+                    return result;
+                }, {}); // empty object is the initial value for result object
+            };
+            
+            const personGroupedByType = groupBy(resultfiltered, 'Type');
+            var that= this;
+            $.each(personGroupedByType, function (element) {
 
-            const boardItem = this.createBoardItems(sender, context, resultfiltered);
-            if (boardItem != null) {
+                var result = resultfiltered.filter((p) => p.Type == element);
+
+                const boardItem = that.createBoardItems(sender, context, result);
                 context.boardHolder.append(boardItem);
+            })
+
+            if (resultfiltered.length > 0) {
 
                 context.resultPanel.append(context.boardHolder);
 
@@ -220,7 +248,7 @@
                     const addabledItem = this.createAddableItems(sender, context, resultfiltered);
 
                     // if (resultfiltered.length > 0) {
-                      
+
                     // }
                     // this.bindAddableItemsButtonClick(boardItem);
 
@@ -254,10 +282,10 @@
             var header = this.filterInput.parent();
             this.bindAddableItemsButtonClick(context);
 
-            if ($(".board-addable-items-container").children.length > 0) {
+            if ($(".board-addable-items-container").children().length > 0) {
                 $(".add-button").fadeIn();
             }
-            if ($(".board-manage-items-container").children.length > 0) {
+            if ($(".board-manage-items-container").children().length > 0) {
                 $(".manage-button").fadeIn();
             }
         }
