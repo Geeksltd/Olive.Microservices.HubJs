@@ -30370,10 +30370,10 @@ define('app/boardComponents',["require", "exports"], function (require, exports)
             if (context.ajaxCallCount == context.ajaxList.length) {
                 var header = this.filterInput.parent();
                 this.bindAddableItemsButtonClick(context);
-                if ($(".board-addable-items-container").children.length > 0) {
+                if ($(".board-addable-items-container").children().length > 0) {
                     $(".add-button").fadeIn();
                 }
-                if ($(".board-manage-items-container").children.length > 0) {
+                if ($(".board-manage-items-container").children().length > 0) {
                     $(".manage-button").fadeIn();
                 }
             }
