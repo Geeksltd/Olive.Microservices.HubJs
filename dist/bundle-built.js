@@ -30116,7 +30116,7 @@ define('app/hubModal',["require", "exports", "olive/components/modal"], function
 //# sourceMappingURL=hubModal.js.map;
 define('app/boardComponents',["require", "exports"], function (require, exports) {
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.AjaxState = void 0;
+    exports.ActionEnum = exports.AjaxState = void 0;
     class BoardComponents {
         constructor(input) {
             this.input = input;
@@ -30225,7 +30225,7 @@ define('app/boardComponents',["require", "exports"], function (require, exports)
             if (items.length == 0)
                 return null;
             const searchItem = $("<div class='board-group'>");
-            searchItem.append($('<h3 >').html(items[0].Type));
+            searchItem.append($('<h3 >').html(items[0].Type + "s"));
             for (let i = 0; i < items.length; i++) {
                 context.resultCount++;
                 searchItem.append(this.createItem(items[i], context));
@@ -30258,8 +30258,13 @@ define('app/boardComponents',["require", "exports"], function (require, exports)
             return "";
         }
         createItem(item, context) {
+            var attr = "";
+            if (item.Action == ActionEnum.Popup)
+                attr = "target=\"$modal\"";
+            else if (item.Action == ActionEnum.Redirect)
+                attr = "target=\"_blank\"";
             return $("<div class=\"item\">")
-                .append($("<a href='" + item.Url + "' style=\"" + this.addColour(item) + "\" >")
+                .append($("<a href='" + item.Url + "' style=\"" + this.addColour(item) + "\" " + attr + " >")
                 .append($("<div>").append((item.IconUrl === null || item.IconUrl === undefined) ? $("<div class='icon'>") : this.showIcon(item))
                 .append($("<span>").append(item.Type))
                 .append("<br />")
@@ -30394,6 +30399,12 @@ define('app/boardComponents',["require", "exports"], function (require, exports)
         AjaxState[AjaxState["success"] = 1] = "success";
         AjaxState[AjaxState["failed"] = 2] = "failed";
     })(AjaxState = exports.AjaxState || (exports.AjaxState = {}));
+    var ActionEnum;
+    (function (ActionEnum) {
+        ActionEnum[ActionEnum["Redirect"] = 0] = "Redirect";
+        ActionEnum[ActionEnum["Popup"] = 1] = "Popup";
+        ActionEnum[ActionEnum["NewWindow"] = 2] = "NewWindow";
+    })(ActionEnum = exports.ActionEnum || (exports.ActionEnum = {}));
     var boardComponents = new BoardComponents($(".board-components"));
 });
 //# sourceMappingURL=boardComponents.js.map;

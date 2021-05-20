@@ -116,7 +116,7 @@
     protected createBoardItems(sender: IAjaxObject, context: IBoardContext, items: IResultItemDto[]) {
         if (items.length == 0) return null;
         const searchItem = $("<div class='board-group'>");
-        searchItem.append($('<h3 >').html(items[0].Type));
+        searchItem.append($('<h3 >').html(items[0].Type + "s"));
         for (let i = 0; i < items.length; i++) {
             context.resultCount++;
             searchItem.append(this.createItem(items[i], context));
@@ -150,8 +150,14 @@
         return "";
     }
     protected createItem(item: IResultItemDto, context: IBoardContext) {
+        var attr = "";
+        if (item.Action == ActionEnum.Popup)
+            attr = "target=\"$modal\"";
+        else if (item.Action == ActionEnum.NewWindow)
+            attr = "target=\"_blank\"";
+
         return $("<div class=\"item\">")
-            .append($("<a href='" + item.Url + "' style=\"" + this.addColour(item) + "\" >")
+            .append($("<a href='" + item.Url + "' style=\"" + this.addColour(item) + "\" " + attr + " >")
                 .append($("<div>").append((item.IconUrl === null || item.IconUrl === undefined) ? $("<div class='icon'>") : this.showIcon(item))
                     .append($("<span>").append(item.Type))
                     .append("<br />")
@@ -328,6 +334,7 @@ export interface IResultItemDto {
     Type: string;
     Body: string;
     IconUrl: string;
+    Action: ActionEnum;
     Url: string;
     Colour: string;
 }
@@ -348,6 +355,11 @@ export enum AjaxState {
     pending,
     success,
     failed,
+}
+export enum ActionEnum {
+    Redirect,
+    Popup,
+    NewWindow,
 }
 
 var boardComponents = new BoardComponents($(".board-components"));
