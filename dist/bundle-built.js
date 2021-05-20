@@ -30261,7 +30261,7 @@ define('app/boardComponents',["require", "exports"], function (require, exports)
             var attr = "";
             if (item.Action == ActionEnum.Popup)
                 attr = "target=\"$modal\"";
-            else if (item.Action == ActionEnum.Redirect)
+            else if (item.Action == ActionEnum.NewWindow)
                 attr = "target=\"_blank\"";
             return $("<div class=\"item\">")
                 .append($("<a href='" + item.Url + "' style=\"" + this.addColour(item) + "\" " + attr + " >")
