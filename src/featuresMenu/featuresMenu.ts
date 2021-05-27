@@ -290,7 +290,31 @@ export default class FeaturesMenu {
             $(".feature-menu-item[data-nodeid=" + activeId + "]").addClass("active").parents("li.feature-menu-item").addClass("active");
         }, 100)
     }
-
+    showPageSubMenu(data) {
+        let sideExpandedChildItems = $(".feature-menu-item[expand='true'][is-side-menu-child='true']");
+        requirejs(["handlebars"], (x) => { this.generatePageTopMenu(data, x, sideExpandedChildItems.last()); });
+    }
+    generatePageTopMenu(data, Handlebars, element) {
+        let topMenuData = $("#topMenu").attr("value");
+        this.generatePageTopMenuHtml(data, Handlebars);
+        let activeId = $(".feature-menu-item .active").attr("id");
+        $(".feature-menu-item .active").parents("li.feature-menu-item").addClass("active");
+        setTimeout(function () {
+            $(".feature-menu-item[data-nodeid=" + activeId + "]").addClass("active").parents("li.feature-menu-item").addClass("active");
+        }, 100);
+    }
+    generatePageTopMenuHtml(data, Handlebars) {
+        let template = $("#sumMenu-template").html();
+        var compiled = Handlebars.compile(template);
+        var result = compiled(data);
+        $(".features-sub-menu").html('').append(result);
+        this.bindSubMenuClicks($(".features-sub-menu .feature-menu-item > a:not([href=''])"));
+        this.enableIFrameClientSideRedirection($(".features-sub-menu .feature-menu-item a:not([data-redirect])"));
+        this.ajaxRedirect.enableRedirect($("a[data-redirect=ajax]"));
+        setTimeout(function () {
+            $("." + $(".feature-menu-item[expand='true'][is-side-menu-child='true']").attr("id")).addClass("active");
+        }, 100);
+    }
     generateTopMenuHtml(topMenuData, element, Handlebars) {
 
         let data = { menus: this.getObjects(JSON.parse(topMenuData), "ID", $(element).attr("id")) };
