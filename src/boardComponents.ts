@@ -245,23 +245,9 @@
 
                 const managefiltered = result.AddabledItems.filter((p) => p.ManageUrl != null && p.ManageUrl != undefined);
                 const manageItem = this.createManageItems(sender, context, managefiltered);
-                if (managefiltered.length > 0) {
-                    //header.append(manageItem);
-                }
-                //context.addabledItemsHolder.append(addabledItem);
                 const resultfiltered = result.AddabledItems.filter((p) => p.AddUrl != null && p.AddUrl != undefined);
 
                 const addabledItem = this.createAddableItems(sender, context, resultfiltered);
-
-                // if (resultfiltered.length > 0) {
-
-                // }
-                // this.bindAddableItemsButtonClick(boardItem);
-
-                // if (resultfiltered.length > 0) {
-                //     context.addableItemsPanel.append(context.addabledItemsHolder);
-                // }
-
             }
 
         } else {

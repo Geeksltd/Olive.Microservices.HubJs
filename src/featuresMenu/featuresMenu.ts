@@ -31,6 +31,10 @@ export class FeaturesMenuFactory implements IService {
 
         featureLink.click();
     }
+    public getMenu() {
+        var menu = new FeaturesMenu(this.url, this.waiting, this.ajaxRedirect);
+        return menu;
+    }
 }
 
 export default class FeaturesMenu {
@@ -295,7 +299,6 @@ export default class FeaturesMenu {
         requirejs(["handlebars"], (x) => { this.generatePageTopMenu(data, x, sideExpandedChildItems.last()); });
     }
     generatePageTopMenu(data, Handlebars, element) {
-        let topMenuData = $("#topMenu").attr("value");
         this.generatePageTopMenuHtml(data, Handlebars);
         let activeId = $(".feature-menu-item .active").attr("id");
         $(".feature-menu-item .active").parents("li.feature-menu-item").addClass("active");
@@ -304,16 +307,18 @@ export default class FeaturesMenu {
         }, 100);
     }
     generatePageTopMenuHtml(data, Handlebars) {
+        data = { menus: [{ Children: JSON.parse(data) }] };
         let template = $("#sumMenu-template").html();
         var compiled = Handlebars.compile(template);
         var result = compiled(data);
         $(".features-sub-menu").html('').append(result);
-        this.bindSubMenuClicks($(".features-sub-menu .feature-menu-item > a:not([href=''])"));
+        window.page.services.getService("modalHelper").enableLink($(".features-sub-menu .feature-menu-item > a[target='$modal'][href]"))
+        // this.bindSubMenuClicks($(".features-sub-menu .feature-menu-item > a:not([href=''])"));
         this.enableIFrameClientSideRedirection($(".features-sub-menu .feature-menu-item a:not([data-redirect])"));
         this.ajaxRedirect.enableRedirect($("a[data-redirect=ajax]"));
-        setTimeout(function () {
-            $("." + $(".feature-menu-item[expand='true'][is-side-menu-child='true']").attr("id")).addClass("active");
-        }, 100);
+        // setTimeout(function () {
+        //     $("." + $(".feature-menu-item[expand='true'][is-side-menu-child='true']").attr("id")).addClass("active");
+        // }, 100);
     }
     generateTopMenuHtml(topMenuData, element, Handlebars) {
 

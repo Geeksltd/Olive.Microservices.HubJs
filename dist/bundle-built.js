@@ -29078,6 +29078,10 @@ define('app/featuresMenu/featuresMenu',["require", "exports", "app/model/service
             }
             featureLink.click();
         }
+        getMenu() {
+            var menu = new FeaturesMenu(this.url, this.waiting, this.ajaxRedirect);
+            return menu;
+        }
     }
     exports.FeaturesMenuFactory = FeaturesMenuFactory;
     class FeaturesMenu {
@@ -29301,7 +29305,6 @@ define('app/featuresMenu/featuresMenu',["require", "exports", "app/model/service
             requirejs(["handlebars"], (x) => { this.generatePageTopMenu(data, x, sideExpandedChildItems.last()); });
         }
         generatePageTopMenu(data, Handlebars, element) {
-            let topMenuData = $("#topMenu").attr("value");
             this.generatePageTopMenuHtml(data, Handlebars);
             let activeId = $(".feature-menu-item .active").attr("id");
             $(".feature-menu-item .active").parents("li.feature-menu-item").addClass("active");
@@ -29310,16 +29313,18 @@ define('app/featuresMenu/featuresMenu',["require", "exports", "app/model/service
             }, 100);
         }
         generatePageTopMenuHtml(data, Handlebars) {
+            data = { menus: [{ Children: JSON.parse(data) }] };
             let template = $("#sumMenu-template").html();
             var compiled = Handlebars.compile(template);
             var result = compiled(data);
             $(".features-sub-menu").html('').append(result);
-            this.bindSubMenuClicks($(".features-sub-menu .feature-menu-item > a:not([href=''])"));
+            window.page.services.getService("modalHelper").enableLink($(".features-sub-menu .feature-menu-item > a[target='$modal'][href]"));
+            // this.bindSubMenuClicks($(".features-sub-menu .feature-menu-item > a:not([href=''])"));
             this.enableIFrameClientSideRedirection($(".features-sub-menu .feature-menu-item a:not([data-redirect])"));
             this.ajaxRedirect.enableRedirect($("a[data-redirect=ajax]"));
-            setTimeout(function () {
-                $("." + $(".feature-menu-item[expand='true'][is-side-menu-child='true']").attr("id")).addClass("active");
-            }, 100);
+            // setTimeout(function () {
+            //     $("." + $(".feature-menu-item[expand='true'][is-side-menu-child='true']").attr("id")).addClass("active");
+            // }, 100);
         }
         generateTopMenuHtml(topMenuData, element, Handlebars) {
             let data = { menus: this.getObjects(JSON.parse(topMenuData), "ID", $(element).attr("id")) };
@@ -30366,18 +30371,8 @@ define('app/boardComponents',["require", "exports"], function (require, exports)
                     var header = this.filterInput.parent();
                     const managefiltered = result.AddabledItems.filter((p) => p.ManageUrl != null && p.ManageUrl != undefined);
                     const manageItem = this.createManageItems(sender, context, managefiltered);
-                    if (managefiltered.length > 0) {
-                        //header.append(manageItem);
-                    }
-                    //context.addabledItemsHolder.append(addabledItem);
                     const resultfiltered = result.AddabledItems.filter((p) => p.AddUrl != null && p.AddUrl != undefined);
                     const addabledItem = this.createAddableItems(sender, context, resultfiltered);
-                    // if (resultfiltered.length > 0) {
-                    // }
-                    // this.bindAddableItemsButtonClick(boardItem);
-                    // if (resultfiltered.length > 0) {
-                    //     context.addableItemsPanel.append(context.addabledItemsHolder);
-                    // }
                 }
             }
             else {
