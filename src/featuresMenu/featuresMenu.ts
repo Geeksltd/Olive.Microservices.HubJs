@@ -329,7 +329,7 @@ export default class FeaturesMenu {
         $(".breadcrumb").append(`<li class="breadcrumb-item"><a href="${window.location.origin}/under/" data-redirect="ajax">Home</a></li>`);
         //check to see if click event is from mid-page or left page
 
-        data.each((i: number, d) => {
+        $.each(data, (i: number, d) => {
             let path = d.Url;
             let text = d.Name;
 
@@ -346,15 +346,14 @@ export default class FeaturesMenu {
                         featuresMenu = $(".features-side-menu [href='" + path.split("?")[0] + "']");
                     if (featuresMenu.length == 0) {
                         var ms = path.startsWith("/") ? path.substring(1).split("/")[0] : path.split("/")[0];
-                        path = "/[" + ms + "]/" + path.split(ms)[1];
+                        path = "/[" + ms + "]" + path.split(ms)[1];
                         featuresMenu = $(".features-side-menu [href='" + path.split("?")[0] + "']");
                     }
                     if (featuresMenu.length > 0) {
-                        if (featuresMenu.hasClass("feature-menu-item active"))
-                            featuresMenu.addClass("active");
+                        if (featuresMenu.parent().attr("is-side-menu-child") == "true")
+                            featuresMenu.parent().addClass("active");
                         else
                             featuresMenu.parent().attr("expand", "true");
-
                     }
 
                 }
