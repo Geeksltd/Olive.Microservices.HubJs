@@ -306,19 +306,64 @@ export default class FeaturesMenu {
             $(".feature-menu-item[data-nodeid=" + activeId + "]").addClass("active").parents("li.feature-menu-item").addClass("active");
         }, 100);
     }
-    generatePageTopMenuHtml(data, Handlebars) {
-        data = { menus: [{ Children: JSON.parse(data) }] };
+    generatePageTopMenuHtml(menuData, Handlebars) {
+        var d = JSON.parse(menuData);
+        var data = { menus: [{ Children: d.Result }] };
+        this.generatePageBreadcrumb(d.Breadcrumb);
         let template = $("#sumMenu-template").html();
         var compiled = Handlebars.compile(template);
         var result = compiled(data);
         $(".features-sub-menu").html('').append(result);
         window.page.services.getService("modalHelper").enableLink($(".features-sub-menu .feature-menu-item > a[target='$modal'][href]"))
+        window.page.services.getService("serverInvoker").enableInvokeWithAjax($("[formaction]").not("[formmethod=post]"), "click.formaction", "formaction");
+        window.page.services.getService("confirmBoxFactory").enable($("[data-confirm-question]"))
         // this.bindSubMenuClicks($(".features-sub-menu .feature-menu-item > a:not([href=''])"));
-        this.enableIFrameClientSideRedirection($(".features-sub-menu .feature-menu-item a:not([data-redirect])"));
+        this.enableIFrameClientSideRedirection($(".features-sub-menu .feature-menu-item a:not([data-redirect]):not([data-confirm-question])"));
         this.ajaxRedirect.enableRedirect($("a[data-redirect=ajax]"));
         // setTimeout(function () {
         //     $("." + $(".feature-menu-item[expand='true'][is-side-menu-child='true']").attr("id")).addClass("active");
         // }, 100);
+    }
+    generatePageBreadcrumb(data) {
+        $(".breadcrumb").html("");
+        $(".breadcrumb").append(`<li class="breadcrumb-item"><a href="${window.location.origin}/under/" data-redirect="ajax">Home</a></li>`);
+        //check to see if click event is from mid-page or left page
+
+        data.each((i: number, d) => {
+            let path = d.Url;
+            let text = d.Name;
+
+            if ((data.length - 1) > i) {
+                {
+                    let li = $(`<li class="breadcrumb-item"><a href="${path}" data-redirect="ajax" data-itemid="">${text}</a></li>`)
+                        .appendTo($(".breadcrumb"));
+
+                    if (!path.startsWith("/under/"))
+                        li.find("a").removeAttr("data-redirect");
+
+                    var featuresMenu = $(".features-side-menu [href='" + path + "']");
+                    if (featuresMenu.length == 0)
+                        featuresMenu = $(".features-side-menu [href='" + path.split("?")[0] + "']");
+                    if (featuresMenu.length == 0) {
+                        var ms = path.startsWith("/") ? path.substring(1).split("/")[0] : path.split("/")[0];
+                        path = "/[" + ms + "]/" + path.split(ms)[1];
+                        featuresMenu = $(".features-side-menu [href='" + path.split("?")[0] + "']");
+                    }
+                    if (featuresMenu.length > 0) {
+                        if (featuresMenu.hasClass("feature-menu-item active"))
+                            featuresMenu.addClass("active");
+                        else
+                            featuresMenu.parent().attr("expand", "true");
+
+                    }
+
+                }
+            }
+            else {
+                $(".breadcrumb").append(`<li class="breadcrumb-item active" aria-current="page">${text}</li>`);
+            }
+        });
+
     }
     generateTopMenuHtml(topMenuData, element, Handlebars) {
 
