@@ -15,6 +15,7 @@ export class FeaturesMenuFactory implements IService {
         menu.showSubMenu();
         menu.enableIFrameClientSideRedirection($(".feature-menu-item a:not([data-redirect])"));
     }
+    
 
     public bindItemListClick() {
         var menu = new FeaturesMenu(this.url, this.waiting, this.ajaxRedirect);
@@ -266,6 +267,35 @@ export default class FeaturesMenu {
         else
             this.showSubMenuOf(wrapper);
     }
+    enableTopMenuScrolling(slider: any) {
+
+        //const slider: JQuery = document.querySelector('.features-sub-menu ul');
+        if ($(slider).attr("enabled-scroll") == null || $(slider).attr("enabled-scroll") == undefined) {
+            var x, y, top, left, down;
+
+            $(slider).mousedown(function (e) {
+                e.preventDefault();
+                down = true;
+                x = e.pageX;
+                y = e.pageY;
+                top = $(this).scrollTop();
+                left = $(this).scrollLeft();
+            });
+
+            $("body").mousemove(function (e) {
+                if (down) {
+                    var newX = e.pageX;
+                    var newY = e.pageY;
+
+                    $(slider).scrollTop(top - newY + y);
+                    $(slider).scrollLeft(left - newX + x);
+                }
+            });
+
+            $("body").mouseup(function (e) { down = false; });
+            $(slider).attr("enabled-scroll", "true")
+        }
+    }
     generateTopMenu(Handlebars: any, element) {
 
         //if the top menu has been already generated, so we ignore generating it again.
@@ -293,6 +323,7 @@ export default class FeaturesMenu {
         setTimeout(function () {
             $(".feature-menu-item[data-nodeid=" + activeId + "]").addClass("active").parents("li.feature-menu-item").addClass("active");
         }, 100)
+        this.enableTopMenuScrolling($('.features-sub-menu ul'))
     }
     showPageSubMenu(data) {
         let sideExpandedChildItems = $(".feature-menu-item[expand='true'][is-side-menu-child='true']");
@@ -304,6 +335,7 @@ export default class FeaturesMenu {
         $(".feature-menu-item .active").parents("li.feature-menu-item").addClass("active");
         setTimeout(function () {
             $(".feature-menu-item[data-nodeid=" + activeId + "]").addClass("active").parents("li.feature-menu-item").addClass("active");
+            this.enableTopMenuScrolling($('.features-sub-menu ul'))
         }, 100);
     }
     generatePageTopMenuHtml(menuData, Handlebars) {
@@ -323,6 +355,7 @@ export default class FeaturesMenu {
         // setTimeout(function () {
         //     $("." + $(".feature-menu-item[expand='true'][is-side-menu-child='true']").attr("id")).addClass("active");
         // }, 100);
+        this.enableTopMenuScrolling($('.features-sub-menu'))
     }
     generatePageBreadcrumb(data) {
         $(".breadcrumb").html("");
@@ -383,6 +416,7 @@ export default class FeaturesMenu {
         this.ajaxRedirect.enableRedirect($("a[data-redirect=ajax]"));
         setTimeout(function () {
             $("." + $(".feature-menu-item[expand='true'][is-side-menu-child='true']").attr("id")).addClass("active");
+            this.enableTopMenuScrolling($('.features-sub-menu ul'))
         }, 100)
     }
 

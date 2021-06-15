@@ -6,7 +6,7 @@ import ToggleCheckbox from './toggleCheckbox';
 import WidgetModule from './widgetModule';
 import ExpandCollapse from './expandCollapse';
 import BreadcrumbMenu from './featuresMenu/breadcrumbMenu';
-import FullMenuFiltering  from './featuresMenu/fullMenuFiltering';
+import FullMenuFiltering from './featuresMenu/fullMenuFiltering';
 import { ServiceContainer } from 'olive/di/serviceContainer';
 import Services from 'olive/di/services';
 import HubAjaxRedirect from './overrides/hubAjaxRedirect';
@@ -106,19 +106,20 @@ export default class HubPage extends OlivePage {
             new HubAjaxRedirect(url, responseProcessor, waiting))
             .withDependencies(Services.Url, Services.ResponseProcessor, Services.Waiting);
 
-        services.addSingleton(Services.StandardAction, (alert: Alert, form: Form, waiting: Waiting, ajaxRedirect: AjaxRedirect, 
+        services.addSingleton(Services.StandardAction, (alert: Alert, form: Form, waiting: Waiting, ajaxRedirect: AjaxRedirect,
             responseProcessor: ResponseProcessor, select: Select, modalHelper: ModalHelper, serviceLocator: IServiceLocator) =>
             new HubStandardAction(alert, form, waiting, ajaxRedirect, responseProcessor, select, modalHelper, serviceLocator))
-            .withDependencies(Services.Alert, Services.Form, Services.Waiting, Services.AjaxRedirect, 
+            .withDependencies(Services.Alert, Services.Form, Services.Waiting, Services.AjaxRedirect,
                 Services.ResponseProcessor, Services.Select, Services.ModalHelper, Services.ServiceLocator);
-    
+
         services.addSingleton(Services.Form, (url: Url, validate: Validate, waiting: Waiting, ajaxRedirect: AjaxRedirect) =>
             new HubForm(url, validate, waiting, ajaxRedirect))
             .withDependencies(Services.Url, Services.Validate, Services.Waiting, Services.AjaxRedirect);
 
-        services.addSingleton(Services.ModalHelper, (url: Url, ajaxRedirect: AjaxRedirect, responseProcessor: ResponseProcessor) =>
-            new HubModal(url, ajaxRedirect, responseProcessor))
-            .withDependencies(Services.Url, Services.AjaxRedirect, Services.ResponseProcessor);
+        // if (services.getService(Services.ModalHelper) == null || services.getService(Services.ModalHelper) == undefined)
+        //     services.addSingleton(Services.ModalHelper, (url: Url, ajaxRedirect: AjaxRedirect, responseProcessor: ResponseProcessor) =>
+        //         new HubModal(url, ajaxRedirect, responseProcessor))
+        //         .withDependencies(Services.Url, Services.AjaxRedirect, Services.ResponseProcessor);
 
         super.configureServices(services);
     }
@@ -164,7 +165,7 @@ export default class HubPage extends OlivePage {
                 currentMenu.parent().parent().parent().addClass("active").attr("expand", "true");
             currentMenu.addClass("active");
 
-            HubPage.IsFirstPageLoad=false;
+            HubPage.IsFirstPageLoad = false;
 
             if (window.location.search != "") {
                 var origUrl = currentMenu.attr("href")
