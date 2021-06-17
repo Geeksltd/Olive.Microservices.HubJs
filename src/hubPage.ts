@@ -58,6 +58,7 @@ import 'datepicker';
 import 'bootstrapToggle';
 import 'bootstrap-select';
 import 'flickity';
+import ServerInvoker from 'olive/mvc/serverInvoker';
 
 export default class HubPage extends OlivePage {
 
@@ -115,7 +116,8 @@ export default class HubPage extends OlivePage {
         services.addSingleton(Services.Form, (url: Url, validate: Validate, waiting: Waiting, ajaxRedirect: AjaxRedirect) =>
             new HubForm(url, validate, waiting, ajaxRedirect))
             .withDependencies(Services.Url, Services.Validate, Services.Waiting, Services.AjaxRedirect);
-
+        
+        //   services.tryAddSingleton
         // if (services.getService(Services.ModalHelper) == null || services.getService(Services.ModalHelper) == undefined)
         //     services.addSingleton(Services.ModalHelper, (url: Url, ajaxRedirect: AjaxRedirect, responseProcessor: ResponseProcessor) =>
         //         new HubModal(url, ajaxRedirect, responseProcessor))

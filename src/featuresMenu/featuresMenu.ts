@@ -323,7 +323,7 @@ export default class FeaturesMenu {
         setTimeout(function () {
             $(".feature-menu-item[data-nodeid=" + activeId + "]").addClass("active").parents("li.feature-menu-item").addClass("active");
         }, 100)
-        this.enableTopMenuScrolling($('.features-sub-menu ul'))
+        this.enableTopMenuScrolling($('.features-sub-menu'))
     }
     showPageSubMenu(data) {
         let sideExpandedChildItems = $(".feature-menu-item[expand='true'][is-side-menu-child='true']");
@@ -335,8 +335,8 @@ export default class FeaturesMenu {
         $(".feature-menu-item .active").parents("li.feature-menu-item").addClass("active");
         setTimeout(function () {
             $(".feature-menu-item[data-nodeid=" + activeId + "]").addClass("active").parents("li.feature-menu-item").addClass("active");
-            this.enableTopMenuScrolling($('.features-sub-menu ul'))
         }, 100);
+        this.enableTopMenuScrolling($('.features-sub-menu'))
     }
     generatePageTopMenuHtml(menuData, Handlebars) {
         var d = JSON.parse(menuData);
@@ -416,7 +416,7 @@ export default class FeaturesMenu {
         this.ajaxRedirect.enableRedirect($("a[data-redirect=ajax]"));
         setTimeout(function () {
             $("." + $(".feature-menu-item[expand='true'][is-side-menu-child='true']").attr("id")).addClass("active");
-            this.enableTopMenuScrolling($('.features-sub-menu ul'))
+            this.enableTopMenuScrolling($('.features-sub-menu'))
         }, 100)
     }
 
