@@ -416,8 +416,8 @@ export default class FeaturesMenu {
         this.ajaxRedirect.enableRedirect($("a[data-redirect=ajax]"));
         setTimeout(function () {
             $("." + $(".feature-menu-item[expand='true'][is-side-menu-child='true']").attr("id")).addClass("active");
-            this.enableTopMenuScrolling($('.features-sub-menu'))
         }, 100)
+        this.enableTopMenuScrolling($('.features-sub-menu'))
     }
 
     getObjects(obj, key, val) {
