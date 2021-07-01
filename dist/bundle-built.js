@@ -29104,7 +29104,7 @@ define('app/model/service',["require", "exports", "app/extensions"], function (r
     Service.FirstPageLoad = true;
 });
 //# sourceMappingURL=service.js.map;
-define('app/featuresMenu/featuresMenu',["require", "exports", "app/model/service"], function (require, exports, service_1) {
+define('app/featuresMenu/featuresMenu',["require", "exports", "app/model/service", "olive/components/crossDomainEvent"], function (require, exports, service_1, crossDomainEvent_1) {
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.FeaturesMenuFactory = void 0;
     class FeaturesMenuFactory {
@@ -29144,6 +29144,51 @@ define('app/featuresMenu/featuresMenu',["require", "exports", "app/model/service
             this.url = url;
             this.waiting = waiting;
             this.ajaxRedirect = ajaxRedirect;
+            $(window).off('resize').on('resize', () => this.onResize());
+            crossDomainEvent_1.default.handle("sideBarRightToggleEvent", u => this.onResize());
+        }
+        onResize() {
+            $(".feature-top-menu-drop-down").attr("style", "").removeClass("feature-top-menu-drop-down");
+            var w = 100;
+            var i = 0;
+            var showMore = false;
+            var showMoreRight = 0;
+            setTimeout(function () {
+                $.each($(".feature-top-menu > ul > .feature-menu-item:not(.feature-top-menu-more)"), function () {
+                    var left = $(this).offset().left;
+                    var width = $(this).outerWidth();
+                    var cotainerLeft = $(".feature-top-menu").offset().left;
+                    var cotainerWidth = $(".feature-top-menu").width();
+                    if ((cotainerLeft + cotainerWidth - left - width) < (30 + showMoreRight) || showMore) {
+                        showMore = true;
+                        w = Math.max(w, width);
+                        if (i == 0)
+                            i = 68;
+                        else {
+                            i += (10 + $(this).prev().height());
+                        }
+                        $(this).addClass("feature-top-menu-drop-down").css("top", i);
+                    }
+                    if ($(".feature-top-menu-drop-down").length > 0) {
+                        $(".feature-top-menu-more").addClass("show");
+                    }
+                    else
+                        $(".feature-top-menu-more").removeClass("show");
+                    $(".feature-top-menu-drop-down").css("width", w);
+                    if ($(".feature-top-menu > ul > .feature-menu-item:not(.feature-top-menu-more)").last()[0] == $(this)[0])
+                        $(this).addClass("last-menue").css({ "border-bottom-left-radius": 10, "border-bottom-right-radius": 10 });
+                });
+                $(".feature-top-menu-more.show").off("click").on("click", (x) => {
+                    $(".feature-top-menu-drop-down")
+                        .css("transition-property", "background-color,opacity")
+                        .css('opacity', $(".feature-top-menu-drop-down").css('opacity') == "1" ? 0 : 1);
+                    return false;
+                });
+                $(document).on("click", document, function (e) {
+                    if (!$(e.target).hasClass("feature-top-menu-more") && $(".feature-top-menu-drop-down").css('opacity') == "1")
+                        $(".feature-top-menu-drop-down").css('opacity', 0);
+                });
+            }, 400);
         }
         enableIFrameClientSideRedirection(selector) {
             selector.each((ind, el) => {
@@ -29378,7 +29423,7 @@ define('app/featuresMenu/featuresMenu',["require", "exports", "app/model/service
             setTimeout(function () {
                 $(".feature-menu-item[data-nodeid=" + activeId + "]").addClass("active").parents("li.feature-menu-item").addClass("active");
             }, 100);
-            this.enableTopMenuScrolling($('.features-sub-menu'));
+            this.onResize();
         }
         showPageSubMenu(data) {
             let sideExpandedChildItems = $(".feature-menu-item[expand='true'][is-side-menu-child='true']");
@@ -29392,6 +29437,7 @@ define('app/featuresMenu/featuresMenu',["require", "exports", "app/model/service
                 $(".feature-menu-item[data-nodeid=" + activeId + "]").addClass("active").parents("li.feature-menu-item").addClass("active");
             }, 100);
             this.enableTopMenuScrolling($('.features-sub-menu'));
+            this.onResize();
         }
         generatePageTopMenuHtml(menuData, Handlebars) {
             var d = JSON.parse(menuData);
@@ -29411,6 +29457,7 @@ define('app/featuresMenu/featuresMenu',["require", "exports", "app/model/service
             //     $("." + $(".feature-menu-item[expand='true'][is-side-menu-child='true']").attr("id")).addClass("active");
             // }, 100);
             this.enableTopMenuScrolling($('.features-sub-menu'));
+            this.onResize();
         }
         generatePageBreadcrumb(data) {
             $(".breadcrumb").html("");
@@ -29459,6 +29506,7 @@ define('app/featuresMenu/featuresMenu',["require", "exports", "app/model/service
                 $("." + $(".feature-menu-item[expand='true'][is-side-menu-child='true']").attr("id")).addClass("active");
             }, 100);
             this.enableTopMenuScrolling($('.features-sub-menu'));
+            1;
         }
         getObjects(obj, key, val) {
             var objects = [];
@@ -29687,6 +29735,7 @@ define('app/expandCollapse',["require", "exports"], function (require, exports) 
                     iframe.attr("src", iframe.attr("data-src")).removeAttr("data-src");
             }
             this.applyIcon();
+            this.syncHubTopMenu();
         }
         applyIcon() {
             var collapsedIcon = this.key == ".side-bar" ? "right" : "left";
@@ -29695,6 +29744,12 @@ define('app/expandCollapse',["require", "exports"], function (require, exports) 
             var toAdd = toRemove == "left" ? "right" : "left";
             this.button.find("i").removeClass("fa-chevron-" + toRemove).addClass("fa-chevron-" + toAdd);
             this.syncHubFrame();
+        }
+        syncHubTopMenu() {
+            window.page.services.getService("featuresMenuFactory").getMenu().onResize();
+            // let arg = {};
+            // let paramW = { command: "sideBarRightToggleEvent", arg: arg };
+            // window.parent.postMessage(JSON.stringify(paramW), "*");
         }
         syncHubFrame() {
             let arg = Math.round($("service").height());

@@ -1,10 +1,12 @@
-﻿declare var requirejs: any;
+﻿import { FeaturesMenuFactory } from "./featuresMenu/featuresMenu";
+declare var requirejs: any;
 
 export default class ExpandCollapse {
     button: JQuery;
     panel: JQuery;
     key: string;
     cookies: any;
+   featuresMenuFactory :FeaturesMenuFactory
 
     constructor(button: JQuery, panelKey: string) {
         this.button = button.click(() => this.toggle());
@@ -46,6 +48,7 @@ export default class ExpandCollapse {
         }
 
         this.applyIcon();
+        this.syncHubTopMenu();
     }
 
     applyIcon() {
@@ -58,7 +61,13 @@ export default class ExpandCollapse {
         this.button.find("i").removeClass("fa-chevron-" + toRemove).addClass("fa-chevron-" + toAdd);
         this.syncHubFrame();
     }
+    syncHubTopMenu(){
+        window.page.services.getService("featuresMenuFactory").getMenu().onResize();
 
+        // let arg = {};
+        // let paramW = { command: "sideBarRightToggleEvent", arg: arg };
+        // window.parent.postMessage(JSON.stringify(paramW), "*");
+    }
     syncHubFrame() {
         let arg = Math.round($("service").height());
         let paramW = { command: "setViewFrameHeight", arg: arg };

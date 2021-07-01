@@ -3,6 +3,7 @@ import Service from 'app/model/service';
 import Waiting from 'olive/components/waiting'
 import AjaxRedirect from 'olive/mvc/ajaxRedirect';
 import FullMenuFiltering from 'featuresMenu/fullMenuFiltering';
+import CrossDomainEvent from "olive/components/crossDomainEvent";
 declare var requirejs: any;
 
 export class FeaturesMenuFactory implements IService {
@@ -14,8 +15,9 @@ export class FeaturesMenuFactory implements IService {
         menu.bindFeatureMenuItemsClicks($(".feature-menu-item > a:not([href=''])"));
         menu.showSubMenu();
         menu.enableIFrameClientSideRedirection($(".feature-menu-item a:not([data-redirect])"));
+
     }
-    
+
 
     public bindItemListClick() {
         var menu = new FeaturesMenu(this.url, this.waiting, this.ajaxRedirect);
@@ -39,8 +41,58 @@ export class FeaturesMenuFactory implements IService {
 }
 
 export default class FeaturesMenu {
-    constructor(private url: Url, private waiting: Waiting, private ajaxRedirect: AjaxRedirect) { }
+    constructor(private url: Url, private waiting: Waiting, private ajaxRedirect: AjaxRedirect) {
 
+        $(window).off('resize').on('resize', () => this.onResize());
+        CrossDomainEvent.handle("sideBarRightToggleEvent", u => this.onResize());
+
+    }
+
+    public onResize() {
+        $(".feature-top-menu-drop-down").attr("style", "").removeClass("feature-top-menu-drop-down")
+            var w = 100;
+            var i = 0;
+            var showMore = false;
+            var showMoreRight = 0;
+            setTimeout(function () {
+                $.each($(".feature-top-menu > ul > .feature-menu-item:not(.feature-top-menu-more)"), function () {
+                    var left = $(this).offset().left;
+                    var width = $(this).outerWidth();
+                    var cotainerLeft = $(".feature-top-menu").offset().left;
+                    var cotainerWidth = $(".feature-top-menu").width();
+                    if ((cotainerLeft + cotainerWidth - left - width) < (30 + showMoreRight) || showMore) {
+                        showMore = true;
+                        w = Math.max(w, width);
+                        if (i == 0)
+                            i = 68;
+                        else {
+                            i += (10 + $(this).prev().height());
+                        }
+
+                        $(this).addClass("feature-top-menu-drop-down").css("top", i)
+                    }
+                    if ($(".feature-top-menu-drop-down").length > 0) {
+                        $(".feature-top-menu-more").addClass("show");
+                    }
+                    else
+                        $(".feature-top-menu-more").removeClass("show");
+
+                    $(".feature-top-menu-drop-down").css("width", w)
+                    if ($(".feature-top-menu > ul > .feature-menu-item:not(.feature-top-menu-more)").last()[0] == $(this)[0])
+                        $(this).addClass("last-menue").css({ "border-bottom-left-radius": 10, "border-bottom-right-radius": 10 });
+                });
+                $(".feature-top-menu-more.show").off("click").on("click", (x) => {
+                    $(".feature-top-menu-drop-down")
+                        .css("transition-property", "background-color,opacity")
+                        .css('opacity', $(".feature-top-menu-drop-down").css('opacity') == "1" ? 0 : 1);
+                    return false;
+                });
+                $(document).on("click", document, function (e) {
+                    if (!$(e.target).hasClass("feature-top-menu-more") && $(".feature-top-menu-drop-down").css('opacity') == "1")
+                        $(".feature-top-menu-drop-down").css('opacity', 0)
+                })
+            }, 400);
+    }
     enableIFrameClientSideRedirection(selector: JQuery) {
         selector.each((ind, el) => {
             $(el).click(e => {
@@ -322,8 +374,9 @@ export default class FeaturesMenu {
         $(".feature-menu-item .active").parents("li.feature-menu-item").addClass("active");
         setTimeout(function () {
             $(".feature-menu-item[data-nodeid=" + activeId + "]").addClass("active").parents("li.feature-menu-item").addClass("active");
+
         }, 100)
-        this.enableTopMenuScrolling($('.features-sub-menu'))
+        this.onResize()
     }
     showPageSubMenu(data) {
         let sideExpandedChildItems = $(".feature-menu-item[expand='true'][is-side-menu-child='true']");
@@ -337,6 +390,7 @@ export default class FeaturesMenu {
             $(".feature-menu-item[data-nodeid=" + activeId + "]").addClass("active").parents("li.feature-menu-item").addClass("active");
         }, 100);
         this.enableTopMenuScrolling($('.features-sub-menu'))
+        this.onResize()
     }
     generatePageTopMenuHtml(menuData, Handlebars) {
         var d = JSON.parse(menuData);
@@ -356,6 +410,7 @@ export default class FeaturesMenu {
         //     $("." + $(".feature-menu-item[expand='true'][is-side-menu-child='true']").attr("id")).addClass("active");
         // }, 100);
         this.enableTopMenuScrolling($('.features-sub-menu'))
+        this.onResize()
     }
     generatePageBreadcrumb(data) {
         $(".breadcrumb").html("");
@@ -418,6 +473,7 @@ export default class FeaturesMenu {
             $("." + $(".feature-menu-item[expand='true'][is-side-menu-child='true']").attr("id")).addClass("active");
         }, 100)
         this.enableTopMenuScrolling($('.features-sub-menu'))
+        1
     }
 
     getObjects(obj, key, val) {
