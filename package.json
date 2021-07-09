@@ -8,7 +8,7 @@
     "url": "git://github.com/Geeksltd/Olive.Microservices.HubJs.git"
   },
   "author": "Geeks Ltd",
-  "version": "3.4.8",
+  "version": "3.4.9",
   "license": "GPL-3.0",
   "private": false,
   "files": [
@@ -65,6 +65,7 @@
     "web-animations-js": "web-animations/web-animations-js#^2.0.9",
     "which-pm-runs": "^1.0.0",
     "zxcvbn": "dropbox/zxcvbn#^4.2.0",
-    "requirejs":"2.3.6"
+    "requirejs":"2.3.6",
+    "chart.js":"chart.js#3.4.1"
   }
 }

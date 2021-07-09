@@ -29179,14 +29179,12 @@ define('app/featuresMenu/featuresMenu',["require", "exports", "app/model/service
                         $(this).addClass("last-menue").css({ "border-bottom-left-radius": 10, "border-bottom-right-radius": 10 });
                 });
                 $(".feature-top-menu-more.show").off("click").on("click", (x) => {
-                    $(".feature-top-menu-drop-down")
-                        .css("transition-property", "background-color,opacity")
-                        .css('opacity', $(".feature-top-menu-drop-down").css('opacity') == "1" ? 0 : 1);
+                    $(".feature-top-menu-drop-down").fadeToggle();
                     return false;
                 });
                 $(document).on("click", document, function (e) {
                     if (!$(e.target).hasClass("feature-top-menu-more") && $(".feature-top-menu-drop-down").css('opacity') == "1")
-                        $(".feature-top-menu-drop-down").css('opacity', 0);
+                        $(".feature-top-menu-drop-down").fadeOut();
                 });
             }, 400);
         }

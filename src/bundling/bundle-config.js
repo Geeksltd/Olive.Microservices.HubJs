@@ -37,11 +37,13 @@
         "datepicker": "eonasdan-bootstrap-datetimepicker/src/js/bootstrap-datetimepicker",
         "bootstrapToggle": "bootstrap-toggle/js/bootstrap-toggle",
         "bootstrap-select": "bootstrap-select/dist/js/bootstrap-select",
-        "flickity": "flickity/dist/flickity.pkgd"
+        "flickity": "flickity/dist/flickity.pkgd",
+        "chart":"chart.js/dist/chart"
     },
     map: {
         "*": {
-            //"requirejs": "requirejs",
+        "chart":"chart.js/dist/chart",
+        //"requirejs": "requirejs",
             "popper.js": "popper",
             '../moment': 'moment',
             'olive': "olive.mvc/dist",
@@ -73,6 +75,7 @@
         "olive/extensions/jQueryExtensions": {
             deps: ['jquery', "jquery-validate-unobtrusive"]
         },
+        "chart":["jquery"],
         "olive/olivePage": ["alertify", "olive/extensions/jQueryExtensions", "olive/extensions/systemExtensions", "combodate"],
         "app/hubPage": ["jquery", "olive/olivePage"],
         "app/model/service": ["app/hubPage", "olive/extensions/systemExtensions"],

@@ -6,7 +6,7 @@ export default class BreadcrumbMenu implements IService {
     bindItemListClick(): void;
     bindFeatureMenuItemsClicks(selector: JQuery): void;
     onLinkClicked(link: JQuery): void;
-    onBreadcrumbLinkClicked(link: JQuery): void;
+    onBreadcrumbLinkClicked(link: JQuery): boolean;
     initBreadcrumb(): void;
     generateBreadcrumb(link: JQuery): void;
     removeDuplicate(items: Array<any>): any[];
