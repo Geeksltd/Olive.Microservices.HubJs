@@ -119,9 +119,9 @@ export default class HubPage extends OlivePage {
         
         //   services.tryAddSingleton
         // if (services.getService(Services.ModalHelper) == null || services.getService(Services.ModalHelper) == undefined)
-        //     services.addSingleton(Services.ModalHelper, (url: Url, ajaxRedirect: AjaxRedirect, responseProcessor: ResponseProcessor) =>
-        //         new HubModal(url, ajaxRedirect, responseProcessor))
-        //         .withDependencies(Services.Url, Services.AjaxRedirect, Services.ResponseProcessor);
+            // services.addSingleton(Services.ModalHelper, (url: Url, ajaxRedirect: AjaxRedirect, responseProcessor: ResponseProcessor) =>
+            //     new HubModal(url, ajaxRedirect, responseProcessor))
+            //     .withDependencies(Services.Url, Services.AjaxRedirect, Services.ResponseProcessor);
 
         super.configureServices(services);
     }
