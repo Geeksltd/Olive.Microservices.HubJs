@@ -1,15 +1,18 @@
-﻿export default class BoardComponents implements IService {
+﻿import { ModalHelper } from 'olive/components/modal'
+
+export default class BoardComponents implements IService {
     private urlList: string[];
     private boardItemId: string = null;
     private boardType: string = null;
     private filterInput: JQuery;
-
-    constructor(private input: JQuery) {
+    private modalHelper: ModalHelper
+    constructor(private input: JQuery,modalHelper: ModalHelper) {
         if (input == null || input.length == 0) return;
         var urls = input.attr("data-board-source").split(";");
         this.filterInput = this.input.parent().find(".board-components-filter");
         this.createSearchComponent(urls);
         this.filterEnable()
+        this.modalHelper=modalHelper;
     }
     private filterEnable() {
         this.filterInput.off("keyup.board-components-filter").on("keyup.board-components-filter", this.onChanged);
@@ -269,6 +272,8 @@
                 context.resultPanel.append(ulNothing);
             }
         }
+        this.modalHelper.enableLink($(".board-components-result [target='$modal'][href]"));
+        //window.page.services.getService("modalHelper").enableLink()
         if (context.ajaxCallCount == context.ajaxList.length) {
             var header = this.filterInput.parent();
             this.bindAddableItemsButtonClick(context);
@@ -347,4 +352,4 @@ export enum ActionEnum {
     NewWindow,
 }
 
-var boardComponents = new BoardComponents($(".board-components"));
+//var boardComponents = new BoardComponents($(".board-components"));

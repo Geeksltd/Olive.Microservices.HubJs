@@ -30302,7 +30302,7 @@ define('app/boardComponents',["require", "exports"], function (require, exports)
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ActionEnum = exports.AjaxState = void 0;
     class BoardComponents {
-        constructor(input) {
+        constructor(input, modalHelper) {
             this.input = input;
             this.boardItemId = null;
             this.boardType = null;
@@ -30312,6 +30312,7 @@ define('app/boardComponents',["require", "exports"], function (require, exports)
             this.filterInput = this.input.parent().find(".board-components-filter");
             this.createSearchComponent(urls);
             this.filterEnable();
+            this.modalHelper = modalHelper;
         }
         filterEnable() {
             this.filterInput.off("keyup.board-components-filter").on("keyup.board-components-filter", this.onChanged);
@@ -30546,6 +30547,8 @@ define('app/boardComponents',["require", "exports"], function (require, exports)
                     context.resultPanel.append(ulNothing);
                 }
             }
+            this.modalHelper.enableLink($(".board-components-result [target='$modal'][href]"));
+            //window.page.services.getService("modalHelper").enableLink()
             if (context.ajaxCallCount == context.ajaxList.length) {
                 var header = this.filterInput.parent();
                 this.bindAddableItemsButtonClick(context);
@@ -30579,8 +30582,8 @@ define('app/boardComponents',["require", "exports"], function (require, exports)
         ActionEnum[ActionEnum["Popup"] = 1] = "Popup";
         ActionEnum[ActionEnum["NewWindow"] = 2] = "NewWindow";
     })(ActionEnum = exports.ActionEnum || (exports.ActionEnum = {}));
-    var boardComponents = new BoardComponents($(".board-components"));
 });
+//var boardComponents = new BoardComponents($(".board-components"));
 //# sourceMappingURL=boardComponents.js.map;
 /*! jQuery UI - v1.12.1 - 2016-09-14
 * http://jqueryui.com
@@ -72825,7 +72828,6 @@ define('app/hubPage',["require", "exports", "olive/olivePage", "./featuresMenu/f
         constructor() {
             super();
             new fullMenuFiltering_1.default();
-            new boardComponents_1.default(null);
             this.getService(hubServices_1.default.Hub).initialize();
             setTimeout(() => badgeNumber_1.default.enableBadgeNumber($("a[data-badgeurl]")), 4 * 1000);
             //every 5 min badge numbers should be updated
@@ -72878,6 +72880,7 @@ define('app/hubPage',["require", "exports", "olive/olivePage", "./featuresMenu/f
             appcontext.enableHelp($("Help"));
             toggleCheckbox_1.default.enableToggleCheckbox($("input[class='form-check']"));
             widgetModule_1.default.enableWidget($("Widget"));
+            var board = new boardComponents_1.default($(".board-components"), this.getService(services_1.default.ModalHelper));
             let currentService = $("service[of]").attr("of");
             if (currentService) {
                 currentService = currentService.toLocaleLowerCase();

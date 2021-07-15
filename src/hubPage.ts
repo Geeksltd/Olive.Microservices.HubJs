@@ -69,7 +69,6 @@ export default class HubPage extends OlivePage {
     constructor() {
         super();
         new FullMenuFiltering();
-        new BoardComponents(null);
 
         this.getService<Hub>(HubServices.Hub).initialize();
         setTimeout(() => BadgeNumber.enableBadgeNumber($("a[data-badgeurl]")), 4 * 1000);
@@ -148,6 +147,7 @@ export default class HubPage extends OlivePage {
         appcontext.enableHelp($("Help"));
         ToggleCheckbox.enableToggleCheckbox($("input[class='form-check']"));
         WidgetModule.enableWidget($("Widget"));
+        var board = new BoardComponents($(".board-components"),this.getService<ModalHelper>(Services.ModalHelper));
 
         let currentService = $("service[of]").attr("of");
 
