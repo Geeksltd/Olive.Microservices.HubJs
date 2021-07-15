@@ -188,14 +188,14 @@ export default class BoardComponents implements IService {
                             .html(item.Body))));
     }
     protected bindAddableItemsButtonClick(context: IBoardContext) {
-        context.resultPanel.parent().find(".add-button").click(function (e) {
+        context.resultPanel.parent().find(".add-button").off("click").click(function (e) {
             e.preventDefault();
             $(".board-manage-items-container,.board-addable-items-container ").fadeOut();
             $(this).parent().parent().find(".board-addable-items-container")
                 .fadeToggle();
         });
 
-        context.resultPanel.parent().find(".manage-button").click(function (e) {
+        context.resultPanel.parent().find(".manage-button").off("click").click(function (e) {
             e.preventDefault();
             $(".board-manage-items-container,.board-addable-items-container ").fadeOut();
             $(this).parent().parent().find(".board-manage-items-container")
