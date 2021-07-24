@@ -30585,6 +30585,25 @@ define('app/boardComponents',["require", "exports"], function (require, exports)
 });
 //var boardComponents = new BoardComponents($(".board-components"));
 //# sourceMappingURL=boardComponents.js.map;
+define('app/extendJQueryFunction',["require", "exports", "jquery"], function (require, exports) {
+    Object.defineProperty(exports, "__esModule", { value: true });
+    class ExtendJQueryFunction {
+        constructor() {
+            this.autoGrow();
+        }
+        autoGrow() {
+            /*!
+                http://www.technoreply.com/autogrow-textarea-plugin-3-0
+            */
+            ;
+            jQuery.fn.autoGrow = function (a) { return this.each(function () { var d = jQuery.extend({ extraLine: true }, a); var e = function (g) { jQuery(g).after('<div class="autogrow-textarea-mirror"></div>'); return jQuery(g).next(".autogrow-textarea-mirror")[0]; }; var b = function (g) { f.innerHTML = String(g.value).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/'/g, "&#39;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br />") + (d.extraLine ? ".<br/>." : ""); if (jQuery(g).height() != jQuery(f).height()) {
+                jQuery(g).height(jQuery(f).height());
+            } }; var c = function () { b(this); }; var f = e(this); f.style.display = "none"; f.style.wordWrap = "break-word"; f.style.whiteSpace = "pre-wrap"; f.style.padding = jQuery(this).css("paddingTop") + " " + jQuery(this).css("paddingRight") + " " + jQuery(this).css("paddingBottom") + " " + jQuery(this).css("paddingLeft"); f.style.borderStyle = jQuery(this).css("borderTopStyle") + " " + jQuery(this).css("borderRightStyle") + " " + jQuery(this).css("borderBottomStyle") + " " + jQuery(this).css("borderLeftStyle"); f.style.borderWidth = jQuery(this).css("borderTopWidth") + " " + jQuery(this).css("borderRightWidth") + " " + jQuery(this).css("borderBottomWidth") + " " + jQuery(this).css("borderLeftWidth"); f.style.width = jQuery(this).css("width"); f.style.fontFamily = jQuery(this).css("font-family"); f.style.fontSize = jQuery(this).css("font-size"); f.style.lineHeight = jQuery(this).css("line-height"); f.style.letterSpacing = jQuery(this).css("letter-spacing"); this.style.overflow = "hidden"; this.style.minHeight = this.rows + "em"; this.onkeyup = c; this.onfocus = c; b(this); }); };
+        }
+    }
+    exports.default = ExtendJQueryFunction;
+});
+//# sourceMappingURL=extendJQueryFunction.js.map;
 /*! jQuery UI - v1.12.1 - 2016-09-14
 * http://jqueryui.com
 * Includes: widget.js, position.js, data.js, disable-selection.js, effect.js, effects/effect-blind.js, effects/effect-bounce.js, effects/effect-clip.js, effects/effect-drop.js, effects/effect-explode.js, effects/effect-fade.js, effects/effect-fold.js, effects/effect-highlight.js, effects/effect-puff.js, effects/effect-pulsate.js, effects/effect-scale.js, effects/effect-shake.js, effects/effect-size.js, effects/effect-slide.js, effects/effect-transfer.js, focusable.js, form-reset-mixin.js, jquery-1-7.js, keycode.js, labels.js, scroll-parent.js, tabbable.js, unique-id.js, widgets/accordion.js, widgets/autocomplete.js, widgets/button.js, widgets/checkboxradio.js, widgets/controlgroup.js, widgets/datepicker.js, widgets/dialog.js, widgets/draggable.js, widgets/droppable.js, widgets/menu.js, widgets/mouse.js, widgets/progressbar.js, widgets/resizable.js, widgets/selectable.js, widgets/selectmenu.js, widgets/slider.js, widgets/sortable.js, widgets/spinner.js, widgets/tabs.js, widgets/tooltip.js
@@ -72822,7 +72841,7 @@ return Flickity;
 }));
 
 
-define('app/hubPage',["require", "exports", "olive/olivePage", "./featuresMenu/featuresMenu", "./appContent", "./badgeNumber", "./toggleCheckbox", "./widgetModule", "./expandCollapse", "./featuresMenu/breadcrumbMenu", "./featuresMenu/fullMenuFiltering", "olive/di/services", "overrides/hubAjaxRedirect", "./overrides/hubStandardAction", "overrides/hubForm", "app/hubServices", "app/hub", "overrides/hubUrl", "./boardComponents", "jquery", "jquery-ui-all", "jquery-validate", "jquery-validate-unobtrusive", "underscore", "alertify", "smartmenus", "file-upload", "jquery-typeahead", "combodate", "js-cookie", "handlebars", "hammerjs", "jquery-mentions", "chosen", "jquery-elastic", "jquery-events-input", "popper", "bootstrap", "validation-style", "file-style", "spinedit", "password-strength", "slider", "moment", "moment-locale", "datepicker", "bootstrapToggle", "bootstrap-select", "flickity"], function (require, exports, olivePage_1, featuresMenu_1, appContent_1, badgeNumber_1, toggleCheckbox_1, widgetModule_1, expandCollapse_1, breadcrumbMenu_1, fullMenuFiltering_1, services_1, hubAjaxRedirect_1, hubStandardAction_1, hubForm_1, hubServices_1, hub_1, hubUrl_1, boardComponents_1) {
+define('app/hubPage',["require", "exports", "olive/olivePage", "./featuresMenu/featuresMenu", "./appContent", "./badgeNumber", "./toggleCheckbox", "./widgetModule", "./expandCollapse", "./featuresMenu/breadcrumbMenu", "./featuresMenu/fullMenuFiltering", "olive/di/services", "overrides/hubAjaxRedirect", "./overrides/hubStandardAction", "overrides/hubForm", "app/hubServices", "app/hub", "overrides/hubUrl", "./boardComponents", "./extendJQueryFunction", "jquery", "jquery-ui-all", "jquery-validate", "jquery-validate-unobtrusive", "underscore", "alertify", "smartmenus", "file-upload", "jquery-typeahead", "combodate", "js-cookie", "handlebars", "hammerjs", "jquery-mentions", "chosen", "jquery-elastic", "jquery-events-input", "popper", "bootstrap", "validation-style", "file-style", "spinedit", "password-strength", "slider", "moment", "moment-locale", "datepicker", "bootstrapToggle", "bootstrap-select", "flickity"], function (require, exports, olivePage_1, featuresMenu_1, appContent_1, badgeNumber_1, toggleCheckbox_1, widgetModule_1, expandCollapse_1, breadcrumbMenu_1, fullMenuFiltering_1, services_1, hubAjaxRedirect_1, hubStandardAction_1, hubForm_1, hubServices_1, hub_1, hubUrl_1, boardComponents_1, extendJQueryFunction_1) {
     Object.defineProperty(exports, "__esModule", { value: true });
     class HubPage extends olivePage_1.default {
         constructor() {
@@ -72888,9 +72907,6 @@ define('app/hubPage',["require", "exports", "olive/olivePage", "./featuresMenu/f
             var pathname = this.getPathName();
             var currentMenu = $("a[href='" + pathname.pathname + "']:not(.feature-button)");
             if (currentMenu.length == 0) {
-                //var path = window.location.pathname.toLowerCase().startsWith("/") ? window.location.pathname.toLowerCase().substring(1) : window.location.pathname.toLowerCase();
-                //var pos = path.indexOf("/");
-                //currentMenu = $("a[href='/[" + path.substring(0, pos) + "]" + path.substring(pos) + "']:not(.feature-button)");
                 currentMenu = $("a[href='" + pathname.pathnameWithBrackets + "']:not(.feature-button)");
             }
             if (currentMenu.length > 0 && HubPage.IsFirstPageLoad == true) {
@@ -72911,6 +72927,7 @@ define('app/hubPage',["require", "exports", "olive/olivePage", "./featuresMenu/f
             }
             // This function is called upon every Ajax update as well as the initial page load.
             // Any custom initiation goes here.
+            new extendJQueryFunction_1.default();
         }
     }
     exports.default = HubPage;
@@ -72918,7 +72935,6 @@ define('app/hubPage',["require", "exports", "olive/olivePage", "./featuresMenu/f
     // e.g: To use a different AutoComplete library, simply override handleAutoComplete(input).
     HubPage.IsFirstPageLoad = true;
 });
-//window["page"] = new AppPage();
 //# sourceMappingURL=hubPage.js.map;
 ﻿//requirejs(["app/appPage"], function () { });
 

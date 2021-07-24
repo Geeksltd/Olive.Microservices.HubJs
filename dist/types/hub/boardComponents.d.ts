@@ -1,10 +1,12 @@
+import { ModalHelper } from 'olive/components/modal';
 export default class BoardComponents implements IService {
     private input;
     private urlList;
     private boardItemId;
     private boardType;
     private filterInput;
-    constructor(input: JQuery);
+    private modalHelper;
+    constructor(input: JQuery, modalHelper: ModalHelper);
     private filterEnable;
     private onChanged;
     protected getResultPanel(): JQuery;

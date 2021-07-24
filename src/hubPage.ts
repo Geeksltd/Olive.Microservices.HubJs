@@ -26,6 +26,7 @@ import Hub from './hub';
 import HubUrl from './overrides/hubUrl';
 import HubModal from './hubModal';
 import BoardComponents from './boardComponents';
+import ExtendJQueryFunction from './extendJQueryFunction';
 
 //loading all modules
 import 'jquery';
@@ -157,9 +158,6 @@ export default class HubPage extends OlivePage {
         var pathname = this.getPathName();
         var currentMenu = $("a[href='" + pathname.pathname + "']:not(.feature-button)");
         if (currentMenu.length == 0) {
-            //var path = window.location.pathname.toLowerCase().startsWith("/") ? window.location.pathname.toLowerCase().substring(1) : window.location.pathname.toLowerCase();
-            //var pos = path.indexOf("/");
-            //currentMenu = $("a[href='/[" + path.substring(0, pos) + "]" + path.substring(pos) + "']:not(.feature-button)");
             currentMenu = $("a[href='" + pathname.pathnameWithBrackets + "']:not(.feature-button)");
         }
         if (currentMenu.length > 0 && HubPage.IsFirstPageLoad == true) {
@@ -182,7 +180,7 @@ export default class HubPage extends OlivePage {
         }
         // This function is called upon every Ajax update as well as the initial page load.
         // Any custom initiation goes here.
+
+        new ExtendJQueryFunction();
     }
 }
-
-//window["page"] = new AppPage();
