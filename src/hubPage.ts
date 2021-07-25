@@ -66,7 +66,7 @@ export default class HubPage extends OlivePage {
     // Here you can override any of the base standard functions.
     // e.g: To use a different AutoComplete library, simply override handleAutoComplete(input).
     public static IsFirstPageLoad: boolean = true;
-
+    private board: BoardComponents = null;
     constructor() {
         super();
         new FullMenuFiltering();
@@ -116,12 +116,12 @@ export default class HubPage extends OlivePage {
         services.addSingleton(Services.Form, (url: Url, validate: Validate, waiting: Waiting, ajaxRedirect: AjaxRedirect) =>
             new HubForm(url, validate, waiting, ajaxRedirect))
             .withDependencies(Services.Url, Services.Validate, Services.Waiting, Services.AjaxRedirect);
-        
+
         //   services.tryAddSingleton
         // if (services.getService(Services.ModalHelper) == null || services.getService(Services.ModalHelper) == undefined)
-            // services.addSingleton(Services.ModalHelper, (url: Url, ajaxRedirect: AjaxRedirect, responseProcessor: ResponseProcessor) =>
-            //     new HubModal(url, ajaxRedirect, responseProcessor))
-            //     .withDependencies(Services.Url, Services.AjaxRedirect, Services.ResponseProcessor);
+        // services.addSingleton(Services.ModalHelper, (url: Url, ajaxRedirect: AjaxRedirect, responseProcessor: ResponseProcessor) =>
+        //     new HubModal(url, ajaxRedirect, responseProcessor))
+        //     .withDependencies(Services.Url, Services.AjaxRedirect, Services.ResponseProcessor);
 
         super.configureServices(services);
     }
@@ -148,7 +148,8 @@ export default class HubPage extends OlivePage {
         appcontext.enableHelp($("Help"));
         ToggleCheckbox.enableToggleCheckbox($("input[class='form-check']"));
         WidgetModule.enableWidget($("Widget"));
-        var board = new BoardComponents($(".board-components"),this.getService<ModalHelper>(Services.ModalHelper));
+        if(this.board == null)
+            this.board = new BoardComponents($(".board-components"), this.getService<ModalHelper>(Services.ModalHelper));
 
         let currentService = $("service[of]").attr("of");
 

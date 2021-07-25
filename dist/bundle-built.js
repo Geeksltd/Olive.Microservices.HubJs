@@ -72846,6 +72846,7 @@ define('app/hubPage',["require", "exports", "olive/olivePage", "./featuresMenu/f
     class HubPage extends olivePage_1.default {
         constructor() {
             super();
+            this.board = null;
             new fullMenuFiltering_1.default();
             this.getService(hubServices_1.default.Hub).initialize();
             setTimeout(() => badgeNumber_1.default.enableBadgeNumber($("a[data-badgeurl]")), 4 * 1000);
@@ -72899,7 +72900,8 @@ define('app/hubPage',["require", "exports", "olive/olivePage", "./featuresMenu/f
             appcontext.enableHelp($("Help"));
             toggleCheckbox_1.default.enableToggleCheckbox($("input[class='form-check']"));
             widgetModule_1.default.enableWidget($("Widget"));
-            var board = new boardComponents_1.default($(".board-components"), this.getService(services_1.default.ModalHelper));
+            if (this.board != null)
+                this.board = new boardComponents_1.default($(".board-components"), this.getService(services_1.default.ModalHelper));
             let currentService = $("service[of]").attr("of");
             if (currentService) {
                 currentService = currentService.toLocaleLowerCase();
