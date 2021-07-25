@@ -72900,7 +72900,7 @@ define('app/hubPage',["require", "exports", "olive/olivePage", "./featuresMenu/f
             appcontext.enableHelp($("Help"));
             toggleCheckbox_1.default.enableToggleCheckbox($("input[class='form-check']"));
             widgetModule_1.default.enableWidget($("Widget"));
-            if (this.board != null)
+            if (this.board == null)
                 this.board = new boardComponents_1.default($(".board-components"), this.getService(services_1.default.ModalHelper));
             let currentService = $("service[of]").attr("of");
             if (currentService) {
