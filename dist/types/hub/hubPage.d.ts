@@ -32,6 +32,7 @@ import 'bootstrap-select';
 import 'flickity';
 export default class HubPage extends OlivePage {
     static IsFirstPageLoad: boolean;
+    private board;
     constructor();
     configureServices(services: ServiceContainer): void;
     revive(): void;
