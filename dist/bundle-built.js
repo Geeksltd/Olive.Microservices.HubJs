@@ -30423,16 +30423,34 @@ define('app/boardComponents',["require", "exports"], function (require, exports)
                     $(".board-addable-items-container,.board-manage-items-container").fadeOut();
             });
         }
-        createBoardItems(sender, context, items) {
+        createBoardItems(sender, context, items, addableItems) {
             if (items.length == 0)
                 return null;
-            const searchItem = $("<div class='board-group'>");
-            searchItem.append($('<h3 >').html(items[0].Type + "s"));
+            var table = $("<table>");
+            const searchItem = $("<div class='item'>");
+            const h3 = $('<h3 >').html(items[0].Type + "s").append(this.createHeaderAction(addableItems));
+            searchItem.append($("<div class='header' " + "' style=\"" + this.addColour(items[0]) + "\">").append(h3));
+            //table.append($("<tr>").append($("<th " + "' style=\"" + this.addColour(items[0]) + "\" " + ">")
             for (let i = 0; i < items.length; i++) {
                 context.resultCount++;
-                searchItem.append(this.createItem(items[i], context));
+                table.append(this.createItem(items[i], context));
             }
+            searchItem.append($("<div>").append(table));
             return searchItem;
+        }
+        createHeaderAction(addableItems) {
+            const manageFiltered = addableItems.filter((p) => p.ManageUrl != null && p.ManageUrl != undefined);
+            const addFiltered = addableItems.filter((p) => p.AddUrl != null && p.AddUrl != undefined);
+            const headerAction = $("<div class='header-actions'>");
+            if (addFiltered.length > 0) {
+                var item = addFiltered[0];
+                headerAction.append($("<a href='" + item.AddUrl + "'>").append('<i class="fas fa-plus" aria-hidden="true"></i>'));
+            }
+            if (manageFiltered.length > 0) {
+                var item = manageFiltered[0];
+                headerAction.append($("<a href='" + item.ManageUrl + "'>").append('<i class="fa fa-cog" aria-hidden="true"></i>'));
+            }
+            return headerAction;
         }
         createAddableItems(sender, context, items) {
             const result = $(".board-addable-items-container");
@@ -30465,13 +30483,11 @@ define('app/boardComponents',["require", "exports"], function (require, exports)
                 attr = "target=\"$modal\"";
             else if (item.Action == ActionEnum.NewWindow)
                 attr = "target=\"_blank\"";
-            return $("<div class=\"item\">")
-                .append($("<a href='" + item.Url + "' style=\"" + this.addColour(item) + "\" " + attr + " >")
-                .append($("<div>").append((item.IconUrl === null || item.IconUrl === undefined) ? $("<div class='icon'>") : this.showIcon(item))
-                .append($("<span>").append(item.Type))
-                .append("<br />")
-                .append($("<span class=\"board-component-name\">").append(item.Name)))
-                .append($("<span>").html(item.Body)));
+            return $("<tr>").append($("<td >")
+                .append($("<a href='" + item.Url + "' " + attr + " >")
+                .append((item.IconUrl === null || item.IconUrl === undefined) ? $("<div class='icon'>") : this.showIcon(item))
+                .append($("<div>").append($("<span class=\"board-component-name\">").append(item.Name))
+                .append($("<span>").html(item.Body)))));
         }
         createAddableItem(item, context) {
             return $("<div class=\"menu-item\">")
@@ -30530,8 +30546,8 @@ define('app/boardComponents',["require", "exports"], function (require, exports)
                 const personGroupedByType = groupBy(resultfiltered, 'Type');
                 var that = this;
                 $.each(personGroupedByType, function (element) {
-                    var result = resultfiltered.filter((p) => p.Type == element);
-                    const boardItem = that.createBoardItems(sender, context, result);
+                    var filterdResult = resultfiltered.filter((p) => p.Type == element);
+                    const boardItem = that.createBoardItems(sender, context, filterdResult, result.AddabledItems);
                     context.boardHolder.append(boardItem);
                 });
                 if (resultfiltered.length > 0) {

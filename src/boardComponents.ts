@@ -6,13 +6,13 @@ export default class BoardComponents implements IService {
     private boardType: string = null;
     private filterInput: JQuery;
     private modalHelper: ModalHelper
-    constructor(private input: JQuery,modalHelper: ModalHelper) {
+    constructor(private input: JQuery, modalHelper: ModalHelper) {
         if (input == null || input.length == 0) return;
         var urls = input.attr("data-board-source").split(";");
         this.filterInput = this.input.parent().find(".board-components-filter");
         this.createSearchComponent(urls);
         this.filterEnable()
-        this.modalHelper=modalHelper;
+        this.modalHelper = modalHelper;
     }
     private filterEnable() {
         this.filterInput.off("keyup.board-components-filter").on("keyup.board-components-filter", this.onChanged);
@@ -116,15 +116,39 @@ export default class BoardComponents implements IService {
                 $(".board-addable-items-container,.board-manage-items-container").fadeOut();
         })
     }
-    protected createBoardItems(sender: IAjaxObject, context: IBoardContext, items: IResultItemDto[]) {
+    protected createBoardItems(sender: IAjaxObject, context: IBoardContext, items: IResultItemDto[], addableItems: IAddableItemDto[]) {
         if (items.length == 0) return null;
-        const searchItem = $("<div class='board-group'>");
-        searchItem.append($('<h3 >').html(items[0].Type + "s"));
+        var table = $("<table>");
+
+        const searchItem = $("<div class='item'>");
+        const h3 = $('<h3 >').html(items[0].Type + "s").append(this.createHeaderAction(addableItems))
+        searchItem.append($("<div class='header' " + "' style=\"" + this.addColour(items[0]) + "\">").append(h3))
+        
+        //table.append($("<tr>").append($("<th " + "' style=\"" + this.addColour(items[0]) + "\" " + ">")
+
         for (let i = 0; i < items.length; i++) {
             context.resultCount++;
-            searchItem.append(this.createItem(items[i], context));
+            table.append(this.createItem(items[i], context));
         }
+        searchItem.append($("<div>").append(table))
         return searchItem;
+    }
+    protected createHeaderAction(addableItems: IAddableItemDto[]) {
+        const manageFiltered = addableItems.filter((p) => p.ManageUrl != null && p.ManageUrl != undefined);
+        const addFiltered = addableItems.filter((p) => p.AddUrl != null && p.AddUrl != undefined);
+
+        const headerAction = $("<div class='header-actions'>")
+        if (addFiltered.length > 0) {
+            var item = addFiltered[0]
+            headerAction.append($("<a href='" + item.AddUrl + "'>").append('<i class="fas fa-plus" aria-hidden="true"></i>'));
+        }
+        if (manageFiltered.length > 0) {
+            var item = manageFiltered[0]
+            headerAction.append($("<a href='" + item.ManageUrl + "'>").append('<i class="fa fa-cog" aria-hidden="true"></i>'));
+        }
+
+       
+        return headerAction
     }
     protected createAddableItems(sender: IAjaxObject, context: IBoardContext, items: IAddableItemDto[]) {
         const result = $(".board-addable-items-container");
@@ -159,14 +183,11 @@ export default class BoardComponents implements IService {
         else if (item.Action == ActionEnum.NewWindow)
             attr = "target=\"_blank\"";
 
-        return $("<div class=\"item\">")
-            .append($("<a href='" + item.Url + "' style=\"" + this.addColour(item) + "\" " + attr + " >")
-                .append($("<div>").append((item.IconUrl === null || item.IconUrl === undefined) ? $("<div class='icon'>") : this.showIcon(item))
-                    .append($("<span>").append(item.Type))
-                    .append("<br />")
-                    .append($("<span class=\"board-component-name\">").append(item.Name))
-                )
-                .append($("<span>").html(item.Body)));
+        return $("<tr>").append($("<td >")
+            .append($("<a href='" + item.Url + "' " + attr + " >")
+                .append((item.IconUrl === null || item.IconUrl === undefined) ? $("<div class='icon'>") : this.showIcon(item))
+                .append($("<div>").append($("<span class=\"board-component-name\">").append(item.Name))
+                .append($("<span>").html(item.Body)))));
     }
     protected createAddableItem(item: IAddableItemDto, context: IBoardContext) {
         return $("<div class=\"menu-item\">")
@@ -226,14 +247,14 @@ export default class BoardComponents implements IService {
                     return result;
                 }, {}); // empty object is the initial value for result object
             };
-            
+
             const personGroupedByType = groupBy(resultfiltered, 'Type');
-            var that= this;
+            var that = this;
             $.each(personGroupedByType, function (element) {
 
-                var result = resultfiltered.filter((p) => p.Type == element);
+                var filterdResult = resultfiltered.filter((p) => p.Type == element);
 
-                const boardItem = that.createBoardItems(sender, context, result);
+                const boardItem = that.createBoardItems(sender, context, filterdResult, result.AddabledItems);
                 context.boardHolder.append(boardItem);
             })
 
