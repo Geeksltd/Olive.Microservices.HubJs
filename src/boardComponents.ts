@@ -24,7 +24,7 @@ export default class BoardComponents implements IService {
     private onChanged(event: any) {
         this.filterInput = this.filterInput || $(event.currentTarget);
         let keywords = this.filterInput.val().toLowerCase().split(' ');
-        let rows = this.filterInput.parent().parent().find('.board-components-result .item');
+        let rows = $(".hub-service").find('.board-components-result .item,.olive-instant-search-item');
 
         rows.each((index, e) => {
             let row = $(e);
@@ -174,7 +174,7 @@ export default class BoardComponents implements IService {
     protected addColour(item: IResultItemDto) {
         if (item.Colour != undefined && item.Colour != null && item.Colour != "")
             return "background-color:" + item.Colour + ";"
-        return "";
+        return "background-color:#aaa;";
     }
     protected createItem(item: IResultItemDto, context: IBoardContext) {
         var attr = "";
