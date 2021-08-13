@@ -8,7 +8,6 @@
         "jquery-ui-all": "jquery-ui/jquery-ui",
         "jquery-validate": "jquery-validation/dist/jquery.validate",
         "jquery-validate-unobtrusive": "jquery-validation-unobtrusive/src/jquery.validate.unobtrusive",
-
         // Jquery plugins:
         "underscore": "underscore/underscore",
         "alertify": "alertifyjs/dist/js/alertify",

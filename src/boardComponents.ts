@@ -6,6 +6,7 @@ export default class BoardComponents implements IService {
     private boardType: string = null;
     private filterInput: JQuery;
     private modalHelper: ModalHelper
+    private timer: any = null
     constructor(private input: JQuery, modalHelper: ModalHelper) {
         if (input == null || input.length == 0) return;
         var urls = input.attr("data-board-source").split(";");
@@ -15,7 +16,15 @@ export default class BoardComponents implements IService {
         this.modalHelper = modalHelper;
     }
     private filterEnable() {
-        this.filterInput.off("keyup.board-components-filter").on("keyup.board-components-filter", this.onChanged);
+        this.filterInput.off("keyup.board-components-filter").on("keyup.board-components-filter",
+            function () {
+                if (this.timer != null && this.timer != undefined)
+                    clearTimeout(this.timer)
+                setTimeout(function () {
+                    window.page.board.onChanged()
+                }, 200)
+            }
+        );
 
         this.filterInput.on("keydown", e => {
             if (e.keyCode == 13) e.preventDefault();
@@ -25,12 +34,13 @@ export default class BoardComponents implements IService {
         this.filterInput = this.filterInput || $(event.currentTarget);
         let keywords = this.filterInput.val().toLowerCase().split(' ');
         let rows = $(".hub-service").find('.board-components-result .item,.olive-instant-search-item');
-
         rows.each((index, e) => {
             let row = $(e);
             let content = row.text().toLowerCase();
             let hasAllKeywords = keywords.filter((i) => content.indexOf(i) == -1).length == 0;
             if (hasAllKeywords) row.show(); else row.hide();
+            if (index == (rows.length - 1))
+                window.page.board.onResize()
         });
     }
 
@@ -115,6 +125,19 @@ export default class BoardComponents implements IService {
             if (!$(e.target).closest("a").is($(".manage-button,.add-button")))
                 $(".board-addable-items-container,.board-manage-items-container").fadeOut();
         })
+        $(window).on('resize', function () {
+            this.onResize()
+        });
+    }
+    protected onResize() {
+        var width = 0;
+        if ($(".sidebarCollapse.collapse").length == 0)
+            width += 230;
+        if ($("#taskBarCollapse.collapse").length == 0)
+            width += 300;
+        $(".board-components-result .list-items").masonryGrid({
+            'columns': parseInt((($(document).outerWidth() - width) / 300).toString())
+        });
     }
     protected createBoardItems(sender: IAjaxObject, context: IBoardContext, items: IResultItemDto[], addableItems: IAddableItemDto[]) {
         if (items.length == 0) return null;
@@ -123,7 +146,7 @@ export default class BoardComponents implements IService {
         const searchItem = $("<div class='item'>");
         const h3 = $('<h3 >').html(items[0].Type + "s").append(this.createHeaderAction(addableItems))
         searchItem.append($("<div class='header' " + "' style=\"" + this.addColour(items[0]) + "\">").append(h3))
-        
+
         //table.append($("<tr>").append($("<th " + "' style=\"" + this.addColour(items[0]) + "\" " + ">")
 
         for (let i = 0; i < items.length; i++) {
@@ -147,7 +170,7 @@ export default class BoardComponents implements IService {
             headerAction.append($("<a href='" + item.ManageUrl + "'>").append('<i class="fa fa-cog" aria-hidden="true"></i>'));
         }
 
-       
+
         return headerAction
     }
     protected createAddableItems(sender: IAjaxObject, context: IBoardContext, items: IAddableItemDto[]) {
@@ -187,7 +210,7 @@ export default class BoardComponents implements IService {
             .append($("<a href='" + item.Url + "' " + attr + " >")
                 .append((item.IconUrl === null || item.IconUrl === undefined) ? $("<div class='icon'>") : this.showIcon(item))
                 .append($("<div>").append($("<span class=\"board-component-name\">").append(item.Name))
-                .append($("<span>").html(item.Body)))));
+                    .append($("<span>").html(item.Body)))));
     }
     protected createAddableItem(item: IAddableItemDto, context: IBoardContext) {
         return $("<div class=\"menu-item\">")
@@ -298,6 +321,8 @@ export default class BoardComponents implements IService {
         if (context.ajaxCallCount == context.ajaxList.length) {
             var header = this.filterInput.parent();
             this.bindAddableItemsButtonClick(context);
+
+            window.page.board.onResize();
 
             if ($(".board-addable-items-container").children().length > 0) {
                 $(".add-button").fadeIn();

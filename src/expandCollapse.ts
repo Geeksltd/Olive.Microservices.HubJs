@@ -63,6 +63,7 @@ export default class ExpandCollapse {
     }
     syncHubTopMenu(){
         window.page.services.getService("featuresMenuFactory").getMenu().onResize();
+        window.page.board.onResize();         
 
         // let arg = {};
         // let paramW = { command: "sideBarRightToggleEvent", arg: arg };
