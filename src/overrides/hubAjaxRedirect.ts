@@ -22,7 +22,7 @@ export default class HubAjaxRedirect extends AjaxRedirect {
         else
             super.onRedirectionFailed(url, response);
     }
-    
+
     public go(
         url: string,
         trigger: JQuery = null,
@@ -30,7 +30,8 @@ export default class HubAjaxRedirect extends AjaxRedirect {
         keepScroll: boolean = false,
         addToHistory = true,
         onComplete?: (successful: boolean) => void): boolean {
-        $("iframe.view-frame").attr("src", "").attr("style", "");
-        return super.go(url,trigger,isBack,keepScroll,addToHistory,onComplete);
+        if (!$(trigger).parent().hasClass("modal-body"))
+            $("iframe.view-frame").attr("src", "").attr("style", "");
+        return super.go(url, trigger, isBack, keepScroll, addToHistory, onComplete);
     }
 }
