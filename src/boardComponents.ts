@@ -163,11 +163,21 @@ export default class BoardComponents implements IService {
         const headerAction = $("<div class='header-actions'>")
         if (addFiltered.length > 0) {
             var item = addFiltered[0]
-            headerAction.append($("<a href='" + item.AddUrl + "'>").append('<i class="fas fa-plus" aria-hidden="true"></i>'));
+            var attr = "";
+            if (item.Action == ActionEnum.Popup)
+                attr = "target=\"$modal\"";
+            else if (item.Action == ActionEnum.NewWindow)
+                attr = "target=\"_blank\"";
+            headerAction.append($("<a href='" + item.AddUrl + "' " + attr + ">").append('<i class="fas fa-plus" aria-hidden="true"></i>'));
         }
         if (manageFiltered.length > 0) {
             var item = manageFiltered[0]
-            headerAction.append($("<a href='" + item.ManageUrl + "'>").append('<i class="fa fa-cog" aria-hidden="true"></i>'));
+            var attr = "";
+            if (item.Action == ActionEnum.Popup)
+                attr = "target=\"$modal\"";
+            else if (item.Action == ActionEnum.NewWindow)
+                attr = "target=\"_blank\"";
+            headerAction.append($("<a href='" + item.ManageUrl + "'" + attr + ">").append('<i class="fa fa-cog" aria-hidden="true"></i>'));
         }
 
 
@@ -213,8 +223,13 @@ export default class BoardComponents implements IService {
                     .append($("<span>").html(item.Body)))));
     }
     protected createAddableItem(item: IAddableItemDto, context: IBoardContext) {
+        var attr = "";
+        if (item.Action == ActionEnum.Popup)
+            attr = "target=\"$modal\"";
+        else if (item.Action == ActionEnum.NewWindow)
+            attr = "target=\"_blank\"";
         return $("<div class=\"menu-item\">")
-            .append($("<a href='" + item.AddUrl + "'>")
+            .append($("<a href='" + item.AddUrl + "' " + attr + "'>")
                 .append((item.IconUrl === null || item.IconUrl === undefined) ?
                     $("<div class='icon'>") : this.showIcon(item)
                         .append(item.Name)
@@ -223,8 +238,14 @@ export default class BoardComponents implements IService {
     }
 
     protected createManageItem(item: IAddableItemDto, context: IBoardContext) {
+        var attr = "";
+        if (item.Action == ActionEnum.Popup)
+            attr = "target=\"$modal\"";
+        else if (item.Action == ActionEnum.NewWindow)
+            attr = "target=\"_blank\"";
+
         return $("<div class=\"menu-item\">")
-            .append($("<a href='" + item.ManageUrl + "'>")
+            .append($("<a href='" + item.ManageUrl  + "' " + attr + "'>")
                 .append((item.IconUrl === null || item.IconUrl === undefined) ?
                     $("<div class='icon'>") : this.showIcon(item)
                         .append(item.Name)
@@ -381,6 +402,7 @@ export interface IAddableItemDto {
     IconUrl: string;
     AddUrl: string;
     ManageUrl: string;
+    Action: ActionEnum;
 }
 export interface IBoardResultDto {
     Results: IResultItemDto[];
