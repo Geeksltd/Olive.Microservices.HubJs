@@ -30453,7 +30453,7 @@ define('app/boardComponents',["require", "exports"], function (require, exports)
                 return null;
             var table = $("<table>");
             const searchItem = $("<div class='item'>");
-            const h3 = $('<h3 >').html(items[0].Type + "s").append(this.createHeaderAction(addableItems));
+            const h3 = $('<h3 >').html(items[0].Type + "s").append(this.createHeaderAction(items[0].Type, addableItems));
             searchItem.append($("<div class='header' " + "' style=\"" + this.addColour(items[0]) + "\">").append(h3));
             //table.append($("<tr>").append($("<th " + "' style=\"" + this.addColour(items[0]) + "\" " + ">")
             for (let i = 0; i < items.length; i++) {
@@ -30463,9 +30463,9 @@ define('app/boardComponents',["require", "exports"], function (require, exports)
             searchItem.append($("<div>").append(table));
             return searchItem;
         }
-        createHeaderAction(addableItems) {
-            const manageFiltered = addableItems.filter((p) => p.ManageUrl != null && p.ManageUrl != undefined);
-            const addFiltered = addableItems.filter((p) => p.AddUrl != null && p.AddUrl != undefined);
+        createHeaderAction(type, addableItems) {
+            const manageFiltered = addableItems.filter((p) => p.ManageUrl != null && p.ManageUrl != undefined && p.Type == type);
+            const addFiltered = addableItems.filter((p) => p.AddUrl != null && p.AddUrl != undefined && p.Type == type);
             const headerAction = $("<div class='header-actions'>");
             if (addFiltered.length > 0) {
                 var item = addFiltered[0];

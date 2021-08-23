@@ -144,7 +144,7 @@ export default class BoardComponents implements IService {
         var table = $("<table>");
 
         const searchItem = $("<div class='item'>");
-        const h3 = $('<h3 >').html(items[0].Type + "s").append(this.createHeaderAction(addableItems))
+        const h3 = $('<h3 >').html(items[0].Type + "s").append(this.createHeaderAction(items[0].Type, addableItems))
         searchItem.append($("<div class='header' " + "' style=\"" + this.addColour(items[0]) + "\">").append(h3))
 
         //table.append($("<tr>").append($("<th " + "' style=\"" + this.addColour(items[0]) + "\" " + ">")
@@ -156,9 +156,9 @@ export default class BoardComponents implements IService {
         searchItem.append($("<div>").append(table))
         return searchItem;
     }
-    protected createHeaderAction(addableItems: IAddableItemDto[]) {
-        const manageFiltered = addableItems.filter((p) => p.ManageUrl != null && p.ManageUrl != undefined);
-        const addFiltered = addableItems.filter((p) => p.AddUrl != null && p.AddUrl != undefined);
+    protected createHeaderAction(type: String, addableItems: IAddableItemDto[]) {
+        const manageFiltered = addableItems.filter((p) => p.ManageUrl != null && p.ManageUrl != undefined && p.Type == type);
+        const addFiltered = addableItems.filter((p) => p.AddUrl != null && p.AddUrl != undefined && p.Type == type);
 
         const headerAction = $("<div class='header-actions'>")
         if (addFiltered.length > 0) {
@@ -245,7 +245,7 @@ export default class BoardComponents implements IService {
             attr = "target=\"_blank\"";
 
         return $("<div class=\"menu-item\">")
-            .append($("<a href='" + item.ManageUrl  + "' " + attr + "'>")
+            .append($("<a href='" + item.ManageUrl + "' " + attr + "'>")
                 .append((item.IconUrl === null || item.IconUrl === undefined) ?
                     $("<div class='icon'>") : this.showIcon(item)
                         .append(item.Name)
@@ -398,6 +398,7 @@ export interface IResultItemDto {
 
 export interface IAddableItemDto {
     Name: string;
+    Type: string;
     Body: string;
     IconUrl: string;
     AddUrl: string;
