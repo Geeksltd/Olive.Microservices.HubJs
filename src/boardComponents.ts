@@ -156,9 +156,14 @@ export default class BoardComponents implements IService {
         searchItem.append($("<div>").append(table))
         return searchItem;
     }
+    private getItemType(addableItem: IAddableItemDto) {
+        if (addableItem.Type == null || addableItem.Type == '' || addableItem.Type == undefined)
+            return addableItem.Name;
+        return addableItem.Type;
+    }
     protected createHeaderAction(type: String, addableItems: IAddableItemDto[]) {
-        const manageFiltered = addableItems.filter((p) => p.ManageUrl != null && p.ManageUrl != undefined && p.Type == type);
-        const addFiltered = addableItems.filter((p) => p.AddUrl != null && p.AddUrl != undefined && p.Type == type);
+        const manageFiltered = addableItems.filter((p) => p.ManageUrl != null && p.ManageUrl != undefined && this.getItemType(p) == type);
+        const addFiltered = addableItems.filter((p) => p.AddUrl != null && p.AddUrl != undefined && this.getItemType(p) == type);
 
         const headerAction = $("<div class='header-actions'>")
         if (addFiltered.length > 0) {

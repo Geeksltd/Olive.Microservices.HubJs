@@ -30463,9 +30463,14 @@ define('app/boardComponents',["require", "exports"], function (require, exports)
             searchItem.append($("<div>").append(table));
             return searchItem;
         }
+        getItemType(addableItem) {
+            if (addableItem.Type == null || addableItem.Type == '' || addableItem.Type == undefined)
+                return addableItem.Name;
+            return addableItem.Type;
+        }
         createHeaderAction(type, addableItems) {
-            const manageFiltered = addableItems.filter((p) => p.ManageUrl != null && p.ManageUrl != undefined && p.Type == type);
-            const addFiltered = addableItems.filter((p) => p.AddUrl != null && p.AddUrl != undefined && p.Type == type);
+            const manageFiltered = addableItems.filter((p) => p.ManageUrl != null && p.ManageUrl != undefined && this.getItemType(p) == type);
+            const addFiltered = addableItems.filter((p) => p.AddUrl != null && p.AddUrl != undefined && this.getItemType(p) == type);
             const headerAction = $("<div class='header-actions'>");
             if (addFiltered.length > 0) {
                 var item = addFiltered[0];
