@@ -8,7 +8,7 @@
     "url": "git://github.com/Geeksltd/Olive.Microservices.HubJs.git"
   },
   "author": "Geeks Ltd",
-  "version": "3.6.8",
+  "version": "3.6.9",
   "license": "GPL-3.0",
   "private": false,
   "files": [
@@ -56,7 +56,7 @@
     "modernizr": "Modernizr/Modernizr#*",
     "moment": "moment/moment#2.8.0",
     "muuri": "haltu/muuri#^0.5.4",
-    "olive.mvc": "Geeksltd/Olive.MvcJs#2.1.12",
+    "olive.mvc": "Geeksltd/Olive.MvcJs#2.1.13",
     "popper.js": "^1.14.4",
     "pwstrength-bootstrap": "ablanco/jquery.pwstrength.bootstrap#~1.2.7",
     "seiyria-bootstrap-slider": "seiyria/bootstrap-slider#11.0.2",
