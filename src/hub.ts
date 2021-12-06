@@ -150,14 +150,14 @@ export default class Hub implements IService {
             iFrame.hide();
     }
 
-    public go(url: string, iframe: boolean) {
+    public go(url: string, iframe: boolean,trigger:any) {
         if (iframe) {
             url = this.url.effectiveUrlProvider(url, null);
             $("iframe.view-frame").attr("src", url);
             $(".feature-frame-view").show();
             $("main").hide();
         }
-        else this.ajaxRedirect.go(url);
+        else this.ajaxRedirect.go(url,trigger);
     }
 
     initServiceWorker(): any {

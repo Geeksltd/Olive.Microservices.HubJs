@@ -60,6 +60,8 @@ import 'bootstrapToggle';
 import 'bootstrap-select';
 import 'flickity';
 import ServerInvoker from 'olive/mvc/serverInvoker';
+import HubResponseProcessor from './overrides/hubResponseProcessor';
+import { ServiceDescription } from 'olive/di/serviceDescription';
 
 export default class HubPage extends OlivePage {
 
@@ -86,7 +88,9 @@ export default class HubPage extends OlivePage {
 
     configureServices(services: ServiceContainer) {
 
+        const out: IOutParam<ServiceDescription> = {};
         services.addSingleton(Services.Url, () => new HubUrl());
+        services.tryAddSingleton(Services.ResponseProcessor, () => new HubResponseProcessor(), out);
 
         services.addSingleton(HubServices.Hub, (url: Url, ajaxRedirect: AjaxRedirect, featuresMenuFactory: FeaturesMenuFactory, breadcrumbMenu: BreadcrumbMenu, responseProcessor: ResponseProcessor) =>
             new Hub(url, ajaxRedirect, featuresMenuFactory, breadcrumbMenu, responseProcessor))
@@ -149,7 +153,9 @@ export default class HubPage extends OlivePage {
         ToggleCheckbox.enableToggleCheckbox($("input[class='form-check']"));
         WidgetModule.enableWidget($("Widget"));
         if(this.board == null)
-            this.board = new BoardComponents($(".board-components"), this.getService<ModalHelper>(Services.ModalHelper));
+            this.board = new BoardComponents($(".board-components"), 
+            this.getService<ModalHelper>(Services.ModalHelper), 
+            this.getService<AjaxRedirect>(Services.AjaxRedirect));
 
         let currentService = $("service[of]").attr("of");
 
