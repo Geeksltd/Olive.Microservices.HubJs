@@ -6,7 +6,7 @@ export default class HubResponseProcessor extends ResponseProcessor {
         let asElement = $(response);
         asElement = this.fixUrlsForOpenNewWindows(response);
 
-        if (trigger != null && trigger.is("[data-module-inner]") && asElement.is("main")) {
+        if (trigger != null && trigger.is("[data-module-inner]") && typeof (response) != typeof ([])) {
             let innerMadule =$("[data-module-inner-container]");
             innerMadule.html('').append(asElement);
             trigger = asElement.find("[data-module]")
