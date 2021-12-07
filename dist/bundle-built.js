@@ -30487,10 +30487,18 @@ define('app/boardComponents',["require", "exports", "olive/components/url"], fun
             var ajaxredirect = this.ajaxRedirect;
             $(link).click(function (e) {
                 e.preventDefault();
+                var url = $(this).attr("href");
+                var serviceName = '';
                 var urlToLoad = new url_1.default().getQuery("url", $(this).attr("href"));
+                if (!urlToLoad) {
+                    urlToLoad = new url_1.default().makeRelative($(this).attr("href"));
+                    serviceName = urlToLoad.split('/')[0];
+                    urlToLoad = urlToLoad.substr(serviceName.length);
+                }
                 if (urlToLoad) {
-                    $(".list-items, [data-module=BoardView]").fadeOut();
-                    var serviceName = $(this).attr("href").split('?')[0].split('/').pop();
+                    $(".list-items, [data-module=BoardView]").fadeOut('false', function () { $(this).remove(); });
+                    if (!serviceName)
+                        serviceName = $(this).attr("href").split('?')[0].split('/').pop();
                     var currentServiceName = $("[data-module-inner]").closest("service[of]").attr("of");
                     if (currentServiceName == serviceName)
                         ajaxredirect.go(urlToLoad, $("[data-module-inner]"), false, false, false);
@@ -30832,7 +30840,7 @@ define('app/overrides/hubResponseProcessor',["require", "exports", "olive/mvc/re
         processAjaxResponse(response, containerModule, trigger, args) {
             let asElement = $(response);
             asElement = this.fixUrlsForOpenNewWindows(response);
-            if (trigger != null && trigger.is("[data-module-inner]")) {
+            if (trigger != null && trigger.is("[data-module-inner]") && asElement.is("main")) {
                 let innerMadule = $("[data-module-inner-container]");
                 innerMadule.replaceWith(asElement);
                 trigger = asElement.find("[data-module]");
