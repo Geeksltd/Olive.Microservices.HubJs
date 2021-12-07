@@ -30402,8 +30402,13 @@ define('app/boardComponents',["require", "exports", "olive/components/url"], fun
             const addableItemsPanel = this.getAddableItemsPanel();
             resultPanel.empty();
             addableItemsPanel.empty();
+            // if ($("[data-boardtype=Person]").length > 0)
+            //     resultPanel.append($('<div data-module-inner>\
+            // <div class="row board-header pane"><div class="col-md-2 board-image"></div><div class="col-md-10"><div class="board-info">\
+            // </div><div class="board-links"></div></div></div><div class="col-md-12 mt-4 board-content" ><div data-module-inner-container></div></div></div>'))
+            // else
             resultPanel.append($('<div data-module-inner>\
-        <div class="row board-header pane"><div class="col-md-2 board-image"></div><div class="col-md-10"><div class="board-info">\
+        <div class="row board-header pane" style="display:none"><div class="col-md-2 board-image"></div><div class="col-md-10"><div class="board-info">\
         </div><div class="board-links"></div></div></div><div class="col-md-12 mt-4 board-content" ><div data-module-inner-container></div></div></div>'));
             const boardHolder = $("<div class='list-items'>");
             const addabledItemsHolder = $("<div class='list-items'>");
@@ -30499,11 +30504,11 @@ define('app/boardComponents',["require", "exports", "olive/components/url"], fun
                     $(".list-items, [data-module=BoardView]").fadeOut('false', function () { $(this).remove(); });
                     if (!serviceName)
                         serviceName = $(this).attr("href").split('?')[0].split('/').pop();
-                    var currentServiceName = $("[data-module-inner]").closest("service[of]").attr("of");
-                    if (currentServiceName == serviceName)
-                        ajaxredirect.go(urlToLoad, $("[data-module-inner]"), false, false, false);
-                    else
-                        ajaxredirect.go(serviceName + (urlToLoad.startsWith('/') ? '' : '/') + urlToLoad, $("[data-module-inner]"), false, false, false);
+                    $("[data-module-inner]").closest("service[of]").attr("of", serviceName);
+                    //if (currentServiceName == serviceName)
+                    ajaxredirect.go(urlToLoad, $("[data-module-inner]"), false, false, false);
+                    // else
+                    //     ajaxredirect.go(serviceName + (urlToLoad.startsWith('/') ? '' : '/') + urlToLoad, $("[data-module-inner]"), false, false, false)
                     return false;
                 }
                 ajaxredirect.go($(this).attr("href"), null, false, false, false);
@@ -30547,6 +30552,7 @@ define('app/boardComponents',["require", "exports", "olive/components/url"], fun
             $(".board-image").append(this.showIntroImage(intro).prop('outerHTML'));
             $(".board-info").append($('<div class="col-md-9"><h2 class="mb-2">' + intro.Name + '</h2>\
             <div class="text-gray">' + intro.Name + '</div></div>'));
+            $('.board-header').fadeIn();
             return result;
         }
         createManageItems(sender, context, items) {
@@ -30842,7 +30848,7 @@ define('app/overrides/hubResponseProcessor',["require", "exports", "olive/mvc/re
             asElement = this.fixUrlsForOpenNewWindows(response);
             if (trigger != null && trigger.is("[data-module-inner]") && asElement.is("main")) {
                 let innerMadule = $("[data-module-inner-container]");
-                innerMadule.replaceWith(asElement);
+                innerMadule.html('').append(asElement);
                 trigger = asElement.find("[data-module]");
                 this.onViewChanged(asElement, trigger);
                 return;

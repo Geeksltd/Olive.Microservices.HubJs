@@ -10,7 +10,7 @@ export default class BoardComponents implements IService {
     private modalHelper: ModalHelper
     private ajaxRedirect: AjaxRedirect
     private timer: any = null
-    constructor(private input: JQuery, modalHelper: ModalHelper,ajaxRedirect: AjaxRedirect) {
+    constructor(private input: JQuery, modalHelper: ModalHelper, ajaxRedirect: AjaxRedirect) {
         if (input == null || input.length == 0) return;
         var urls = input.attr("data-board-source").split(";");
         this.filterInput = this.input.parent().find(".board-components-filter");
@@ -85,17 +85,22 @@ export default class BoardComponents implements IService {
         const addableItemsPanel = this.getAddableItemsPanel();
         resultPanel.empty();
         addableItemsPanel.empty();
-        resultPanel.append($('<div data-module-inner>\
-        <div class="row board-header pane"><div class="col-md-2 board-image"></div><div class="col-md-10"><div class="board-info">\
+        // if ($("[data-boardtype=Person]").length > 0)
+        //     resultPanel.append($('<div data-module-inner>\
+        // <div class="row board-header pane"><div class="col-md-2 board-image"></div><div class="col-md-10"><div class="board-info">\
+        // </div><div class="board-links"></div></div></div><div class="col-md-12 mt-4 board-content" ><div data-module-inner-container></div></div></div>'))
+        // else
+            resultPanel.append($('<div data-module-inner>\
+        <div class="row board-header pane" style="display:none"><div class="col-md-2 board-image"></div><div class="col-md-10"><div class="board-info">\
         </div><div class="board-links"></div></div></div><div class="col-md-12 mt-4 board-content" ><div data-module-inner-container></div></div></div>'))
 
         const boardHolder = $("<div class='list-items'>");
         const addabledItemsHolder = $("<div class='list-items'>");
 
-        var urlToLoad = new Url().getQuery("url",location.href);
-        if(urlToLoad){
+        var urlToLoad = new Url().getQuery("url", location.href);
+        if (urlToLoad) {
             var serviceName = location.pathname.split('/')[3]
-            this.ajaxRedirect.go(serviceName + (urlToLoad.startsWith('/')?'':'/') + urlToLoad,$("[data-module-inner]"),false,false,false)  
+            this.ajaxRedirect.go(serviceName + (urlToLoad.startsWith('/') ? '' : '/') + urlToLoad, $("[data-module-inner]"), false, false, false)
         }
         const ajaxList = urls.map((p): IAjaxObject => {
             const icon = p.split("#")[1].trim();
@@ -172,30 +177,30 @@ export default class BoardComponents implements IService {
             return addableItem.Name;
         return addableItem.Type;
     }
-    private handelLinksClick(link:any){
-        var ajaxredirect =this.ajaxRedirect;
-        $(link).click(function(e){
+    private handelLinksClick(link: any) {
+        var ajaxredirect = this.ajaxRedirect;
+        $(link).click(function (e) {
             e.preventDefault()
             var url = $(this).attr("href");
-            var serviceName=''
-            var urlToLoad = new Url().getQuery("url",$(this).attr("href"));
-            if(!urlToLoad){
+            var serviceName = ''
+            var urlToLoad = new Url().getQuery("url", $(this).attr("href"));
+            if (!urlToLoad) {
                 urlToLoad = new Url().makeRelative($(this).attr("href"))
                 serviceName = urlToLoad.split('/')[0]
-                urlToLoad= urlToLoad.substr(serviceName.length)
+                urlToLoad = urlToLoad.substr(serviceName.length)
             }
-            if(urlToLoad){
-                $(".list-items, [data-module=BoardView]").fadeOut('false',function(){$(this).remove()})
-                if(!serviceName)
-                serviceName = $(this).attr("href").split('?')[0].split('/').pop()
-                var currentServiceName = $("[data-module-inner]").closest("service[of]").attr("of")
-                if(currentServiceName == serviceName)
-                ajaxredirect.go(urlToLoad,$("[data-module-inner]"),false,false,false)  
-                else
-                ajaxredirect.go(serviceName + (urlToLoad.startsWith('/')?'':'/') + urlToLoad,$("[data-module-inner]"),false,false,false)  
+            if (urlToLoad) {
+                $(".list-items, [data-module=BoardView]").fadeOut('false', function () { $(this).remove() })
+                if (!serviceName)
+                    serviceName = $(this).attr("href").split('?')[0].split('/').pop()
+                $("[data-module-inner]").closest("service[of]").attr("of",serviceName)
+                //if (currentServiceName == serviceName)
+                    ajaxredirect.go(urlToLoad, $("[data-module-inner]"), false, false, false)
+                // else
+                //     ajaxredirect.go(serviceName + (urlToLoad.startsWith('/') ? '' : '/') + urlToLoad, $("[data-module-inner]"), false, false, false)
                 return false;
             }
-            ajaxredirect.go($(this).attr("href"),null,false,false,false)  
+            ajaxredirect.go($(this).attr("href"), null, false, false, false)
 
             return false;
         })
@@ -203,7 +208,7 @@ export default class BoardComponents implements IService {
     protected createHeaderAction(type: String, addableItems: IAddableItemDto[]) {
         const manageFiltered = addableItems.filter((p) => p.ManageUrl != null && p.ManageUrl != undefined && this.getItemType(p) == type);
         const addFiltered = addableItems.filter((p) => p.AddUrl != null && p.AddUrl != undefined && this.getItemType(p) == type);
-        
+
         const headerAction = $("<div class='header-actions'>")
         if (addFiltered.length > 0) {
             var item = addFiltered[0]
@@ -238,10 +243,11 @@ export default class BoardComponents implements IService {
     }
     protected createBoardIntro(sender: IAjaxObject, context: IBoardContext, intro: IBoardComponentsIntroDto) {
         const result = $(".board-components-result");
-        $(".board-image").append(this.showIntroImage(intro).prop('outerHTML') )
+        $(".board-image").append(this.showIntroImage(intro).prop('outerHTML'))
         $(".board-info").append(
-        $('<div class="col-md-9"><h2 class="mb-2">' + intro.Name + '</h2>\
+            $('<div class="col-md-9"><h2 class="mb-2">' + intro.Name + '</h2>\
             <div class="text-gray">' + intro.Name + '</div></div>'))
+            $('.board-header').fadeIn()
         return result;
     }
     protected createManageItems(sender: IAjaxObject, context: IBoardContext, items: IAddableItemDto[]) {
@@ -252,7 +258,7 @@ export default class BoardComponents implements IService {
         }
         const headerLinks = $(".board-links")
         for (let i = 0; i < items.length; i++) {
-           var item = items[i];
+            var item = items[i];
             result.append(this.createManageItem(items[i], context));
             var attr = "";
             if (item.Action == ActionEnum.Popup)
@@ -337,13 +343,12 @@ export default class BoardComponents implements IService {
         }
     }
     protected showIntroImage(intro: any): JQuery {
-        var randomColor ="#" + Math.floor(Math.random()*16777215).toString(16);
-        if(intro.ImageUrl == null || intro.ImageUrl == "" || intro.ImageUrl == undefined)
-        {
-           //var html = "<div class='project-icon-text'" +" style='background-color:" + randomColor + " >" + intro.Name.substr(0,2) + "</div>"
+        var randomColor = "#" + Math.floor(Math.random() * 16777215).toString(16);
+        if (intro.ImageUrl == null || intro.ImageUrl == "" || intro.ImageUrl == undefined) {
+            //var html = "<div class='project-icon-text'" +" style='background-color:" + randomColor + " >" + intro.Name.substr(0,2) + "</div>"
             return $("<div class='project-icon-text'>")
-                .css("background-color",randomColor)
-                .append(intro.Name.substr(0,2));
+                .css("background-color", randomColor)
+                .append(intro.Name.substr(0, 2));
         }
         if (intro.ImageUrl.indexOf("fa-") > 0) {
             return $("<div class='icon'>").append($("<i class='" + intro.ImageUrl + "'></i>"));
@@ -394,10 +399,9 @@ export default class BoardComponents implements IService {
 
                 const addabledItem = this.createAddableItems(sender, context, resultfiltered);
             }
-            if(result !== null && result !== undefined && result.BoardComponentsIntro !== null
-                && result.BoardComponentsIntro !== undefined)
-            {
-                this.createBoardIntro(sender, context,result.BoardComponentsIntro)
+            if (result !== null && result !== undefined && result.BoardComponentsIntro !== null
+                && result.BoardComponentsIntro !== undefined) {
+                this.createBoardIntro(sender, context, result.BoardComponentsIntro)
             }
 
         } else {

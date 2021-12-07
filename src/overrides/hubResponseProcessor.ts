@@ -8,7 +8,7 @@ export default class HubResponseProcessor extends ResponseProcessor {
 
         if (trigger != null && trigger.is("[data-module-inner]") && asElement.is("main")) {
             let innerMadule =$("[data-module-inner-container]");
-            innerMadule.replaceWith(asElement);
+            innerMadule.html('').append(asElement);
             trigger = asElement.find("[data-module]")
             this.onViewChanged(asElement, trigger);
             return;
