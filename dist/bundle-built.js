@@ -29980,7 +29980,10 @@ define('app/error/errorViewsNavigator',["require", "exports", "../model/service"
     class ErrorViewsNavigator {
         static goToServiceError(service, url) {
             let errorContent = errorTemplates.SERVICE.replace("[#URL#]", url).replace("[#SERVICE#]", service.Name);
-            $("main").replaceWith(errorContent);
+            if ($('[data-module-inner-container]').length > 0)
+                $("[data-module-inner-container]").html(errorContent);
+            else
+                $("main").replaceWith(errorContent);
             let addressBar = url.trimHttpProtocol().replace(service.BaseUrl.trimHttpProtocol(), service.Name).withPrefix("/");
             window.history.pushState(null, service.Name, addressBar);
         }
