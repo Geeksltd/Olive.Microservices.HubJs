@@ -30647,12 +30647,25 @@ define('app/boardComponents',["require", "exports", "olive/components/url"], fun
                 return $("<div class='icon'>").append($("<img src='" + item.IconUrl + "'>"));
             }
         }
+        generateRandomColor() {
+            return "#" + Math.floor(Math.random() * 16777215).toString(16);
+        }
+        getTextColor(hexcolor) {
+            hexcolor = hexcolor.replace("#", "");
+            var r = parseInt(hexcolor.substr(0, 2), 16);
+            var g = parseInt(hexcolor.substr(2, 2), 16);
+            var b = parseInt(hexcolor.substr(4, 2), 16);
+            var yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+            return (yiq >= 128) ? 'black' : 'white';
+        }
         showIntroImage(intro) {
-            var randomColor = "#" + Math.floor(Math.random() * 16777215).toString(16);
+            var randomColor = this.generateRandomColor();
+            var textColor = this.getTextColor(randomColor);
             if (intro.ImageUrl == null || intro.ImageUrl == "" || intro.ImageUrl == undefined) {
                 //var html = "<div class='project-icon-text'" +" style='background-color:" + randomColor + " >" + intro.Name.substr(0,2) + "</div>"
                 return $("<div class='project-icon-text'>")
                     .css("background-color", randomColor)
+                    .css("color", textColor)
                     .append(intro.Name.substr(0, 2));
             }
             if (intro.ImageUrl.indexOf("fa-") > 0) {
