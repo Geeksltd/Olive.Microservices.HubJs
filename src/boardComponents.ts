@@ -83,16 +83,16 @@ export default class BoardComponents implements IService {
 
         const resultPanel = this.getResultPanel();
         const addableItemsPanel = this.getAddableItemsPanel();
-        resultPanel.empty();
+        //resultPanel.empty();
         addableItemsPanel.empty();
         // if ($("[data-boardtype=Person]").length > 0)
         //     resultPanel.append($('<div data-module-inner>\
         // <div class="row board-header pane"><div class="col-md-2 board-image"></div><div class="col-md-10"><div class="board-info">\
         // </div><div class="board-links"></div></div></div><div class="col-md-12 mt-4 board-content" ><div data-module-inner-container></div></div></div>'))
         // else
-            resultPanel.append($('<div data-module-inner>\
-        <div class="row board-header pane" style="display:none"><div class="col-md-2 board-image"></div><div class="col-md-10"><div class="board-info">\
-        </div><div class="board-links"></div></div></div><div class="col-md-12 mt-4 board-content" ><div data-module-inner-container></div></div></div>'))
+        //     resultPanel.append($('<div data-module-inner>\
+        // <div class="row board-header pane" style="display:none"><div class="col-md-2 board-image"></div><div class="col-md-10"><div class="board-info">\
+        // </div><div class="board-links"></div></div></div><div class="col-md-12 mt-4 board-content" ><div data-module-inner-container></div></div></div>'))
 
         const boardHolder = $("<div class='list-items'>");
         const addabledItemsHolder = $("<div class='list-items'>");
@@ -190,7 +190,7 @@ export default class BoardComponents implements IService {
                 urlToLoad = urlToLoad.substr(serviceName.length)
             }
             if (urlToLoad) {
-                $(".list-items, [data-module=BoardView]").fadeOut('false', function () { $(this).remove() })
+                $(".board-components-result, [data-module=BoardView]").fadeOut('false', function () { $(this).remove() })
                 if (!serviceName)
                     serviceName = $(this).attr("href").split('?')[0].split('/').pop()
                 $("[data-module-inner]").closest("service[of]").attr("of",serviceName)
@@ -243,10 +243,10 @@ export default class BoardComponents implements IService {
     }
     protected createBoardIntro(sender: IAjaxObject, context: IBoardContext, intro: IBoardComponentsIntroDto) {
         const result = $(".board-components-result");
-        $(".board-image").append(this.showIntroImage(intro).prop('outerHTML'))
+        $(".board-image").append($("<a href='" + intro.BoardUrl + "' >").append(this.showIntroImage(intro).prop('outerHTML')))
         $(".board-info").append(
             $('<div class="col-md-9"><h2 class="mb-2">' + intro.Name + '</h2>\
-            <div class="text-gray">' + intro.Name + '</div></div>'))
+            <div class="text-gray">' + intro.Description + '</div></div>'))
             $('.board-header').fadeIn()
         return result;
     }
@@ -495,6 +495,7 @@ export interface IBoardComponentsIntroDto {
     Name: string;
     Description: string;
     ImageUrl: string;
+    BoardUrl:string;
 }
 export interface IBoardResultDto {
     Results: IResultItemDto[];
