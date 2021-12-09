@@ -30497,12 +30497,13 @@ define('app/boardComponents',["require", "exports", "olive/components/url"], fun
                 e.preventDefault();
                 var url = $(this).attr("href");
                 var serviceName = '';
-                var urlToLoad = new url_1.default().getQuery("url", $(this).attr("href"));
-                if (!urlToLoad) {
-                    urlToLoad = new url_1.default().makeRelative($(this).attr("href"));
-                    serviceName = urlToLoad.split('/')[0];
-                    urlToLoad = urlToLoad.substr(serviceName.length);
-                }
+                var urlToLoad = $(this).attr("href");
+                // var urlToLoad = new Url().getQuery("url", $(this).attr("href"));
+                // if (!urlToLoad) {
+                //     urlToLoad = new Url().makeRelative($(this).attr("href"))
+                //     serviceName = urlToLoad.split('/')[0]
+                //     urlToLoad = urlToLoad.substr(serviceName.length)
+                // }
                 if (urlToLoad) {
                     $(".board-components-result, [data-module=BoardView]").fadeOut('false', function () { $(this).remove(); });
                     if (!serviceName)
