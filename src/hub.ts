@@ -160,9 +160,9 @@ export default class Hub implements IService {
             else{
                 $("iframe.view-frame").attr("src", url);
                 $(".feature-frame-view").show();
+                $("main").hide();
             }
             
-            $("main").hide();
         }
         else this.ajaxRedirect.go(url,trigger);
     }
