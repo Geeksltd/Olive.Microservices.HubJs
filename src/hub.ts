@@ -153,9 +153,9 @@ export default class Hub implements IService {
     public go(url: string, iframe: boolean,trigger:any) {
         if (iframe) {
             url = this.url.effectiveUrlProvider(url, null);
-            if($(trigger).closest("[data-module-inner-container]").length > 0){
-                $(trigger).closest("[data-module-inner-container]").find("iframe.view-frame").attr("src", url)
-                $(trigger).closest("[data-module-inner-container]").find("iframe.view-frame").show()
+            if($(trigger).closest("[data-module-inner]").length > 0){
+                $(".board-components-result").find("iframe.view-frame").attr("src", url)
+                $(".board-components-result").find("iframe.view-frame").show()
             }
             else{
                 $("iframe.view-frame").attr("src", url);

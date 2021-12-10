@@ -30236,9 +30236,9 @@ define('app/hub',["require", "exports", "olive/components/crossDomainEvent", "./
         go(url, iframe, trigger) {
             if (iframe) {
                 url = this.url.effectiveUrlProvider(url, null);
-                if ($(trigger).closest("[data-module-inner-container]").length > 0) {
-                    $(trigger).closest("[data-module-inner-container]").find("iframe.view-frame").attr("src", url);
-                    $(trigger).closest("[data-module-inner-container]").find("iframe.view-frame").show();
+                if ($(trigger).closest("[data-module-inner]").length > 0) {
+                    $(".board-components-result").find("iframe.view-frame").attr("src", url);
+                    $(".board-components-result").find("iframe.view-frame").show();
                 }
                 else {
                     $("iframe.view-frame").attr("src", url);
@@ -30581,7 +30581,7 @@ define('app/boardComponents',["require", "exports", "olive/components/url"], fun
                 else if (item.Action == ActionEnum.NewWindow)
                     attr = "target=\"_blank\"";
                 var link = $("<a class='btn btn-primary' href='" + items[i].ManageUrl + "'" + attr + ">");
-                link.append('<i class="fa fa-cog" aria-hidden="true"></i>').append(item.Name);
+                link.append(item.Name);
                 headerLinks.append(link);
                 this.handelLinksClick(link);
             }
@@ -30747,7 +30747,7 @@ define('app/boardComponents',["require", "exports", "olive/components/url"], fun
                     $(".add-button").fadeIn();
                 }
                 if ($(".board-manage-items-container").children().length > 0) {
-                    $(".manage-button").fadeIn();
+                    //$(".manage-button").fadeIn();
                 }
             }
         }

@@ -267,7 +267,7 @@ export default class BoardComponents implements IService {
             else if (item.Action == ActionEnum.NewWindow)
                 attr = "target=\"_blank\"";
             var link = $("<a class='btn btn-primary' href='" + items[i].ManageUrl + "'" + attr + ">")
-            link.append('<i class="fa fa-cog" aria-hidden="true"></i>').append(item.Name)
+            link.append(item.Name)
             headerLinks.append(link);
             this.handelLinksClick(link)
         }
@@ -449,7 +449,7 @@ export default class BoardComponents implements IService {
                 $(".add-button").fadeIn();
             }
             if ($(".board-manage-items-container").children().length > 0) {
-                $(".manage-button").fadeIn();
+                //$(".manage-button").fadeIn();
             }
         }
     }
