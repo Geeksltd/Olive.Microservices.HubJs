@@ -96,7 +96,7 @@ export default class BoardComponents implements IService {
 
         const boardHolder = $("<div class='list-items'>");
         const addabledItemsHolder = $("<div class='list-items'>");
-
+        $("iframe.view-frame").hide();
         var urlToLoad = new Url().getQuery("url", location.href);
         if (urlToLoad) {
             var serviceName = location.pathname.split('/')[3]
@@ -181,6 +181,8 @@ export default class BoardComponents implements IService {
         var ajaxredirect = this.ajaxRedirect;
         $(link).click(function (e) {
             e.preventDefault()
+            $(".board-links .btn").removeClass("active")
+            $(this).addClass("active")
             var url = $(this).attr("href");
             var serviceName = ''
             var urlToLoad = $(this).attr("href");

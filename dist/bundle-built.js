@@ -30422,6 +30422,7 @@ define('app/boardComponents',["require", "exports", "olive/components/url"], fun
             // </div><div class="board-links"></div></div></div><div class="col-md-12 mt-4 board-content" ><div data-module-inner-container></div></div></div>'))
             const boardHolder = $("<div class='list-items'>");
             const addabledItemsHolder = $("<div class='list-items'>");
+            $("iframe.view-frame").hide();
             var urlToLoad = new url_1.default().getQuery("url", location.href);
             if (urlToLoad) {
                 var serviceName = location.pathname.split('/')[3];
@@ -30502,6 +30503,8 @@ define('app/boardComponents',["require", "exports", "olive/components/url"], fun
             var ajaxredirect = this.ajaxRedirect;
             $(link).click(function (e) {
                 e.preventDefault();
+                $(".board-links .btn").removeClass("active");
+                $(this).addClass("active");
                 var url = $(this).attr("href");
                 var serviceName = '';
                 var urlToLoad = $(this).attr("href");
