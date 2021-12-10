@@ -30236,8 +30236,14 @@ define('app/hub',["require", "exports", "olive/components/crossDomainEvent", "./
         go(url, iframe, trigger) {
             if (iframe) {
                 url = this.url.effectiveUrlProvider(url, null);
-                $("iframe.view-frame").attr("src", url);
-                $(".feature-frame-view").show();
+                if ($(trigger).closest("[data-module-inner-container]").length > 0) {
+                    $(trigger).closest("[data-module-inner-container]").find("iframe.view-frame").attr("src", url);
+                    $(trigger).closest("[data-module-inner-container]").find("iframe.view-frame").show();
+                }
+                else {
+                    $("iframe.view-frame").attr("src", url);
+                    $(".feature-frame-view").show();
+                }
                 $("main").hide();
             }
             else
