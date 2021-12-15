@@ -66,6 +66,26 @@ export default class Hub implements IService {
                     }
                 });
             }
+            
+            var projectIframe = $("#projectiFram-container");
+            if (projectIframe.is(":visible") && projectIframe.attr("data-src")) {
+                let src = projectIframe.attr("data-src");
+                projectIframe.removeAttr("data-src");
+
+                $.ajax({
+                    url: src,
+                    type: 'GET',
+                    xhrFields: { withCredentials: true },
+                    async: !false,
+                    success: (response) => {
+                        this.responseProcessor.processAjaxResponse(response, projectIframe.find(".module-content"), null, null);
+                    },
+                    error: (event) => {
+                    },
+                    complete: (x) => {
+                    }
+                });
+            }
             this.loadTimesheetsWidget();
             //setInterval(this.loadTimesheetsWidget, 60 * 1000 * 10);
         }, 2000);
