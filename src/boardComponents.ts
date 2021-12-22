@@ -416,7 +416,7 @@ export default class BoardComponents implements IService {
                 const addabledItem = this.createAddableItems(sender, context, resultfiltered);
             }
             if (result !== null && result !== undefined && result.BoardComponentsIntro !== null
-                && result.BoardComponentsIntro !== undefined) {
+                && result.BoardComponentsIntro !== undefined && result.BoardComponentsIntro.Name) {
                 this.createBoardIntro(sender, context, result.BoardComponentsIntro)
             }
 
