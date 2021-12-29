@@ -30800,7 +30800,8 @@ define('app/boardComponents',["require", "exports", "olive/components/url"], fun
             if (context.ajaxCallCount == context.ajaxList.length) {
                 var header = this.filterInput.parent();
                 this.bindAddableItemsButtonClick(context);
-                window.page.board.onResize();
+                if (window.page.board)
+                    window.page.board.onResize();
                 if ($(".board-addable-items-container").children().length > 0) {
                     $(".add-button").fadeIn();
                 }
