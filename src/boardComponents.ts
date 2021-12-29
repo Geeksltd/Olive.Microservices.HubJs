@@ -10,15 +10,18 @@ export default class BoardComponents implements IService {
     private modalHelper: ModalHelper
     private ajaxRedirect: AjaxRedirect
     private timer: any = null
+    private myStorage: any
+
     constructor(private input: JQuery, modalHelper: ModalHelper, ajaxRedirect: AjaxRedirect) {
         if (input == null || input.length == 0) return;
         var urls = input.attr("data-board-source").split(";");
         this.filterInput = this.input.parent().find(".board-components-filter");
         this.ajaxRedirect = ajaxRedirect;
-        this.createSearchComponent(urls);
         this.filterEnable()
         this.modalHelper = modalHelper;
+        this.createSearchComponent(urls);
     }
+
     private filterEnable() {
         this.filterInput.off("keyup.board-components-filter").on("keyup.board-components-filter",
             function () {
@@ -125,6 +128,11 @@ export default class BoardComponents implements IService {
         };
 
         for (const ajaxObject of context.ajaxList) {
+            var cache: IBoardResultDto = this.getItem(ajaxObject.url)
+            if (cache) {
+                this.onSuccess(ajaxObject, context, cache,true)
+                this.onComplete(context, null)
+            }
             ajaxObject.ajx = $
                 .ajax({
                     dataType: "json",
@@ -132,7 +140,7 @@ export default class BoardComponents implements IService {
                     xhrFields: { withCredentials: true },
                     async: true,
                     data: { boardItemId: context.boardItemId, boardType: context.boardType },
-                    success: (result) => this.onSuccess(ajaxObject, context, result),
+                    success: (result) => this.onSuccess(ajaxObject, context, result,false),
                     complete: (jqXhr) => this.onComplete(context, jqXhr),
                     error: (jqXhr) => this.onError(ajaxObject, context.boardHolder, jqXhr),
                 });
@@ -159,7 +167,7 @@ export default class BoardComponents implements IService {
         if (items.length == 0) return null;
         var table = $("<table>");
 
-        const searchItem = $("<div class='item'>");
+        const searchItem = $("<div class='item' data-type='" + items[0].Type + "'>");
         const h3 = $('<h3 >').html(items[0].Type + "s").append(this.createHeaderAction(items[0].Type, addableItems))
         searchItem.append($("<div class='header' " + "' style=\"" + this.addColour(items[0]) + "\">").append(h3))
 
@@ -196,9 +204,9 @@ export default class BoardComponents implements IService {
                 $(".board-components-result, [data-module=BoardView]").fadeOut('false', function () { $(this).remove() })
                 if (!serviceName)
                     serviceName = $(this).attr("href").split('?')[0].split('/').pop()
-                $("[data-module-inner]").closest("service[of]").attr("of",serviceName)
+                $("[data-module-inner]").closest("service[of]").attr("of", serviceName)
                 //if (currentServiceName == serviceName)
-                    ajaxredirect.go(urlToLoad, $("[data-module-inner]"), false, false, false)
+                ajaxredirect.go(urlToLoad, $("[data-module-inner]"), false, false, false)
                 // else
                 //     ajaxredirect.go(serviceName + (urlToLoad.startsWith('/') ? '' : '/') + urlToLoad, $("[data-module-inner]"), false, false, false)
                 return false;
@@ -250,7 +258,7 @@ export default class BoardComponents implements IService {
         $(".board-info").append(
             $('<div class="col-md-9"><h2 class="mb-2">' + intro.Name + '</h2>\
             <div class="text-gray">' + intro.Description + '</div></div>'))
-            $('.board-header').fadeIn()
+        $('.board-header').fadeIn()
         return result;
     }
     protected createManageItems(sender: IAjaxObject, context: IBoardContext, items: IAddableItemDto[]) {
@@ -345,35 +353,63 @@ export default class BoardComponents implements IService {
             return $("<div class='icon'>").append($("<img src='" + item.IconUrl + "'>"));
         }
     }
-    private generateRandomColor(){
+    private generateRandomColor() {
         return "#" + Math.floor(Math.random() * 16777215).toString(16);
     }
-    private getTextColor(hexcolor){
+    private getTextColor(hexcolor) {
         hexcolor = hexcolor.replace("#", "");
-        var r = parseInt(hexcolor.substr(0,2),16);
-        var g = parseInt(hexcolor.substr(2,2),16);
-        var b = parseInt(hexcolor.substr(4,2),16);
-        var yiq = ((r*299)+(g*587)+(b*114))/1000;
+        var r = parseInt(hexcolor.substr(0, 2), 16);
+        var g = parseInt(hexcolor.substr(2, 2), 16);
+        var b = parseInt(hexcolor.substr(4, 2), 16);
+        var yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
         return (yiq >= 128) ? 'black' : 'white';
     }
     protected showIntroImage(intro: any): JQuery {
-        var randomColor=this.generateRandomColor()
-        var textColor=  this.getTextColor(randomColor)
+        var randomColor = this.generateRandomColor()
+        var textColor = this.getTextColor(randomColor)
+        var projectNameIcon = $("<div class='project-icon-text'>")
+        .css("background-color", randomColor)
+        .css("color", textColor)
+        .append(intro.Name.substr(0, 2));
         if (intro.ImageUrl == null || intro.ImageUrl == "" || intro.ImageUrl == undefined) {
             //var html = "<div class='project-icon-text'" +" style='background-color:" + randomColor + " >" + intro.Name.substr(0,2) + "</div>"
-            return $("<div class='project-icon-text'>")
-                .css("background-color", randomColor)
-                .css("color", textColor)
-                .append(intro.Name.substr(0, 2));
+            return projectNameIcon
         }
+        $(projectNameIcon).addClass("d-none")
         if (intro.ImageUrl.indexOf("fa-") > 0) {
-            return $("<div class='icon'>").append($("<i class='" + intro.ImageUrl + "'></i>"));
+            return $("<div>").append($("<div class='icon'>").append($("<i class='" + intro.ImageUrl + "'></i>")))
+            .append(projectNameIcon);
         } else {
-            return $("<div class='project-icon'>").append($("<img src='" + intro.ImageUrl + "'>"));
+            return  $("<div>").append($("<div class='project-icon'>").append($("<img src='" + intro.ImageUrl + "' \
+            onerror='$(this).hide();$(this).parent().parent().find(\".project-icon-text\").removeClass(\"d-none\")'>")))
+            .append(projectNameIcon);
         }
     }
-    protected onSuccess(sender: IAjaxObject, context: IBoardContext, result: IBoardResultDto) {
+
+    private getlocalStorage() {
+        if (!this.myStorage)
+            this.myStorage = window.localStorage
+        return this.myStorage;
+    }
+    private getProjectId(){
+        var projectId = window.location.pathname.split('/')[window.location.pathname.split('/').length-1]
+        return projectId;    
+    }
+    private getItem(key): any {
+        this.getlocalStorage()
+        var projectId = this.getProjectId()
+        return JSON.parse(this.myStorage.getItem(projectId + "_" + key))
+    }
+    private setItem(key, value) {
+        this.getlocalStorage()
+        var projectId = this.getProjectId()
+        this.myStorage.setItem(projectId + "_" + key, JSON.stringify(value))
+    }
+    protected onSuccess(sender: IAjaxObject, context: IBoardContext, result: IBoardResultDto,loadFromCaceh:boolean) {
         sender.result = result.Results;
+        var cache = this.getItem(sender.url)
+        if (!loadFromCaceh && JSON.stringify(cache) === JSON.stringify(result)) return
+        this.setItem(sender.url, result)
         if (result !== null && result !== undefined && typeof (result.Results) === typeof ([])) {
             sender.state = AjaxState.success;
 
@@ -397,7 +433,10 @@ export default class BoardComponents implements IService {
                 var filterdResult = resultfiltered.filter((p) => p.Type == element);
 
                 const boardItem = that.createBoardItems(sender, context, filterdResult, result.AddabledItems);
-                context.boardHolder.append(boardItem);
+                if ($('.board-components-result .item[data-type="' + element + '"]').length > 0)
+                    $('.board-components-result .item[data-type="' + element + '"]').replaceWith(boardItem);
+                else
+                    context.boardHolder.append(boardItem);
             })
 
             if (resultfiltered.length > 0) {
@@ -511,7 +550,7 @@ export interface IBoardComponentsIntroDto {
     Name: string;
     Description: string;
     ImageUrl: string;
-    BoardUrl:string;
+    BoardUrl: string;
 }
 export interface IBoardResultDto {
     Results: IResultItemDto[];

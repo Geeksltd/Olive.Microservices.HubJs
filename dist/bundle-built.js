@@ -30366,9 +30366,9 @@ define('app/boardComponents',["require", "exports", "olive/components/url"], fun
             var urls = input.attr("data-board-source").split(";");
             this.filterInput = this.input.parent().find(".board-components-filter");
             this.ajaxRedirect = ajaxRedirect;
-            this.createSearchComponent(urls);
             this.filterEnable();
             this.modalHelper = modalHelper;
+            this.createSearchComponent(urls);
         }
         filterEnable() {
             this.filterInput.off("keyup.board-components-filter").on("keyup.board-components-filter", function () {
@@ -30467,6 +30467,11 @@ define('app/boardComponents',["require", "exports", "olive/components/url"], fun
                 boardType: this.boardType,
             };
             for (const ajaxObject of context.ajaxList) {
+                var cache = this.getItem(ajaxObject.url);
+                if (cache) {
+                    this.onSuccess(ajaxObject, context, cache, true);
+                    this.onComplete(context, null);
+                }
                 ajaxObject.ajx = $
                     .ajax({
                     dataType: "json",
@@ -30474,7 +30479,7 @@ define('app/boardComponents',["require", "exports", "olive/components/url"], fun
                     xhrFields: { withCredentials: true },
                     async: true,
                     data: { boardItemId: context.boardItemId, boardType: context.boardType },
-                    success: (result) => this.onSuccess(ajaxObject, context, result),
+                    success: (result) => this.onSuccess(ajaxObject, context, result, false),
                     complete: (jqXhr) => this.onComplete(context, jqXhr),
                     error: (jqXhr) => this.onError(ajaxObject, context.boardHolder, jqXhr),
                 });
@@ -30501,7 +30506,7 @@ define('app/boardComponents',["require", "exports", "olive/components/url"], fun
             if (items.length == 0)
                 return null;
             var table = $("<table>");
-            const searchItem = $("<div class='item'>");
+            const searchItem = $("<div class='item' data-type='" + items[0].Type + "'>");
             const h3 = $('<h3 >').html(items[0].Type + "s").append(this.createHeaderAction(items[0].Type, addableItems));
             searchItem.append($("<div class='header' " + "' style=\"" + this.addColour(items[0]) + "\">").append(h3));
             //table.append($("<tr>").append($("<th " + "' style=\"" + this.addColour(items[0]) + "\" " + ">")
@@ -30690,22 +30695,50 @@ define('app/boardComponents',["require", "exports", "olive/components/url"], fun
         showIntroImage(intro) {
             var randomColor = this.generateRandomColor();
             var textColor = this.getTextColor(randomColor);
+            var projectNameIcon = $("<div class='project-icon-text'>")
+                .css("background-color", randomColor)
+                .css("color", textColor)
+                .append(intro.Name.substr(0, 2));
             if (intro.ImageUrl == null || intro.ImageUrl == "" || intro.ImageUrl == undefined) {
                 //var html = "<div class='project-icon-text'" +" style='background-color:" + randomColor + " >" + intro.Name.substr(0,2) + "</div>"
-                return $("<div class='project-icon-text'>")
-                    .css("background-color", randomColor)
-                    .css("color", textColor)
-                    .append(intro.Name.substr(0, 2));
+                return projectNameIcon;
             }
+            $(projectNameIcon).addClass("d-none");
             if (intro.ImageUrl.indexOf("fa-") > 0) {
-                return $("<div class='icon'>").append($("<i class='" + intro.ImageUrl + "'></i>"));
+                return $("<div>").append($("<div class='icon'>").append($("<i class='" + intro.ImageUrl + "'></i>")))
+                    .append(projectNameIcon);
             }
             else {
-                return $("<div class='project-icon'>").append($("<img src='" + intro.ImageUrl + "'>"));
+                return $("<div>").append($("<div class='project-icon'>").append($("<img src='" + intro.ImageUrl + "' \
+            onerror='$(this).hide();$(this).parent().parent().find(\".project-icon-text\").removeClass(\"d-none\")'>")))
+                    .append(projectNameIcon);
             }
         }
-        onSuccess(sender, context, result) {
+        getlocalStorage() {
+            if (!this.myStorage)
+                this.myStorage = window.localStorage;
+            return this.myStorage;
+        }
+        getProjectId() {
+            var projectId = window.location.pathname.split('/')[window.location.pathname.split('/').length - 1];
+            return projectId;
+        }
+        getItem(key) {
+            this.getlocalStorage();
+            var projectId = this.getProjectId();
+            return JSON.parse(this.myStorage.getItem(projectId + "_" + key));
+        }
+        setItem(key, value) {
+            this.getlocalStorage();
+            var projectId = this.getProjectId();
+            this.myStorage.setItem(projectId + "_" + key, JSON.stringify(value));
+        }
+        onSuccess(sender, context, result, loadFromCaceh) {
             sender.result = result.Results;
+            var cache = this.getItem(sender.url);
+            if (!loadFromCaceh && JSON.stringify(cache) === JSON.stringify(result))
+                return;
+            this.setItem(sender.url, result);
             if (result !== null && result !== undefined && typeof (result.Results) === typeof ([])) {
                 sender.state = AjaxState.success;
                 const resultfiltered = result.Results.filter((p) => this.isValidResult(p, context));
@@ -30723,7 +30756,10 @@ define('app/boardComponents',["require", "exports", "olive/components/url"], fun
                 $.each(personGroupedByType, function (element) {
                     var filterdResult = resultfiltered.filter((p) => p.Type == element);
                     const boardItem = that.createBoardItems(sender, context, filterdResult, result.AddabledItems);
-                    context.boardHolder.append(boardItem);
+                    if ($('.board-components-result .item[data-type="' + element + '"]').length > 0)
+                        $('.board-components-result .item[data-type="' + element + '"]').replaceWith(boardItem);
+                    else
+                        context.boardHolder.append(boardItem);
                 });
                 if (resultfiltered.length > 0) {
                     context.resultPanel.append(context.boardHolder);
