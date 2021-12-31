@@ -130,7 +130,7 @@ export default class BoardComponents implements IService {
         for (const ajaxObject of context.ajaxList) {
             var cache: IBoardResultDto = this.getItem(ajaxObject.url)
             if (cache) {
-                this.onSuccess(ajaxObject, context, cache,true)
+                this.onSuccess(ajaxObject, context, cache, true)
                 this.onComplete(context, null)
             }
             ajaxObject.ajx = $
@@ -140,7 +140,7 @@ export default class BoardComponents implements IService {
                     xhrFields: { withCredentials: true },
                     async: true,
                     data: { boardItemId: context.boardItemId, boardType: context.boardType },
-                    success: (result) => this.onSuccess(ajaxObject, context, result,false),
+                    success: (result) => this.onSuccess(ajaxObject, context, result, false),
                     complete: (jqXhr) => this.onComplete(context, jqXhr),
                     error: (jqXhr) => this.onError(ajaxObject, context.boardHolder, jqXhr),
                 });
@@ -254,6 +254,7 @@ export default class BoardComponents implements IService {
     }
     protected createBoardIntro(sender: IAjaxObject, context: IBoardContext, intro: IBoardComponentsIntroDto) {
         const result = $(".board-components-result");
+        if($(".board-image:visible").length > 0 ) return;
         $(".board-image").append($("<a href='" + intro.BoardUrl + "' >").append(this.showIntroImage(intro).prop('outerHTML')))
         $(".board-info").append(
             $('<div class="col-md-9"><h2 class="mb-2">' + intro.Name + '</h2>\
@@ -270,6 +271,8 @@ export default class BoardComponents implements IService {
         const headerLinks = $(".board-links")
         for (let i = 0; i < items.length; i++) {
             var item = items[i];
+            if ($("a[href='" + item.ManageUrl + "']").length > 0)
+                $("a[href='" + item.ManageUrl + "']").remove();
             result.append(this.createManageItem(items[i], context));
             var attr = "";
             if (item.Action == ActionEnum.Popup)
@@ -368,9 +371,9 @@ export default class BoardComponents implements IService {
         var randomColor = this.generateRandomColor()
         var textColor = this.getTextColor(randomColor)
         var projectNameIcon = $("<div class='project-icon-text'>")
-        .css("background-color", randomColor)
-        .css("color", textColor)
-        .append(intro.Name.substr(0, 2));
+            .css("background-color", randomColor)
+            .css("color", textColor)
+            .append(intro.Name.substr(0, 2));
         if (intro.ImageUrl == null || intro.ImageUrl == "" || intro.ImageUrl == undefined) {
             //var html = "<div class='project-icon-text'" +" style='background-color:" + randomColor + " >" + intro.Name.substr(0,2) + "</div>"
             return projectNameIcon
@@ -378,11 +381,11 @@ export default class BoardComponents implements IService {
         $(projectNameIcon).addClass("d-none")
         if (intro.ImageUrl.indexOf("fa-") > 0) {
             return $("<div>").append($("<div class='icon'>").append($("<i class='" + intro.ImageUrl + "'></i>")))
-            .append(projectNameIcon);
+                .append(projectNameIcon);
         } else {
-            return  $("<div>").append($("<div class='project-icon'>").append($("<img src='" + intro.ImageUrl + "' \
+            return $("<div>").append($("<div class='project-icon'>").append($("<img src='" + intro.ImageUrl + "' \
             onerror='$(this).hide();$(this).parent().parent().find(\".project-icon-text\").removeClass(\"d-none\")'>")))
-            .append(projectNameIcon);
+                .append(projectNameIcon);
         }
     }
 
@@ -391,9 +394,9 @@ export default class BoardComponents implements IService {
             this.myStorage = window.localStorage
         return this.myStorage;
     }
-    private getProjectId(){
-        var projectId = window.location.pathname.split('/')[window.location.pathname.split('/').length-1]
-        return projectId;    
+    private getProjectId() {
+        var projectId = window.location.pathname.split('/')[window.location.pathname.split('/').length - 1]
+        return projectId;
     }
     private getItem(key): any {
         this.getlocalStorage()
@@ -405,7 +408,7 @@ export default class BoardComponents implements IService {
         var projectId = this.getProjectId()
         this.myStorage.setItem(projectId + "_" + key, JSON.stringify(value))
     }
-    protected onSuccess(sender: IAjaxObject, context: IBoardContext, result: IBoardResultDto,loadFromCaceh:boolean) {
+    protected onSuccess(sender: IAjaxObject, context: IBoardContext, result: IBoardResultDto, loadFromCaceh: boolean) {
         sender.result = result.Results;
         var cache = this.getItem(sender.url)
         if (!loadFromCaceh && JSON.stringify(cache) === JSON.stringify(result)) return
@@ -483,7 +486,7 @@ export default class BoardComponents implements IService {
         if (context.ajaxCallCount == context.ajaxList.length) {
             var header = this.filterInput.parent();
             this.bindAddableItemsButtonClick(context);
-            if(window.page.board)
+            if (window.page.board)
                 window.page.board.onResize();
 
             if ($(".board-addable-items-container").children().length > 0) {

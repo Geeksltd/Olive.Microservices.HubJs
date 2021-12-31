@@ -29769,7 +29769,8 @@ define('app/expandCollapse',["require", "exports"], function (require, exports) 
         }
         syncHubTopMenu() {
             window.page.services.getService("featuresMenuFactory").getMenu().onResize();
-            window.page.board.onResize();
+            if (window.page.board)
+                window.page.board.onResize();
             // let arg = {};
             // let paramW = { command: "sideBarRightToggleEvent", arg: arg };
             // window.parent.postMessage(JSON.stringify(paramW), "*");
@@ -30586,6 +30587,8 @@ define('app/boardComponents',["require", "exports", "olive/components/url"], fun
         }
         createBoardIntro(sender, context, intro) {
             const result = $(".board-components-result");
+            if ($(".board-image:visible").length > 0)
+                return;
             $(".board-image").append($("<a href='" + intro.BoardUrl + "' >").append(this.showIntroImage(intro).prop('outerHTML')));
             $(".board-info").append($('<div class="col-md-9"><h2 class="mb-2">' + intro.Name + '</h2>\
             <div class="text-gray">' + intro.Description + '</div></div>'));
@@ -30601,6 +30604,8 @@ define('app/boardComponents',["require", "exports", "olive/components/url"], fun
             const headerLinks = $(".board-links");
             for (let i = 0; i < items.length; i++) {
                 var item = items[i];
+                if ($("a[href='" + item.ManageUrl + "']").length > 0)
+                    $("a[href='" + item.ManageUrl + "']").remove();
                 result.append(this.createManageItem(items[i], context));
                 var attr = "";
                 if (item.Action == ActionEnum.Popup)
@@ -30925,6 +30930,50 @@ define('app/extendJQueryFunction',["require", "exports", "jquery"], function (re
 define('app/overrides/hubResponseProcessor',["require", "exports", "olive/mvc/responseProcessor"], function (require, exports, responseProcessor_1) {
     Object.defineProperty(exports, "__esModule", { value: true });
     class HubResponseProcessor extends responseProcessor_1.default {
+        fixUrlForOpenNewWindows(url) {
+            if (url.contains(":"))
+                return url;
+            var service = $("service[of]").attr("of");
+            if (!service)
+                return url;
+            if (service == "hub" || service == undefined || service == null)
+                return url;
+            if (url.startsWith("/"))
+                url = "/" + service + url;
+            else
+                url = "/" + service + "/" + url;
+            return url;
+        }
+        fixElementForOpenNewWindows(element) {
+            if ($(element).closest(".hub-service").length > 0)
+                return;
+            if ($(element).closest("service[of]").length > 0) {
+                let url = element.attr("href");
+                if (!url.contains(":")) {
+                    element.attr("ajax-href", url);
+                    url = this.fixUrlForOpenNewWindows(url);
+                    if (url.indexOf("undefined") < 0)
+                        element.attr("ajax-href", url);
+                }
+            }
+        }
+        fixUrlsForOpenNewWindows(response) {
+            var asElement = $(response);
+            if ($(element).closest(".hub-service").length > 0 || asElement.hasClass("hub-service") || $(asElement).attr("data-module") == "MYPriorityView")
+                return asElement;
+            var aTags = asElement.find("a:not([target='$modal'])");
+            for (var i = 0; i < aTags.length; i++) {
+                var element = aTags.get(i);
+                var url = $(element).attr("href");
+                if (url != undefined && url != null && !url.contains(":")) {
+                    $(element).attr("ajax-href", url);
+                    url = this.fixUrlForOpenNewWindows(url);
+                    if (url.indexOf("undefined") < 0)
+                        $(element).attr("href", url);
+                }
+            }
+            return asElement;
+        }
         processAjaxResponse(response, containerModule, trigger, args) {
             let asElement = $(response);
             asElement = this.fixUrlsForOpenNewWindows(response);

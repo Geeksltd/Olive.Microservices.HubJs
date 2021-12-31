@@ -6,7 +6,7 @@ export default class ExpandCollapse {
     panel: JQuery;
     key: string;
     cookies: any;
-   featuresMenuFactory :FeaturesMenuFactory
+    featuresMenuFactory: FeaturesMenuFactory
 
     constructor(button: JQuery, panelKey: string) {
         this.button = button.click(() => this.toggle());
@@ -61,9 +61,10 @@ export default class ExpandCollapse {
         this.button.find("i").removeClass("fa-chevron-" + toRemove).addClass("fa-chevron-" + toAdd);
         this.syncHubFrame();
     }
-    syncHubTopMenu(){
+    syncHubTopMenu() {
         window.page.services.getService("featuresMenuFactory").getMenu().onResize();
-        window.page.board.onResize();         
+        if (window.page.board)
+            window.page.board.onResize();
 
         // let arg = {};
         // let paramW = { command: "sideBarRightToggleEvent", arg: arg };
