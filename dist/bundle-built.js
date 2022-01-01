@@ -30499,9 +30499,10 @@ define('app/boardComponents',["require", "exports", "olive/components/url"], fun
                 width += 230;
             if ($("#taskBarCollapse.collapse").length == 0)
                 width += 300;
-            $(".board-components-result .list-items").masonryGrid({
-                'columns': parseInt((($(document).outerWidth() - width) / 300).toString())
-            });
+            if ($.fn.masonryGrid)
+                $(".board-components-result .list-items").masonryGrid({
+                    'columns': parseInt((($(document).outerWidth() - width) / 300).toString())
+                });
         }
         createBoardItems(sender, context, items, addableItems) {
             if (items.length == 0)
@@ -30758,14 +30759,37 @@ define('app/boardComponents',["require", "exports", "olive/components/url"], fun
                 };
                 const personGroupedByType = groupBy(resultfiltered, 'Type');
                 var that = this;
-                $.each(personGroupedByType, function (element) {
+                for (var i = 0; i < personGroupedByType.length; i++) {
+                    var element = personGroupedByType[i];
                     var filterdResult = resultfiltered.filter((p) => p.Type == element);
                     const boardItem = that.createBoardItems(sender, context, filterdResult, result.AddabledItems);
                     if ($('.board-components-result .item[data-type="' + element + '"]').length > 0)
                         $('.board-components-result .item[data-type="' + element + '"]').replaceWith(boardItem);
+                    else if (element.startsWith("Timesheet since")) {
+                        $('.board-components-result .item[data-type]').each(function () {
+                            if ($(this).attr("data-type").startsWith("Timesheet since"))
+                                $(this).replaceWith(boardItem);
+                        });
+                    }
                     else
                         context.boardHolder.append(boardItem);
-                });
+                }
+                // $.each(personGroupedByType, function (element) {
+                //     var filterdResult = resultfiltered.filter((p) => p.Type == element);
+                //     const boardItem = that.createBoardItems(sender, context, filterdResult, result.AddabledItems);
+                //     if ($('.board-components-result .item[data-type="' + element + '"]').length > 0)
+                //         $('.board-components-result .item[data-type="' + element + '"]').replaceWith(boardItem);
+                //     else if (element.startsWith("Timesheet since")) {
+                //         $('.board-components-result .item[data-type]').each(function () {
+                //             if ($(this).attr("data-type").startsWith("Timesheet since"))
+                //                 $(this).replaceWith(boardItem)
+                //         });
+                //     }
+                //     else
+                //         context.boardHolder.append(boardItem);
+                // })
+                if (!loadFromCaceh)
+                    this.onResize();
                 if (resultfiltered.length > 0) {
                     context.resultPanel.append(context.boardHolder);
                 }

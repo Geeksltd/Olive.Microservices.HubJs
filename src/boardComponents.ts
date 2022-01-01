@@ -159,9 +159,10 @@ export default class BoardComponents implements IService {
             width += 230;
         if ($("#taskBarCollapse.collapse").length == 0)
             width += 300;
-        $(".board-components-result .list-items").masonryGrid({
-            'columns': parseInt((($(document).outerWidth() - width) / 300).toString())
-        });
+        if ($.fn.masonryGrid)
+            $(".board-components-result .list-items").masonryGrid({
+                'columns': parseInt((($(document).outerWidth() - width) / 300).toString())
+            });
     }
     protected createBoardItems(sender: IAjaxObject, context: IBoardContext, items: IResultItemDto[], addableItems: IAddableItemDto[]) {
         if (items.length == 0) return null;
@@ -254,7 +255,7 @@ export default class BoardComponents implements IService {
     }
     protected createBoardIntro(sender: IAjaxObject, context: IBoardContext, intro: IBoardComponentsIntroDto) {
         const result = $(".board-components-result");
-        if($(".board-image:visible").length > 0 ) return;
+        if ($(".board-image:visible").length > 0) return;
         $(".board-image").append($("<a href='" + intro.BoardUrl + "' >").append(this.showIntroImage(intro).prop('outerHTML')))
         $(".board-info").append(
             $('<div class="col-md-9"><h2 class="mb-2">' + intro.Name + '</h2>\
@@ -431,16 +432,40 @@ export default class BoardComponents implements IService {
 
             const personGroupedByType = groupBy(resultfiltered, 'Type');
             var that = this;
-            $.each(personGroupedByType, function (element) {
-
+            for (var i = 0; i < personGroupedByType.length; i++) {
+                var element = personGroupedByType[i]
                 var filterdResult = resultfiltered.filter((p) => p.Type == element);
 
                 const boardItem = that.createBoardItems(sender, context, filterdResult, result.AddabledItems);
                 if ($('.board-components-result .item[data-type="' + element + '"]').length > 0)
                     $('.board-components-result .item[data-type="' + element + '"]').replaceWith(boardItem);
+                else if (element.startsWith("Timesheet since")) {
+                    $('.board-components-result .item[data-type]').each(function () {
+                        if ($(this).attr("data-type").startsWith("Timesheet since"))
+                            $(this).replaceWith(boardItem)
+                    });
+                }
                 else
                     context.boardHolder.append(boardItem);
-            })
+            }
+            // $.each(personGroupedByType, function (element) {
+
+            //     var filterdResult = resultfiltered.filter((p) => p.Type == element);
+
+            //     const boardItem = that.createBoardItems(sender, context, filterdResult, result.AddabledItems);
+            //     if ($('.board-components-result .item[data-type="' + element + '"]').length > 0)
+            //         $('.board-components-result .item[data-type="' + element + '"]').replaceWith(boardItem);
+            //     else if (element.startsWith("Timesheet since")) {
+            //         $('.board-components-result .item[data-type]').each(function () {
+            //             if ($(this).attr("data-type").startsWith("Timesheet since"))
+            //                 $(this).replaceWith(boardItem)
+            //         });
+            //     }
+            //     else
+            //         context.boardHolder.append(boardItem);
+            // })
+            if (!loadFromCaceh)
+                this.onResize();
 
             if (resultfiltered.length > 0) {
 
