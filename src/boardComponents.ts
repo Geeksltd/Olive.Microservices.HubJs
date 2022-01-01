@@ -432,8 +432,8 @@ export default class BoardComponents implements IService {
 
             const personGroupedByType = groupBy(resultfiltered, 'Type');
             var that = this;
-            for (var i = 0; i < personGroupedByType.length; i++) {
-                var element = personGroupedByType[i]
+            for (var element in personGroupedByType) {
+                //var element = personGroupedByType[i]
                 var filterdResult = resultfiltered.filter((p) => p.Type == element);
 
                 const boardItem = that.createBoardItems(sender, context, filterdResult, result.AddabledItems);

@@ -30759,8 +30759,8 @@ define('app/boardComponents',["require", "exports", "olive/components/url"], fun
                 };
                 const personGroupedByType = groupBy(resultfiltered, 'Type');
                 var that = this;
-                for (var i = 0; i < personGroupedByType.length; i++) {
-                    var element = personGroupedByType[i];
+                for (var element in personGroupedByType) {
+                    //var element = personGroupedByType[i]
                     var filterdResult = resultfiltered.filter((p) => p.Type == element);
                     const boardItem = that.createBoardItems(sender, context, filterdResult, result.AddabledItems);
                     if ($('.board-components-result .item[data-type="' + element + '"]').length > 0)
