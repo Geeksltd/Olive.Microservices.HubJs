@@ -30763,12 +30763,17 @@ define('app/boardComponents',["require", "exports", "olive/components/url"], fun
                     //var element = personGroupedByType[i]
                     var filterdResult = resultfiltered.filter((p) => p.Type == element);
                     const boardItem = that.createBoardItems(sender, context, filterdResult, result.AddabledItems);
-                    if ($('.board-components-result .item[data-type="' + element + '"]').length > 0)
-                        $('.board-components-result .item[data-type="' + element + '"]').replaceWith(boardItem);
+                    if ($('.board-components-result .item[data-type="' + element + '"]').length > 0) {
+                        var item = $('.board-components-result .item[data-type="' + element + '"]');
+                        $(boardItem).attr('class', item.attr('class')).attr('id', $(item).attr('id'));
+                        $(item).replaceWith(boardItem);
+                    }
                     else if (element.startsWith("Timesheet since")) {
                         $('.board-components-result .item[data-type]').each(function () {
-                            if ($(this).attr("data-type").startsWith("Timesheet since"))
+                            if ($(this).attr("data-type").startsWith("Timesheet since")) {
+                                $(boardItem).attr('class', $(this).attr('class')).attr('id', $(this).attr('id'));
                                 $(this).replaceWith(boardItem);
+                            }
                         });
                     }
                     else
