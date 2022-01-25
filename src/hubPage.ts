@@ -1,4 +1,5 @@
-﻿import OlivePage from 'olive/olivePage';
+﻿
+import OlivePage from 'olive/olivePage';
 import { FeaturesMenuFactory } from './featuresMenu/featuresMenu';
 import AppContent from './appContent';
 import BadgeNumber from './badgeNumber';
@@ -27,6 +28,11 @@ import HubUrl from './overrides/hubUrl';
 import HubModal from './hubModal';
 import BoardComponents from './boardComponents';
 import ExtendJQueryFunction from './extendJQueryFunction';
+import HubEcharts from './hubEcharts'
+ import echarts from 'echarts'
+ type EChartsOption = echarts.EChartsOption;
+
+// import Chartist from '../lib/@types/chartist/index';
 
 //loading all modules
 import 'jquery';
@@ -59,9 +65,11 @@ import 'datepicker';
 import 'bootstrapToggle';
 import 'bootstrap-select';
 import 'flickity';
+// import 'chartist';
 import ServerInvoker from 'olive/mvc/serverInvoker';
 import HubResponseProcessor from './overrides/hubResponseProcessor';
 import { ServiceDescription } from 'olive/di/serviceDescription';
+
 
 export default class HubPage extends OlivePage {
 
@@ -72,8 +80,10 @@ export default class HubPage extends OlivePage {
     constructor() {
         super();
         new FullMenuFiltering();
-
+        // var myChart = echarts.init('');
+        // myChart.setOption({});
         this.getService<Hub>(HubServices.Hub).initialize();
+        this.getService<HubEcharts>(HubServices.HubEcharts).initialize();
         setTimeout(() => BadgeNumber.enableBadgeNumber($("a[data-badgeurl]")), 4 * 1000);
 
         //every 5 min badge numbers should be updated
@@ -90,6 +100,7 @@ export default class HubPage extends OlivePage {
 
         const out: IOutParam<ServiceDescription> = {};
         services.addSingleton(Services.Url, () => new HubUrl());
+        services.addSingleton(HubServices.HubEcharts, () => new HubEcharts());
         services.tryAddSingleton(Services.ResponseProcessor, () => new HubResponseProcessor(), out);
 
         services.addSingleton(HubServices.Hub, (url: Url, ajaxRedirect: AjaxRedirect, featuresMenuFactory: FeaturesMenuFactory, breadcrumbMenu: BreadcrumbMenu, responseProcessor: ResponseProcessor) =>

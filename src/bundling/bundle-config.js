@@ -37,12 +37,15 @@
         "bootstrapToggle": "bootstrap-toggle/js/bootstrap-toggle",
         "bootstrap-select": "bootstrap-select/dist/js/bootstrap-select",
         "flickity": "flickity/dist/flickity.pkgd",
-        "chart":"chart.js/dist/chart"
+        "echarts":"echarts/dist/echarts",
+        "zrender":"zrender/dist/zrender"
     },
     map: {
         "*": {
-        "chart":"chart.js/dist/chart",
+        //  "chartist":"chartist",
         //"requirejs": "requirejs",
+        "echarts":"echarts",
+        "zrender":"zrender",
             "popper.js": "popper",
             '../moment': 'moment',
             'olive': "olive.mvc/dist",
@@ -74,9 +77,11 @@
         "olive/extensions/jQueryExtensions": {
             deps: ['jquery', "jquery-validate-unobtrusive"]
         },
-        "chart":["jquery"],
+        // "chartist":["jquery"],
         "olive/olivePage": ["alertify", "olive/extensions/jQueryExtensions", "olive/extensions/systemExtensions", "combodate"],
-        "app/hubPage": ["jquery", "olive/olivePage"],
+        // "echarts":["zrender"],
+        "app/hubEcharts":["echarts"],
+        "app/hubPage": ["jquery", "olive/olivePage","echarts"],
         "app/model/service": ["app/hubPage", "olive/extensions/systemExtensions"],
         "app/boardComponents": ["app/boardComponents"],
         "app/featuresMenu/fullMenuFiltering": ["app/featuresMenu/fullMenuFiltering"],

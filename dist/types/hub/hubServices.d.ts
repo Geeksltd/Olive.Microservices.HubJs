@@ -1,6 +1,7 @@
 declare const HubServices: {
     FeaturesMenuFactory: string;
     Hub: string;
+    HubEcharts: string;
     AppContent: string;
     BreadcrumbMenu: string;
 };

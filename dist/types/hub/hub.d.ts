@@ -18,6 +18,6 @@ export default class Hub implements IService {
     loadServiceHealthChecks(): void;
     setViewFrameHeight(height: any): void;
     setiFrameHeight(height: number): void;
-    go(url: string, iframe: boolean): void;
+    go(url: string, iframe: boolean, trigger: any): void;
     initServiceWorker(): any;
 }

@@ -5,6 +5,12 @@
       "olive/*": [
         "lib/olive.mvc/typings/*"
       ],
+      "echarts": [
+        "lib/echarts/dist/echarts"
+      ],
+      "zrender": [
+        "lib/zrender/dist"
+      ],
       "app/*": [
         "src/*"
       ]
@@ -14,13 +20,17 @@
     "typeRoots": [
       "lib/olive.mvc/typings/*",
       "lib/olive.mvc/typings-lib/*",
-      "node_modules/@types",
+      "node_modules/@types/*",
+      "lib/@types/*",
       "dist/types/hub/*",
+      "lib/echarts/types/dist/*",
       "./node_modules/@types"
     ],
     "module": "amd",
     "target": "es6",
     "outDir": "compiled",
+    "declaration": true,
+    "declarationDir": "dist/types/hub",
     "sourceMap": true,
     "noImplicitUseStrict": true,
     "noImplicitAny": false,

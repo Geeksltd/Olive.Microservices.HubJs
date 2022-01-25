@@ -1,4 +1,5 @@
 import { ModalHelper } from 'olive/components/modal';
+import AjaxRedirect from 'olive/mvc/ajaxRedirect';
 export default class BoardComponents implements IService {
     private input;
     private urlList;
@@ -6,14 +7,22 @@ export default class BoardComponents implements IService {
     private boardType;
     private filterInput;
     private modalHelper;
-    constructor(input: JQuery, modalHelper: ModalHelper);
+    private ajaxRedirect;
+    private timer;
+    private myStorage;
+    constructor(input: JQuery, modalHelper: ModalHelper, ajaxRedirect: AjaxRedirect);
     private filterEnable;
     private onChanged;
     protected getResultPanel(): JQuery;
     protected getAddableItemsPanel(): JQuery;
     protected createSearchComponent(urls: string[]): void;
-    protected createBoardItems(sender: IAjaxObject, context: IBoardContext, items: IResultItemDto[]): JQuery;
+    protected onResize(): void;
+    protected createBoardItems(sender: IAjaxObject, context: IBoardContext, items: IResultItemDto[], addableItems: IAddableItemDto[]): JQuery;
+    private getItemType;
+    private handelLinksClick;
+    protected createHeaderAction(type: String, addableItems: IAddableItemDto[]): JQuery;
     protected createAddableItems(sender: IAjaxObject, context: IBoardContext, items: IAddableItemDto[]): JQuery;
+    protected createBoardIntro(sender: IAjaxObject, context: IBoardContext, intro: IBoardComponentsIntroDto): JQuery;
     protected createManageItems(sender: IAjaxObject, context: IBoardContext, items: IAddableItemDto[]): JQuery;
     protected addColour(item: IResultItemDto): string;
     protected createItem(item: IResultItemDto, context: IBoardContext): JQuery;
@@ -21,7 +30,14 @@ export default class BoardComponents implements IService {
     protected createManageItem(item: IAddableItemDto, context: IBoardContext): JQuery;
     protected bindAddableItemsButtonClick(context: IBoardContext): void;
     protected showIcon(item: any): JQuery;
-    protected onSuccess(sender: IAjaxObject, context: IBoardContext, result: IBoardResultDto): void;
+    private generateRandomColor;
+    private getTextColor;
+    protected showIntroImage(intro: any): JQuery;
+    private getlocalStorage;
+    private getProjectId;
+    private getItem;
+    private setItem;
+    protected onSuccess(sender: IAjaxObject, context: IBoardContext, result: IBoardResultDto, loadFromCaceh: boolean): void;
     protected isValidResult(item: IResultItemDto, context: IBoardContext): boolean;
     protected onComplete(context: IBoardContext, jqXHR: JQueryXHR): void;
     protected onError(sender: IAjaxObject, boardHolder: JQuery, jqXHR: JQueryXHR): void;
@@ -57,14 +73,23 @@ export interface IResultItemDto {
 }
 export interface IAddableItemDto {
     Name: string;
+    Type: string;
     Body: string;
     IconUrl: string;
     AddUrl: string;
     ManageUrl: string;
+    Action: ActionEnum;
+}
+export interface IBoardComponentsIntroDto {
+    Name: string;
+    Description: string;
+    ImageUrl: string;
+    BoardUrl: string;
 }
 export interface IBoardResultDto {
     Results: IResultItemDto[];
     AddabledItems: IAddableItemDto[];
+    BoardComponentsIntro: IBoardComponentsIntroDto;
 }
 export declare enum AjaxState {
     pending = 0,

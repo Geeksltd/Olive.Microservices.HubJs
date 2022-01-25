@@ -1,0 +1,55 @@
+{
+    "name": "@types/chartist",
+    "version": "0.11.1",
+    "description": "TypeScript definitions for Chartist",
+    "homepage": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/chartist",
+    "license": "MIT",
+    "contributors": [
+        {
+            "name": "Matt Gibbs",
+            "url": "https://github.com/mtgibbs",
+            "githubUsername": "mtgibbs"
+        },
+        {
+            "name": "Simon Pfeifer",
+            "url": "https://github.com/psimonski",
+            "githubUsername": "psimonski"
+        },
+        {
+            "name": "Anastasiia Antonova",
+            "url": "https://github.com/affilnost",
+            "githubUsername": "affilnost"
+        },
+        {
+            "name": "Sunny Juneja",
+            "url": "https://github.com/sunnyrjuneja",
+            "githubUsername": "sunnyrjuneja"
+        },
+        {
+            "name": "Sam Raudabaugh",
+            "url": "https://github.com/raudabaugh",
+            "githubUsername": "raudabaugh"
+        },
+        {
+            "name": "Manuel Borrajo",
+            "url": "https://github.com/borrajo",
+            "githubUsername": "borrajo"
+        },
+        {
+            "name": "Alexander Goooseman",
+            "url": "https://github.com/goooseman",
+            "githubUsername": "goooseman"
+        }
+    ],
+    "main": "",
+    "types": "index.d.ts",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/DefinitelyTyped/DefinitelyTyped.git",
+        "directory": "types/chartist"
+    },
+    "scripts": {},
+    "dependencies": {},
+    "typesPublisherContentHash": "422b8524337b0c11484f939edd9073a1ab94b6d5ada82341cbb87e67869093ae",
+    "typeScriptVersion": "3.6"
+}
