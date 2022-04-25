@@ -328,9 +328,8 @@ export default class BoardComponents implements IService {
         return result
     }
     protected createAddableItem(item: IMenuDto, context: IBoardContext) {
-        var attr = "target=\"_blank\"";
         return $("<div class=\"menu-item\">")
-            .append($("<a href='" + item.Url + "' " + attr + "'>")
+            .append($("<a href='" + item.Url + ">")
                 .append((item.Icon === null || item.Icon === undefined) ?
                     $("<div class='icon'>") : this.showIcon(item)
                         .append(item.Name)
@@ -339,9 +338,8 @@ export default class BoardComponents implements IService {
     }
 
     protected createManageItem(item: IMenuDto, context: IBoardContext) {
-        var attr = "target=\"_blank\"";
         return $("<div class=\"menu-item\">")
-            .append($("<a href='" + item.Url + "' " + attr + "'>")
+            .append($("<a href='" + item.Url + ">")
                 .append((item.Url === null || item.Url === undefined) ?
                     $("<div class='icon'>") : this.showIcon(item)
                         .append(item.Name)
