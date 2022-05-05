@@ -11,8 +11,8 @@ export default class BoardComponents implements IService {
     private ajaxRedirect: AjaxRedirect
     private timer: any = null
     private myStorage: any
-
-    constructor(private input: JQuery, modalHelper: ModalHelper, ajaxRedirect: AjaxRedirect) {
+    private boardPath: string;
+    constructor(private input: JQuery, modalHelper: ModalHelper, ajaxRedirect: AjaxRedirect, boardPath: string) {
         if (input == null || input.length == 0) return;
         var urls = input.attr("data-board-source").split(";");
         this.filterInput = this.input.parent().find(".board-components-filter");
@@ -20,6 +20,7 @@ export default class BoardComponents implements IService {
         this.filterEnable()
         this.modalHelper = modalHelper;
         this.createSearchComponent(urls);
+        this.boardPath = boardPath;
     }
 
     private filterEnable() {
