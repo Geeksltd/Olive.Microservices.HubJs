@@ -180,7 +180,7 @@ export default class HubPage extends OlivePage {
 
                     this.board = new BoardComponents($(".board-components"),
                         this.getService<ModalHelper>(Services.ModalHelper),
-                        this.getService<AjaxRedirect>(Services.AjaxRedirect));
+                        this.getService<AjaxRedirect>(Services.AjaxRedirect), (currentPath.pathname.contains("https://hub.app.geeks.ltd") ? currentPath.pathname : "https://hub.app.geeks.ltd" + currentPath.pathname));
                 }
             }
 

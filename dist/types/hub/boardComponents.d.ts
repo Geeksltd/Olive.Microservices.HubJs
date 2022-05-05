@@ -10,7 +10,8 @@ export default class BoardComponents implements IService {
     private ajaxRedirect;
     private timer;
     private myStorage;
-    constructor(input: JQuery, modalHelper: ModalHelper, ajaxRedirect: AjaxRedirect);
+    private boardPath;
+    constructor(input: JQuery, modalHelper: ModalHelper, ajaxRedirect: AjaxRedirect, boardPath: string);
     private filterEnable;
     private onChanged;
     protected getResultPanel(): JQuery;
@@ -21,8 +22,11 @@ export default class BoardComponents implements IService {
     private getItemType;
     private handelLinksClick;
     protected createHeaderAction(type: String, addableItems: IAddableItemDto[]): JQuery;
+    protected isemptystring(str: string): boolean;
     protected createAddableItems(sender: IAjaxObject, context: IBoardContext, items: IAddableItemDto[]): JQuery;
     protected createBoardIntro(sender: IAjaxObject, context: IBoardContext, intro: IBoardComponentsIntroDto): JQuery;
+    protected relocateBoardComponentsHeaderActions(): void;
+    protected removeBoardGap(): void;
     protected createManageItems(sender: IAjaxObject, context: IBoardContext, items: IAddableItemDto[]): JQuery;
     protected addColour(item: IResultItemDto): string;
     protected createItem(item: IResultItemDto, context: IBoardContext): JQuery;
@@ -30,8 +34,6 @@ export default class BoardComponents implements IService {
     protected createManageItem(item: IAddableItemDto, context: IBoardContext): JQuery;
     protected bindAddableItemsButtonClick(context: IBoardContext): void;
     protected showIcon(item: any): JQuery;
-    protected relocateBoardComponentsHeaderActions;
-    protected removeBoardGap;
     private generateRandomColor;
     private generateStaticColorFromName;
     private getTextColor;
