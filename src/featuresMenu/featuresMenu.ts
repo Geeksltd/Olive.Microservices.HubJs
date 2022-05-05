@@ -50,46 +50,46 @@ export default class FeaturesMenu {
 
     public onResize() {
         $(".feature-top-menu-drop-down").attr("style", "").removeClass("feature-top-menu-drop-down")
-            var w = 100;
-            var i = 0;
-            var showMore = false;
-            var showMoreRight = 0;
-            setTimeout(function () {
-                $.each($(".feature-top-menu > ul > .feature-menu-item:not(.feature-top-menu-more)"), function () {
-                    var left = $(this).offset().left;
-                    var width = $(this).outerWidth();
-                    var cotainerLeft = $(".feature-top-menu").offset().left;
-                    var cotainerWidth = $(".feature-top-menu").width();
-                    if ((cotainerLeft + cotainerWidth - left - width) < (30 + showMoreRight) || showMore) {
-                        showMore = true;
-                        w = Math.max(w, width);
-                        if (i == 0)
-                            i = 68;
-                        else {
-                            i += (10 + $(this).prev().height());
-                        }
-
-                        $(this).addClass("feature-top-menu-drop-down").css("top", i)
+        var w = 100;
+        var i = 0;
+        var showMore = false;
+        var showMoreRight = 0;
+        setTimeout(function () {
+            $.each($(".feature-top-menu > ul > .feature-menu-item:not(.feature-top-menu-more)"), function () {
+                var left = $(this).offset().left;
+                var width = $(this).outerWidth();
+                var cotainerLeft = $(".feature-top-menu").offset().left;
+                var cotainerWidth = $(".feature-top-menu").width();
+                if ((cotainerLeft + cotainerWidth - left - width) < (30 + showMoreRight) || showMore) {
+                    showMore = true;
+                    w = Math.max(w, width);
+                    if (i == 0)
+                        i = 68;
+                    else {
+                        i += (10 + $(this).prev().height());
                     }
-                    if ($(".feature-top-menu-drop-down").length > 0) {
-                        $(".feature-top-menu-more").addClass("show");
-                    }
-                    else
-                        $(".feature-top-menu-more").removeClass("show");
 
-                    $(".feature-top-menu-drop-down").css("width", w)
-                    if ($(".feature-top-menu > ul > .feature-menu-item:not(.feature-top-menu-more)").last()[0] == $(this)[0])
-                        $(this).addClass("last-menue").css({ "border-bottom-left-radius": 10, "border-bottom-right-radius": 10 });
-                });
-                $(".feature-top-menu-more.show").off("click").on("click", (x) => {
-                    $(".feature-top-menu-drop-down").fadeToggle()
-                    return false;
-                });
-                $(document).on("click", document, function (e) {
-                    if (!$(e.target).hasClass("feature-top-menu-more") && $(".feature-top-menu-drop-down").css('opacity') == "1")
-                        $(".feature-top-menu-drop-down").fadeOut();
-                });
-            }, 400);
+                    $(this).addClass("feature-top-menu-drop-down").css("top", i)
+                }
+                if ($(".feature-top-menu-drop-down").length > 0) {
+                    $(".feature-top-menu-more").addClass("show");
+                }
+                else
+                    $(".feature-top-menu-more").removeClass("show");
+
+                $(".feature-top-menu-drop-down").css("width", w)
+                if ($(".feature-top-menu > ul > .feature-menu-item:not(.feature-top-menu-more)").last()[0] == $(this)[0])
+                    $(this).addClass("last-menue").css({ "border-bottom-left-radius": 10, "border-bottom-right-radius": 10 });
+            });
+            $(".feature-top-menu-more.show").off("click").on("click", (x) => {
+                $(".feature-top-menu-drop-down").fadeToggle()
+                return false;
+            });
+            $(document).on("click", document, function (e) {
+                if (!$(e.target).hasClass("feature-top-menu-more") && $(".feature-top-menu-drop-down").css('opacity') == "1")
+                    $(".feature-top-menu-drop-down").fadeOut();
+            });
+        }, 400);
     }
     enableIFrameClientSideRedirection(selector: JQuery) {
         selector.each((ind, el) => {
@@ -280,10 +280,12 @@ export default class FeaturesMenu {
 
         if (expandIcon.length > 0) {
             expandIcon.removeClass().addClass("arrow-down")
+            wrapper.attr("expand", "true");
         }
         else {
             expandIcon = $(".arrow-down", wrapper);
             expandIcon.removeClass().addClass("arrow-right")
+            wrapper.attr("expand", "false");
         }
 
 

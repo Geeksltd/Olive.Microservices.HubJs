@@ -29,8 +29,8 @@ import HubModal from './hubModal';
 import BoardComponents from './boardComponents';
 import ExtendJQueryFunction from './extendJQueryFunction';
 import HubEcharts from './hubEcharts'
- import echarts from 'echarts'
- type EChartsOption = echarts.EChartsOption;
+import echarts from 'echarts'
+type EChartsOption = echarts.EChartsOption;
 
 // import Chartist from '../lib/@types/chartist/index';
 
@@ -163,10 +163,40 @@ export default class HubPage extends OlivePage {
         appcontext.enableHelp($("Help"));
         ToggleCheckbox.enableToggleCheckbox($("input[class='form-check']"));
         WidgetModule.enableWidget($("Widget"));
-        if(this.board == null)
-            this.board = new BoardComponents($(".board-components"), 
-            this.getService<ModalHelper>(Services.ModalHelper), 
-            this.getService<AjaxRedirect>(Services.AjaxRedirect));
+
+        const currentPath = this.getPathName();
+        console.log(currentPath);
+        if (currentPath != undefined && currentPath != null && currentPath.pathname != undefined && currentPath.pathname != null) {
+            if (currentPath.pathname.startsWith("/hub/project/") || currentPath.pathname.startsWith("/project/")) {
+
+                var masonryGrids = $(".board-components-result").find(".masonry-grid-origin");
+                if (masonryGrids == undefined || masonryGrids == null || masonryGrids.length == 0) {
+                    var w100 = $(".hub-service").find(".w-100");
+                    if (w100 != undefined && w100 != null) {
+                        while (w100[0].children.length > 1) {
+                            w100[0].lastChild.remove();
+                        }
+                    }
+
+                    this.board = new BoardComponents($(".board-components"),
+                        this.getService<ModalHelper>(Services.ModalHelper),
+                        this.getService<AjaxRedirect>(Services.AjaxRedirect));
+                }
+            }
+
+            else {
+                var hubserv = $(".board-components");
+                if (hubserv != undefined && hubserv != null) {
+                    hubserv.remove();
+                }
+            }
+        }
+
+
+        //if(this.board == null)
+        //    this.board = new BoardComponents($(".board-components"), 
+        //    this.getService<ModalHelper>(Services.ModalHelper), 
+        //    this.getService<AjaxRedirect>(Services.AjaxRedirect));
 
         let currentService = $("service[of]").attr("of");
 

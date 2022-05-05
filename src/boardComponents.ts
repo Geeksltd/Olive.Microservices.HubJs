@@ -86,16 +86,8 @@ export default class BoardComponents implements IService {
 
         const resultPanel = this.getResultPanel();
         const addableItemsPanel = this.getAddableItemsPanel();
-        //resultPanel.empty();
+
         addableItemsPanel.empty();
-        // if ($("[data-boardtype=Person]").length > 0)
-        //     resultPanel.append($('<div data-module-inner>\
-        // <div class="row board-header pane"><div class="col-md-2 board-image"></div><div class="col-md-10"><div class="board-info">\
-        // </div><div class="board-links"></div></div></div><div class="col-md-12 mt-4 board-content" ><div data-module-inner-container></div></div></div>'))
-        // else
-        //     resultPanel.append($('<div data-module-inner>\
-        // <div class="row board-header pane" style="display:none"><div class="col-md-2 board-image"></div><div class="col-md-10"><div class="board-info">\
-        // </div><div class="board-links"></div></div></div><div class="col-md-12 mt-4 board-content" ><div data-module-inner-container></div></div></div>'))
 
         const boardHolder = $("<div class='list-items'>");
         const addabledItemsHolder = $("<div class='list-items'>");
@@ -170,7 +162,7 @@ export default class BoardComponents implements IService {
 
         const searchItem = $("<div class='item' data-type='" + items[0].Type + "'>");
         const h3 = $('<h3 >').html(items[0].Type + "s").append(this.createHeaderAction(items[0].Type, addableItems))
-        searchItem.append($("<div class='header' " + "' style=\"" + this.addColour(items[0]) + "\">").append(h3))
+        searchItem.append($("<div class='header' " + " style=\"" + this.addColour(items[0]) + "\">").append(h3))
 
         //table.append($("<tr>").append($("<th " + "' style=\"" + this.addColour(items[0]) + "\" " + ">")
 
@@ -221,29 +213,37 @@ export default class BoardComponents implements IService {
         const manageFiltered = addableItems.filter((p) => p.ManageUrl != null && p.ManageUrl != undefined && this.getItemType(p) == type);
         const addFiltered = addableItems.filter((p) => p.AddUrl != null && p.AddUrl != undefined && this.getItemType(p) == type);
 
-        const headerAction = $("<div class='header-actions'>")
+        const headerAction = $("<div class='header-actions'>");
+
         if (addFiltered.length > 0) {
-            var item = addFiltered[0]
+            var item = addFiltered[0];
             var attr = "";
             if (item.Action == ActionEnum.Popup)
                 attr = "target=\"$modal\"";
             else if (item.Action == ActionEnum.NewWindow)
                 attr = "target=\"_blank\"";
-            headerAction.append($("<a href='" + item.AddUrl + "' " + attr + ">").append('<i class="fas fa-plus" aria-hidden="true"></i>'));
+            headerAction.append($("<a href='" + item.AddUrl.replace("https://hub.app.geeks.ltd", "") + "' " + attr + ">").append('<i class="fas fa-plus" aria-hidden="true"></i>'));
         }
+
         if (manageFiltered.length > 0) {
-            var item = manageFiltered[0]
+            var item = manageFiltered[0];
             var attr = "";
             if (item.Action == ActionEnum.Popup)
                 attr = "target=\"$modal\"";
             else if (item.Action == ActionEnum.NewWindow)
                 attr = "target=\"_blank\"";
-            headerAction.append($("<a href='" + item.ManageUrl + "'" + attr + ">").append('<i class="fa fa-cog" aria-hidden="true"></i>'));
+            headerAction.append($("<a href='" + item.ManageUrl.replace("https://hub.app.geeks.ltd", "") + "' " + attr + ">").append('<i class="fa fa-cog" aria-hidden="true"></i>'));
         }
-
-
-        return headerAction
+        return headerAction;
     }
+
+    protected isemptystring(str: string) {
+        if ((typeof str == 'undefined') || (str == null) || (!str) || (str.length === 0) || (str === "") || (!/[^\s]/.test(str)) || (/^\s*$/.test(str)) || (str.replace(/\s/g, "") === ""))
+            return true;
+        else
+            return false;
+    }
+
     protected createAddableItems(sender: IAjaxObject, context: IBoardContext, items: IAddableItemDto[]) {
         const result = $(".board-addable-items-container");
 
@@ -260,16 +260,52 @@ export default class BoardComponents implements IService {
         $(".board-info").append(
             $('<div class="col-md-9"><h2 class="mb-2">' + intro.Name + '</h2>\
             <div class="text-gray">' + intro.Description + '</div></div>'))
-        $('.board-header').fadeIn()
+        $('.board-header').show();
         return result;
     }
+
+    protected relocateBoardComponentsHeaderActions() {
+        const boardPanel = this.input.parent();
+        let headerActions = boardPanel.find(".board-components-header-actions");
+        let addablecomponents = boardPanel.find(".board-addable-items-container ");
+        if (headerActions === undefined || headerActions === null || headerActions.length === 0) {
+            console.log("Header Actions not found");
+        }
+        else {
+            let newplace = boardPanel.find(".col-md-10");
+            if (newplace === undefined || newplace === null || newplace.length === 0) {
+                console.log("col-md-10 not found");
+            }
+            else {
+                newplace[0].appendChild(headerActions[0]);
+                newplace[0].appendChild(addablecomponents[0]);
+            }
+        }
+    }
+
+    protected removeBoardGap() {
+        const boardPanel = this.input.parent();
+        let bordercomponentsview = boardPanel.find(".border-components-view");
+        if (bordercomponentsview === undefined || bordercomponentsview === null || bordercomponentsview.length === 0) {
+            console.log("bordercomponentsview not found");
+        }
+        else {
+            bordercomponentsview[0].remove();
+        }
+    }
+
     protected createManageItems(sender: IAjaxObject, context: IBoardContext, items: IAddableItemDto[]) {
         let result = $(".board-manage-items-container");
         if (result.length == 0) {
             result = $("<div class='board-manage-items-container'>");
             context.resultPanel.parent().append(result);
         }
-        const headerLinks = $(".board-links")
+        const headerLinks = $(".board-links");
+        items.sort(function (a, b) {
+            if (a.Name > b.Name) return 1;
+            if (a.Name < b.Name) return -1;
+            return 0;
+        });
         for (let i = 0; i < items.length; i++) {
             var item = items[i];
             if ($("a[href='" + item.ManageUrl + "']").length > 0)
@@ -360,6 +396,20 @@ export default class BoardComponents implements IService {
     private generateRandomColor() {
         return "#" + Math.floor(Math.random() * 16777215).toString(16);
     }
+
+    private generateStaticColorFromName(name) {
+        var hash = 0;
+        for (var i = 0; i < name.length; i++) {
+            hash = name.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        var colour = '#';
+        for (var i = 0; i < 3; i++) {
+            var value = (hash >> (i * 8)) & 0xFF;
+            colour += ('00' + value.toString(16)).substr(-2);
+        }
+        return colour;
+    }
+
     private getTextColor(hexcolor) {
         hexcolor = hexcolor.replace("#", "");
         var r = parseInt(hexcolor.substr(0, 2), 16);
@@ -369,21 +419,25 @@ export default class BoardComponents implements IService {
         return (yiq >= 128) ? 'black' : 'white';
     }
     protected showIntroImage(intro: any): JQuery {
-        var randomColor = this.generateRandomColor()
-        var textColor = this.getTextColor(randomColor)
-        var projectNameIcon = $("<div class='project-icon-text'>")
-            .css("background-color", randomColor)
-            .css("color", textColor)
-            .append(intro.Name.substr(0, 2));
-        if (intro.ImageUrl == null || intro.ImageUrl == "" || intro.ImageUrl == undefined) {
-            //var html = "<div class='project-icon-text'" +" style='background-color:" + randomColor + " >" + intro.Name.substr(0,2) + "</div>"
-            return projectNameIcon
+        var iconText = intro.Name.substr(0, 2);
+        if (intro.Name.contains("href")) {
+            iconText = intro.Name.substr(intro.Name.lastIndexOf("➝") + 2, 2);
         }
-        $(projectNameIcon).addClass("d-none")
+        var staticColor = this.generateStaticColorFromName(intro.Name);
+        var textColor = this.getTextColor(staticColor);
+        var projectNameIcon = $("<div class='project-icon-text'>")
+            .css("background-color", staticColor)
+            .css("color", textColor)
+            .append(iconText);
+        if (intro.ImageUrl == null || intro.ImageUrl == "" || intro.ImageUrl == undefined) {
+            return projectNameIcon;
+        }
+        $(projectNameIcon).addClass("d-none");
         if (intro.ImageUrl.indexOf("fa-") > 0) {
             return $("<div>").append($("<div class='icon'>").append($("<i class='" + intro.ImageUrl + "'></i>")))
                 .append(projectNameIcon);
-        } else {
+        }
+        else {
             return $("<div>").append($("<div class='project-icon'>").append($("<img src='" + intro.ImageUrl + "' \
             onerror='$(this).hide();$(this).parent().parent().find(\".project-icon-text\").removeClass(\"d-none\")'>")))
                 .append(projectNameIcon);
@@ -439,13 +493,13 @@ export default class BoardComponents implements IService {
                 const boardItem = that.createBoardItems(sender, context, filterdResult, result.AddabledItems);
                 if ($('.board-components-result .item[data-type="' + element + '"]').length > 0) {
                     var item = $('.board-components-result .item[data-type="' + element + '"]')
-                    $(boardItem).attr('class',item.attr('class')).attr('id', $(item).attr('id'))
+                    $(boardItem).attr('class', item.attr('class')).attr('id', $(item).attr('id'))
                     $(item).replaceWith(boardItem);
                 }
                 else if (element.startsWith("Timesheet since")) {
                     $('.board-components-result .item[data-type]').each(function () {
                         if ($(this).attr("data-type").startsWith("Timesheet since")) {
-                            $(boardItem).attr('class',$(this).attr('class')).attr('id', $(this).attr('id'))
+                            $(boardItem).attr('class', $(this).attr('class')).attr('id', $(this).attr('id'))
                             $(this).replaceWith(boardItem)
                         }
                     });
@@ -520,7 +574,7 @@ export default class BoardComponents implements IService {
                 window.page.board.onResize();
 
             if ($(".board-addable-items-container").children().length > 0) {
-                $(".add-button").fadeIn();
+                $(".add-button").show();
             }
             if ($(".board-manage-items-container").children().length > 0) {
                 //$(".manage-button").fadeIn();

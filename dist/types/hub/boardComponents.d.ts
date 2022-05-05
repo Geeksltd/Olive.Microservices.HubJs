@@ -30,7 +30,9 @@ export default class BoardComponents implements IService {
     protected createManageItem(item: IAddableItemDto, context: IBoardContext): JQuery;
     protected bindAddableItemsButtonClick(context: IBoardContext): void;
     protected showIcon(item: any): JQuery;
+    protected relocateBoardComponentsHeaderActions;
     private generateRandomColor;
+    private generateStaticColorFromName;
     private getTextColor;
     protected showIntroImage(intro: any): JQuery;
     private getlocalStorage;
