@@ -18,20 +18,20 @@ export default class BoardComponents implements IService {
     protected getAddableItemsPanel(): JQuery;
     protected createSearchComponent(urls: string[]): void;
     protected onResize(): void;
-    protected createBoardItems(sender: IAjaxObject, context: IBoardContext, items: IResultItemDto[], addableItems: IAddableItemDto[]): JQuery;
-    private getItemType;
+    protected createBoardItems(sender: IAjaxObject, context: IBoardContext, items: IInfoDto[], addableButtons: IButtonDto[], widgets: IWidgetDto[], html: IHtmlDto[], boxTitle: string): JQuery;
+    private getItemBox;
     private handelLinksClick;
-    protected createHeaderAction(type: String, addableItems: IAddableItemDto[]): JQuery;
-    protected isemptystring(str: string): boolean;
-    protected createAddableItems(sender: IAjaxObject, context: IBoardContext, items: IAddableItemDto[]): JQuery;
-    protected createBoardIntro(sender: IAjaxObject, context: IBoardContext, intro: IBoardComponentsIntroDto): JQuery;
+    protected createHeaderAction(boxTitle: String, addableButtons: IButtonDto[]): JQuery;
+    protected createAddableItems(sender: IAjaxObject, context: IBoardContext, items: IMenuDto[]): JQuery;
+    protected createBoardIntro(sender: IAjaxObject, context: IBoardContext, intro: IIntroDto[]): JQuery;
     protected relocateBoardComponentsHeaderActions(): void;
     protected removeBoardGap(): void;
-    protected createManageItems(sender: IAjaxObject, context: IBoardContext, items: IAddableItemDto[]): JQuery;
-    protected addColour(item: IResultItemDto): string;
-    protected createItem(item: IResultItemDto, context: IBoardContext): JQuery;
-    protected createAddableItem(item: IAddableItemDto, context: IBoardContext): JQuery;
-    protected createManageItem(item: IAddableItemDto, context: IBoardContext): JQuery;
+    protected createManageItems(sender: IAjaxObject, context: IBoardContext, items: IMenuDto[]): JQuery;
+    protected addColour(color: string): string;
+    protected createInfo(item: IInfoDto, context: IBoardContext): JQuery;
+    protected createWidgets(item: IWidgetDto, context: IBoardContext): string;
+    protected createAddableItem(item: IMenuDto, context: IBoardContext): JQuery;
+    protected createManageItem(item: IMenuDto, context: IBoardContext): JQuery;
     protected bindAddableItemsButtonClick(context: IBoardContext): void;
     protected showIcon(item: any): JQuery;
     private generateRandomColor;
@@ -43,7 +43,7 @@ export default class BoardComponents implements IService {
     private getItem;
     private setItem;
     protected onSuccess(sender: IAjaxObject, context: IBoardContext, result: IBoardResultDto, loadFromCaceh: boolean): void;
-    protected isValidResult(item: IResultItemDto, context: IBoardContext): boolean;
+    protected isValidResult(item: IInfoDto, context: IBoardContext): boolean;
     protected onComplete(context: IBoardContext, jqXHR: JQueryXHR): void;
     protected onError(sender: IAjaxObject, boardHolder: JQuery, jqXHR: JQueryXHR): void;
 }
@@ -65,36 +65,7 @@ export interface IAjaxObject {
     state: AjaxState;
     ajx?: JQueryXHR;
     displayMessage?: string;
-    result?: IResultItemDto[];
-}
-export interface IResultItemDto {
-    Name: string;
-    Type: string;
-    Body: string;
-    IconUrl: string;
-    Action: ActionEnum;
-    Url: string;
-    Colour: string;
-}
-export interface IAddableItemDto {
-    Name: string;
-    Type: string;
-    Body: string;
-    IconUrl: string;
-    AddUrl: string;
-    ManageUrl: string;
-    Action: ActionEnum;
-}
-export interface IBoardComponentsIntroDto {
-    Name: string;
-    Description: string;
-    ImageUrl: string;
-    BoardUrl: string;
-}
-export interface IBoardResultDto {
-    Results: IResultItemDto[];
-    AddabledItems: IAddableItemDto[];
-    BoardComponentsIntro: IBoardComponentsIntroDto;
+    result?: IBoardResultDto;
 }
 export declare enum AjaxState {
     pending = 0,
@@ -105,4 +76,52 @@ export declare enum ActionEnum {
     Redirect = 0,
     Popup = 1,
     NewWindow = 2
+}
+export interface IInfoDto {
+    BoxColour: string;
+    BoxTitle: string;
+    Url: string;
+    Name: string;
+    Description: string;
+    Icon: string;
+    Action: ActionEnum;
+}
+export interface IButtonDto {
+    BoxColour: string;
+    BoxTitle: string;
+    Icon: string;
+    Url: string;
+    Text: string;
+    Tooltip: string;
+    Action: ActionEnum;
+}
+export interface IIntroDto {
+    Url: string;
+    Name: string;
+    ImageUrl: string;
+    Description: string;
+}
+export interface IWidgetDto {
+    BoxColour: string;
+    BoxTitle: string;
+    Url: string;
+}
+export interface IHtmlDto {
+    BoxColour: string;
+    BoxTitle: string;
+    RawHtml: string;
+}
+export interface IMenuDto {
+    Url: string;
+    Name: string;
+    Body: string;
+    Icon: string;
+}
+export interface IBoardResultDto {
+    Widgets: IWidgetDto[];
+    Htmls: IHtmlDto[];
+    Buttons: IButtonDto[];
+    Infos: IInfoDto[];
+    Menues: IMenuDto[];
+    Intros: IIntroDto[];
 }
