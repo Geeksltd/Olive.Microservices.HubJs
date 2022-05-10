@@ -99,10 +99,8 @@ export default class BoardComponents implements IService {
             this.ajaxRedirect.go(serviceName + (urlToLoad.startsWith('/') ? '' : '/') + urlToLoad, $("[data-module-inner]"), false, false, false)
         }
         const ajaxList = urls.map((p): IAjaxObject => {
-            const icon = p.split("#")[1].trim();
             return {
                 url: p.split("#")[0].trim(),
-                icon,
                 state: AjaxState.pending,
             };
         });
@@ -145,9 +143,6 @@ export default class BoardComponents implements IService {
         $(window).on('resize', function () {
             this.onResize()
         });
-
-        this.relocateBoardComponentsHeaderActions();
-        this.removeBoardGap();
     }
     protected onResize() {
         var width = 0;
@@ -160,27 +155,39 @@ export default class BoardComponents implements IService {
                 'columns': parseInt((($(document).outerWidth() - width) / 300).toString())
             });
     }
-    protected createBoardItems(sender: IAjaxObject, context: IBoardContext, items: IResultItemDto[], addableItems: IAddableItemDto[]) {
-        if (items.length == 0) return null;
+    protected createBoardItems(sender: IAjaxObject, context: IBoardContext, items: IInfoDto[], addableButtons: IButtonDto[], widgets: IWidgetDto[], html: IHtmlDto[], boxTitle: string) {
+        if (items.length == 0 && widgets.length == 0 && html.length==0) return null;
         var table = $("<table>");
+        var colour = "#aaa"
+        if (items.length > 0)colour = items[0].BoxColour
+        else if (widgets.length>0)colour = widgets[0].BoxColour
+        else if (html.length > 0 )colour = html[0].BoxColour
 
-        const searchItem = $("<div class='item' data-type='" + items[0].Type + "'>");
-        const h3 = $('<h3 >').html(items[0].Type + "s").append(this.createHeaderAction(items[0].Type, addableItems))
-        searchItem.append($("<div class='header' " + " style=\"" + this.addColour(items[0]) + "\">").append(h3))
+        const searchItem = $("<div class='item' data-type='" + boxTitle + "'>");
+        const h3 = $('<h3 >').html(boxTitle + "s").append(this.createHeaderAction(boxTitle, addableButtons))
+        searchItem.append($("<div class='header' " + "' style=\"" + this.addColour(colour) + "\">").append(h3))
 
         //table.append($("<tr>").append($("<th " + "' style=\"" + this.addColour(items[0]) + "\" " + ">")
 
         for (let i = 0; i < items.length; i++) {
             context.resultCount++;
-            table.append(this.createItem(items[i], context));
+            table.append(this.createInfo(items[i], context));
+        }
+        for (let i = 0; i < widgets.length; i++) {
+            context.resultCount++;
+            table.append(this.createWidgets(widgets[i], context));
+        }
+        for (let i = 0; i < html.length; i++) {
+            context.resultCount++;
+            table.append(html[i].RawHtml);
         }
         searchItem.append($("<div>").append(table))
         return searchItem;
     }
-    private getItemType(addableItem: IAddableItemDto) {
-        if (addableItem.Type == null || addableItem.Type == '' || addableItem.Type == undefined)
-            return addableItem.Name;
-        return addableItem.Type;
+    private getItemBox(button: IButtonDto) {
+        if (button.BoxTitle == null || button.BoxTitle == '' || button.BoxTitle == undefined)
+            return button.BoxColour;
+        return button.BoxTitle;
     }
     private handelLinksClick(link: any) {
         var ajaxredirect = this.ajaxRedirect;
@@ -213,42 +220,28 @@ export default class BoardComponents implements IService {
             return false;
         })
     }
-    protected createHeaderAction(type: String, addableItems: IAddableItemDto[]) {
-        const manageFiltered = addableItems.filter((p) => p.ManageUrl != null && p.ManageUrl != undefined && this.getItemType(p) == type);
-        const addFiltered = addableItems.filter((p) => p.AddUrl != null && p.AddUrl != undefined && this.getItemType(p) == type);
+    //Adding menu Items and buttons
+    protected createHeaderAction(boxTitle: String, addableButtons: IButtonDto[]) {
+        const buttons = addableButtons.filter((p) => p.Url != null && p.Url != undefined && this.getItemBox(p) == boxTitle);
 
-        const headerAction = $("<div class='header-actions'>");
-
-        if (addFiltered.length > 0) {
-            var item = addFiltered[0];
+        const headerAction = $("<div class='header-actions'>")
+        for (let i = 0; i < buttons.length; i++){
+            var item = addableButtons[i]
             var attr = "";
             if (item.Action == ActionEnum.Popup)
                 attr = "target=\"$modal\"";
             else if (item.Action == ActionEnum.NewWindow)
-                attr = "target=\"_blank\"";
-            headerAction.append($("<a href='" + item.AddUrl.replace("https://hub.app.geeks.ltd", "") + "' " + attr + ">").append('<i class="fas fa-plus" aria-hidden="true"></i>'));
-        }
-
-        if (manageFiltered.length > 0) {
-            var item = manageFiltered[0];
-            var attr = "";
-            if (item.Action == ActionEnum.Popup)
-                attr = "target=\"$modal\"";
-            else if (item.Action == ActionEnum.NewWindow)
-                attr = "target=\"_blank\"";
-            headerAction.append($("<a href='" + item.ManageUrl.replace("https://hub.app.geeks.ltd", "") + "' " + attr + ">").append('<i class="fa fa-cog" aria-hidden="true"></i>'));
+                attr = "target=\"_blank\"";            var text = item.Text;
+            var tooltip = item.Tooltip;
+            if (item.Text == null || item.Text == '' || item.Text == undefined)
+                text = "";
+            if (item.Tooltip == null || item.Tooltip == '' || item.Tooltip == undefined)
+                tooltip = "";
+            headerAction.append($("<a href='" + item.Url + "' " + attr + ">").append('<i class="' + item.Icon + '" aria-hidden="true" ' + tooltip + '>' + item.Text + '</i>'));
         }
         return headerAction;
     }
-
-    protected isemptystring(str: string) {
-        if ((typeof str == 'undefined') || (str == null) || (!str) || (str.length === 0) || (str === "") || (!/[^\s]/.test(str)) || (/^\s*$/.test(str)) || (str.replace(/\s/g, "") === ""))
-            return true;
-        else
-            return false;
-    }
-
-    protected createAddableItems(sender: IAjaxObject, context: IBoardContext, items: IAddableItemDto[]) {
+    protected createAddableItems(sender: IAjaxObject, context: IBoardContext, items: IMenuDto[]) {
         const result = $(".board-addable-items-container");
 
         for (let i = 0; i < items.length; i++) {
@@ -257,15 +250,19 @@ export default class BoardComponents implements IService {
         }
         return result;
     }
-    protected createBoardIntro(sender: IAjaxObject, context: IBoardContext, intro: IBoardComponentsIntroDto) {
+    protected createBoardIntro(sender: IAjaxObject, context: IBoardContext, intro: IIntroDto[]) {
         const result = $(".board-components-result");
         if ($(".board-image:visible").length > 0) return;
-        $(".board-image").append($("<a href='" + intro.BoardUrl + "' >").append(this.showIntroImage(intro).prop('outerHTML')))
-        $(".board-info").append(
-            $('<div class="col-md-9"><h2 class="mb-2">' + intro.Name + '</h2>\
-            <div class="text-gray">' + intro.Description + '</div></div>'))
-        $('.board-header').show();
+        for(let i =0 ; i< intro.length ; i++){
+            $(".board-image").append($("<a href='" + intro[i].Url + "' >").append(this.showIntroImage(intro).prop('outerHTML')))
+            $(".board-info").append(
+                $('<div class="col-md-9"><h2 class="mb-2">' + intro[i].Name + '</h2>\
+                <div class="text-gray">' + intro[i].Description + '</div></div>'))
+            $('.board-header').show()
+        }
         return result;
+
+
     }
 
     protected relocateBoardComponentsHeaderActions() {
@@ -298,7 +295,7 @@ export default class BoardComponents implements IService {
         }
     }
 
-    protected createManageItems(sender: IAjaxObject, context: IBoardContext, items: IAddableItemDto[]) {
+    protected createManageItems(sender: IAjaxObject, context: IBoardContext, items: IMenuDto[]) {
         let result = $(".board-manage-items-container");
         if (result.length == 0) {
             result = $("<div class='board-manage-items-container'>");
@@ -312,27 +309,23 @@ export default class BoardComponents implements IService {
         });
         for (let i = 0; i < items.length; i++) {
             var item = items[i];
-            if ($("a[href='" + item.ManageUrl + "']").length > 0)
-                $("a[href='" + item.ManageUrl + "']").remove();
+            if ($("a[href='" + item.Url + "']").length > 0)
+                $("a[href='" + item.Url + "']").remove();
             result.append(this.createManageItem(items[i], context));
-            var attr = "";
-            if (item.Action == ActionEnum.Popup)
-                attr = "target=\"$modal\"";
-            else if (item.Action == ActionEnum.NewWindow)
-                attr = "target=\"_blank\"";
-            var link = $("<a class='btn btn-primary' href='" + items[i].ManageUrl + "'" + attr + ">")
+            var attr = "target=\"_blank\"";
+            var link = $("<a class='btn btn-primary' href='" + items[i].Url + "'" + attr + ">")
             link.append(item.Name)
             headerLinks.append(link);
             this.handelLinksClick(link)
         }
         return result;
     }
-    protected addColour(item: IResultItemDto) {
-        if (item.Colour != undefined && item.Colour != null && item.Colour != "")
-            return "background-color:" + item.Colour + ";"
+    protected addColour(color: string) {
+        if (color != undefined && color != null && color != "")
+            return "background-color:" + color + ";"
         return "background-color:#aaa;";
     }
-    protected createItem(item: IResultItemDto, context: IBoardContext) {
+    protected createInfo(item: IInfoDto, context: IBoardContext) {
         var attr = "";
         if (item.Action == ActionEnum.Popup)
             attr = "target=\"$modal\"";
@@ -341,35 +334,43 @@ export default class BoardComponents implements IService {
 
         return $("<tr>").append($("<td >")
             .append($("<a href='" + item.Url + "' " + attr + " >")
-                .append((item.IconUrl === null || item.IconUrl === undefined) ? $("<div class='icon'>") : this.showIcon(item))
+                .append((item.Icon === null || item.Icon === undefined) ? $("<div class='icon'>") : this.showIcon(item))
                 .append($("<div>").append($("<span class=\"board-component-name\">").append(item.Name))
-                    .append($("<span>").html(item.Body)))));
+                    .append($("<span>").html(item.Description)))));
     }
-    protected createAddableItem(item: IAddableItemDto, context: IBoardContext) {
-        var attr = "";
-        if (item.Action == ActionEnum.Popup)
-            attr = "target=\"$modal\"";
-        else if (item.Action == ActionEnum.NewWindow)
-            attr = "target=\"_blank\"";
+    protected createWidgets(item: IWidgetDto, context: IBoardContext) {
+
+        var result = "";
+        $.ajax({
+            url: item.Url,
+            type: 'GET',
+            xhrFields: { withCredentials: true },
+            success: (response) => {
+                result=response;
+                (<any>window.page).revive();
+            },
+            error: (response, x) => {
+                console.log(response);
+                console.log(x);
+                result = "<br/><br/><br/><center>Failed to load <a target='_blank' href='" + this.input.attr("src") + "'>widget</a></center>";
+            }
+        });
+        return result
+    }
+    protected createAddableItem(item: IMenuDto, context: IBoardContext) {
         return $("<div class=\"menu-item\">")
-            .append($("<a href='" + item.AddUrl + "' " + attr + "'>")
-                .append((item.IconUrl === null || item.IconUrl === undefined) ?
+            .append($("<a href='" + item.Url + ">")
+                .append((item.Icon === null || item.Icon === undefined) ?
                     $("<div class='icon'>") : this.showIcon(item)
                         .append(item.Name)
                         .append($("<small>")
                             .html(item.Body))));
     }
 
-    protected createManageItem(item: IAddableItemDto, context: IBoardContext) {
-        var attr = "";
-        if (item.Action == ActionEnum.Popup)
-            attr = "target=\"$modal\"";
-        else if (item.Action == ActionEnum.NewWindow)
-            attr = "target=\"_blank\"";
-
+    protected createManageItem(item: IMenuDto, context: IBoardContext) {
         return $("<div class=\"menu-item\">")
-            .append($("<a href='" + item.ManageUrl + "' " + attr + "'>")
-                .append((item.IconUrl === null || item.IconUrl === undefined) ?
+            .append($("<a href='" + item.Url + ">")
+                .append((item.Url === null || item.Url === undefined) ?
                     $("<div class='icon'>") : this.showIcon(item)
                         .append(item.Name)
                         .append($("<small>")
@@ -468,14 +469,14 @@ export default class BoardComponents implements IService {
         this.myStorage.setItem(projectId + "_" + key, JSON.stringify(value))
     }
     protected onSuccess(sender: IAjaxObject, context: IBoardContext, result: IBoardResultDto, loadFromCaceh: boolean) {
-        sender.result = result.Results;
+        sender.result = result;
         var cache = this.getItem(sender.url)
         if (!loadFromCaceh && JSON.stringify(cache) === JSON.stringify(result)) return
         this.setItem(sender.url, result)
-        if (result !== null && result !== undefined && typeof (result.Results) === typeof ([])) {
+        if (result !== null && result !== undefined && typeof (result.Infos) === typeof ([])) {
             sender.state = AjaxState.success;
 
-            const resultfiltered = result.Results.filter((p) => this.isValidResult(p, context));
+            const resultfiltered = result.Infos.filter((p) => this.isValidResult(p, context));
             const groupBy = (array, key) => {
                 // Return the end result
                 return array.reduce((result, currentValue) => {
@@ -488,13 +489,16 @@ export default class BoardComponents implements IService {
                 }, {}); // empty object is the initial value for result object
             };
 
-            const personGroupedByType = groupBy(resultfiltered, 'Type');
+            const personGroupedByType = groupBy(resultfiltered, 'BoxTitle').concat(groupBy(result.Widgets,'BoxTitle'),groupBy(result.Htmls, 'BoxTitle'));
             var that = this;
             for (var element in personGroupedByType) {
                 //var element = personGroupedByType[i]
-                var filterdResult = resultfiltered.filter((p) => p.Type == element);
-
-                const boardItem = that.createBoardItems(sender, context, filterdResult, result.AddabledItems);
+                var filteredInfo = resultfiltered.filter((p) => p.BoxTitle == element);
+                var filteredWidgets = result.Widgets.filter((p)=> p.BoxTitle == element)
+                var filteredHtmls = result.Htmls.filter((p)=> p.BoxTitle == element)
+                var filteredButtons = result.Buttons.filter((p) => p.BoxTitle == element)
+                
+                const boardItem = that.createBoardItems(sender, context, filteredInfo, filteredButtons,filteredWidgets ,filteredHtmls, element);
                 if ($('.board-components-result .item[data-type="' + element + '"]').length > 0) {
                     var item = $('.board-components-result .item[data-type="' + element + '"]')
                     $(boardItem).attr('class', item.attr('class')).attr('id', $(item).attr('id'))
@@ -511,7 +515,22 @@ export default class BoardComponents implements IService {
                 else
                     context.boardHolder.append(boardItem);
             }
+            // $.each(personGroupedByType, function (element) {
 
+            //     var filterdResult = resultfiltered.filter((p) => p.Type == element);
+
+            //     const boardItem = that.createBoardItems(sender, context, filterdResult, result.AddabledItems);
+            //     if ($('.board-components-result .item[data-type="' + element + '"]').length > 0)
+            //         $('.board-components-result .item[data-type="' + element + '"]').replaceWith(boardItem);
+            //     else if (element.startsWith("Timesheet since")) {
+            //         $('.board-components-result .item[data-type]').each(function () {
+            //             if ($(this).attr("data-type").startsWith("Timesheet since"))
+            //                 $(this).replaceWith(boardItem)
+            //         });
+            //     }
+            //     else
+            //         context.boardHolder.append(boardItem);
+            // })
             if (!loadFromCaceh)
                 this.onResize();
 
@@ -519,20 +538,20 @@ export default class BoardComponents implements IService {
 
                 context.resultPanel.append(context.boardHolder);
             }
-            if (result !== null && result !== undefined && typeof (result.AddabledItems) === typeof ([])) {
+            if (result !== null && result !== undefined && typeof (result.menus) === typeof ([])) {
                 sender.state = AjaxState.success;
 
                 var header = this.filterInput.parent();
 
-                const managefiltered = result.AddabledItems.filter((p) => p.ManageUrl != null && p.ManageUrl != undefined);
+                const managefiltered = result.menus.filter((p) => p.Url != null && p.Url != undefined);
                 const manageItem = this.createManageItems(sender, context, managefiltered);
-                const resultfiltered = result.AddabledItems.filter((p) => p.AddUrl != null && p.AddUrl != undefined);
+                const resultfiltered = result.menus.filter((p) => p.Url != null && p.Url != undefined);
 
                 const addabledItem = this.createAddableItems(sender, context, resultfiltered);
             }
-            if (result !== null && result !== undefined && result.BoardComponentsIntro !== null
-                && result.BoardComponentsIntro !== undefined && result.BoardComponentsIntro.Name) {
-                this.createBoardIntro(sender, context, result.BoardComponentsIntro)
+            if (result !== null && result !== undefined && result.Intros[0] !== null
+                && result.Intros[0] !== undefined && result.Intros[0].Name) {
+                this.createBoardIntro(sender, context, result.Intros)
             }
 
         } else {
@@ -540,7 +559,7 @@ export default class BoardComponents implements IService {
             console.error("ajax success but failed to decode the response -> wellform expcted response is like this: [{Title:'',Description:'',IconUrl:'',Url:''}] ");
         }
     }
-    protected isValidResult(item: IResultItemDto, context: IBoardContext) {
+    protected isValidResult(item: IInfoDto, context: IBoardContext) {
         return true;
     }
     protected onComplete(context: IBoardContext, jqXHR: JQueryXHR) {
@@ -595,43 +614,10 @@ export interface IBoardContext {
 }
 export interface IAjaxObject {
     url: string;
-    icon: string;
     state: AjaxState;
     ajx?: JQueryXHR;
     displayMessage?: string;
-    result?: IResultItemDto[];
-}
-
-
-export interface IResultItemDto {
-    Name: string;
-    Type: string;
-    Body: string;
-    IconUrl: string;
-    Action: ActionEnum;
-    Url: string;
-    Colour: string;
-}
-
-export interface IAddableItemDto {
-    Name: string;
-    Type: string;
-    Body: string;
-    IconUrl: string;
-    AddUrl: string;
-    ManageUrl: string;
-    Action: ActionEnum;
-}
-export interface IBoardComponentsIntroDto {
-    Name: string;
-    Description: string;
-    ImageUrl: string;
-    BoardUrl: string;
-}
-export interface IBoardResultDto {
-    Results: IResultItemDto[];
-    AddabledItems: IAddableItemDto[];
-    BoardComponentsIntro: IBoardComponentsIntroDto;
+    result?: IBoardResultDto;
 }
 
 export enum AjaxState {
@@ -645,4 +631,59 @@ export enum ActionEnum {
     NewWindow,
 }
 
+
+
+export interface IInfoDto {
+    BoxColour: string;
+    BoxTitle: string;
+    Url: string;
+    Name: string;
+    Description?: string;
+    Icon?: string;
+    Action: ActionEnum;
+}
+
+export interface IButtonDto {
+    BoxColour: string;
+    BoxTitle: string;
+    Icon?: string;
+    Url: string;
+    Text?: string;
+    Tooltip?: string;
+    Action: ActionEnum;
+}
+
+export interface IIntroDto {
+    Url: string;
+    Name: string;
+    ImageUrl: string;
+    Description?: string;
+}
+
+export interface IWidgetDto {
+    BoxColour: string;
+    BoxTitle: string;
+    Url: string;
+}
+
+export interface IHtmlDto {
+    BoxColour: string;
+    BoxTitle: string;
+    RawHtml: string;
+}
+export interface IMenuDto {
+    Url: string;
+    Name: string;
+    Body?: string;
+    Icon?: string;
+}
+
+export interface IBoardResultDto {
+    Widgets?: IWidgetDto[];
+    Htmls?: IHtmlDto[];
+    Buttons?: IButtonDto[];
+    Infos?: IInfoDto[];
+    menus?: IMenuDto[];
+    Intros?: IIntroDto[];
+}
 //var boardComponents = new BoardComponents($(".board-components"));
