@@ -222,7 +222,7 @@ export default class BoardComponents implements IService {
             return false;
         })
     }
-    //Adding menue Items and buttons
+    //Adding menu Items and buttons
     protected createHeaderAction(boxTitle: String, addableButtons: IButtonDto[]) {
         const buttons = addableButtons.filter((p) => p.Url != null && p.Url != undefined && this.getItemBox(p) == boxTitle);
 
@@ -540,14 +540,14 @@ export default class BoardComponents implements IService {
 
                 context.resultPanel.append(context.boardHolder);
             }
-            if (result !== null && result !== undefined && typeof (result.Menues) === typeof ([])) {
+            if (result !== null && result !== undefined && typeof (result.menus) === typeof ([])) {
                 sender.state = AjaxState.success;
 
                 var header = this.filterInput.parent();
 
-                const managefiltered = result.Menues.filter((p) => p.Url != null && p.Url != undefined);
+                const managefiltered = result.menus.filter((p) => p.Url != null && p.Url != undefined);
                 const manageItem = this.createManageItems(sender, context, managefiltered);
-                const resultfiltered = result.Menues.filter((p) => p.Url != null && p.Url != undefined);
+                const resultfiltered = result.menus.filter((p) => p.Url != null && p.Url != undefined);
 
                 const addabledItem = this.createAddableItems(sender, context, resultfiltered);
             }
@@ -686,7 +686,7 @@ export interface IBoardResultDto {
     Htmls: IHtmlDto[];
     Buttons: IButtonDto[];
     Infos: IInfoDto[];
-    Menues: IMenuDto[];
+    menus: IMenuDto[];
     Intros: IIntroDto[];
 }
 //var boardComponents = new BoardComponents($(".board-components"));
