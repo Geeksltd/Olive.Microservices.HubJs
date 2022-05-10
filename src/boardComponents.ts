@@ -145,6 +145,9 @@ export default class BoardComponents implements IService {
         $(window).on('resize', function () {
             this.onResize()
         });
+
+        this.relocateBoardComponentsHeaderActions();
+        this.removeBoardGap();
     }
     protected onResize() {
         var width = 0;
@@ -508,22 +511,7 @@ export default class BoardComponents implements IService {
                 else
                     context.boardHolder.append(boardItem);
             }
-            // $.each(personGroupedByType, function (element) {
 
-            //     var filterdResult = resultfiltered.filter((p) => p.Type == element);
-
-            //     const boardItem = that.createBoardItems(sender, context, filterdResult, result.AddabledItems);
-            //     if ($('.board-components-result .item[data-type="' + element + '"]').length > 0)
-            //         $('.board-components-result .item[data-type="' + element + '"]').replaceWith(boardItem);
-            //     else if (element.startsWith("Timesheet since")) {
-            //         $('.board-components-result .item[data-type]').each(function () {
-            //             if ($(this).attr("data-type").startsWith("Timesheet since"))
-            //                 $(this).replaceWith(boardItem)
-            //         });
-            //     }
-            //     else
-            //         context.boardHolder.append(boardItem);
-            // })
             if (!loadFromCaceh)
                 this.onResize();
 
