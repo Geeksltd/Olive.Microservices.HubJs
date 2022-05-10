@@ -99,10 +99,8 @@ export default class BoardComponents implements IService {
             this.ajaxRedirect.go(serviceName + (urlToLoad.startsWith('/') ? '' : '/') + urlToLoad, $("[data-module-inner]"), false, false, false)
         }
         const ajaxList = urls.map((p): IAjaxObject => {
-            const icon = p.split("#")[1].trim();
             return {
                 url: p.split("#")[0].trim(),
-                icon,
                 state: AjaxState.pending,
             };
         });
@@ -616,7 +614,6 @@ export interface IBoardContext {
 }
 export interface IAjaxObject {
     url: string;
-    icon: string;
     state: AjaxState;
     ajx?: JQueryXHR;
     displayMessage?: string;
@@ -641,8 +638,8 @@ export interface IInfoDto {
     BoxTitle: string;
     Url: string;
     Name: string;
-    Description: string;
-    Icon: string;
+    Description?: string;
+    Icon?: string;
     Action: ActionEnum;
 }
 
@@ -651,16 +648,16 @@ export interface IButtonDto {
     BoxTitle: string;
     Icon: string;
     Url: string;
-    Text: string;
-    Tooltip: string;
+    Text?: string;
+    Tooltip?: string;
     Action: ActionEnum;
 }
 
 export interface IIntroDto {
     Url: string;
     Name: string;
-    ImageUrl: string;
-    Description: string;
+    ImageUrl?: string;
+    Description?: string;
 }
 
 export interface IWidgetDto {
@@ -677,16 +674,16 @@ export interface IHtmlDto {
 export interface IMenuDto {
     Url: string;
     Name: string;
-    Body: string;
-    Icon: string;
+    Body?: string;
+    Icon?: string;
 }
 
 export interface IBoardResultDto {
-    Widgets: IWidgetDto[];
-    Htmls: IHtmlDto[];
-    Buttons: IButtonDto[];
-    Infos: IInfoDto[];
-    menus: IMenuDto[];
-    Intros: IIntroDto[];
+    Widgets?: IWidgetDto[];
+    Htmls?: IHtmlDto[];
+    Buttons?: IButtonDto[];
+    Infos?: IInfoDto[];
+    menus?: IMenuDto[];
+    Intros?: IIntroDto[];
 }
 //var boardComponents = new BoardComponents($(".board-components"));
