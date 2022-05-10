@@ -34,7 +34,6 @@ export default class Hub implements IService {
             }
         });
 
-        console.log("here");
         //initial right task menu after 3 sec delay.
         this.initRightTaskMenu();
 
@@ -66,7 +65,7 @@ export default class Hub implements IService {
                     }
                 });
             }
-            
+
             var projectIframe = $("#projectiFram-container");
             if (projectIframe.is(":visible") && projectIframe.attr("data-src")) {
                 let src = projectIframe.attr("data-src");
@@ -170,22 +169,22 @@ export default class Hub implements IService {
             iFrame.hide();
     }
 
-    public go(url: string, iframe: boolean,trigger:any) {
+    public go(url: string, iframe: boolean, trigger: any) {
         if (iframe) {
             url = this.url.effectiveUrlProvider(url, null);
-            if($(trigger).closest("[data-module-inner]").length > 0){
+            if ($(trigger).closest("[data-module-inner]").length > 0) {
                 $("iframe.view-frame").attr("src", url);
                 $("iframe.view-frame").show();
                 $(".feature-frame-view").show();
             }
-            else{
+            else {
                 $("iframe.view-frame").attr("src", url);
                 $(".feature-frame-view").show();
                 $("main").hide();
             }
-            
+
         }
-        else this.ajaxRedirect.go(url,trigger);
+        else this.ajaxRedirect.go(url, trigger);
     }
 
     initServiceWorker(): any {

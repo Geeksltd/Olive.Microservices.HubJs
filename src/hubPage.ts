@@ -165,7 +165,6 @@ export default class HubPage extends OlivePage {
         WidgetModule.enableWidget($("Widget"));
 
         const currentPath = this.getPathName();
-        console.log(currentPath);
         if (currentPath != undefined && currentPath != null && currentPath.pathname != undefined && currentPath.pathname != null) {
             if (currentPath.pathname.startsWith("/hub/project/") || currentPath.pathname.startsWith("/project/")) {
 
