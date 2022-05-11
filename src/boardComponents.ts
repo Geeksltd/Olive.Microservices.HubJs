@@ -425,7 +425,7 @@ export default class BoardComponents implements IService {
     protected showIntroImage(intro: any): JQuery {
         var iconText = intro.Name.substr(0, 2);
         if (intro.Name.contains("href")) {
-            iconText = intro.Name.substr(intro.Name.lastIndexOf("➝") + 2, 2);
+            iconText = intro.Name.substr(intro.Name.lastIndexOf("➝") + 2, 2);
         }
         var staticColor = this.generateStaticColorFromName(intro.Name);
         var textColor = this.getTextColor(staticColor);
