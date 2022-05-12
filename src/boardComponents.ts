@@ -14,13 +14,13 @@ export default class BoardComponents implements IService {
     private boardPath: string;
     constructor(private input: JQuery, modalHelper: ModalHelper, ajaxRedirect: AjaxRedirect, boardPath: string) {
         if (input == null || input.length == 0) return;
+        this.boardPath = boardPath;
         var urls = input.attr("data-board-source").split(";");
         this.filterInput = this.input.parent().find(".board-components-filter");
         this.ajaxRedirect = ajaxRedirect;
         this.filterEnable()
         this.modalHelper = modalHelper;
         this.createSearchComponent(urls);
-        this.boardPath = boardPath;
     }
 
     private filterEnable() {
@@ -320,7 +320,7 @@ export default class BoardComponents implements IService {
                 attr = "target=\"$modal\"";
             else if (item.Action == ActionEnum.NewWindow)
                 attr = "target=\"_blank\"";
-            var link = $("<a class='btn btn-primary' href='" + items[i].ManageUrl + "'" + attr + ">")
+            var link = $("<a class='btn btn-primary' href='" + this.boardPath + "?$boardContent={" + items[i].ManageUrl + "}'" + attr + ">")
             link.append(item.Name)
             headerLinks.append(link);
             this.handelLinksClick(link)
