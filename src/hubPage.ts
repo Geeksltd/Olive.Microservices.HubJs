@@ -166,7 +166,7 @@ export default class HubPage extends OlivePage {
 
         const currentPath = this.getPathName();
         if (currentPath != undefined && currentPath != null && currentPath.pathname != undefined && currentPath.pathname != null) {
-            if (currentPath.pathname.startsWith("/hub/project/") || currentPath.pathname.startsWith("/project/")) {
+            if (currentPath.pathname.startsWith("/hub/project/") || currentPath.pathname.startsWith("/project/") || currentPath.pathname.startsWith("/person/")) {
 
                 var masonryGrids = $(".board-components-result").find(".masonry-grid-origin");
                 if (masonryGrids == undefined || masonryGrids == null || masonryGrids.length == 0) {
@@ -179,7 +179,7 @@ export default class HubPage extends OlivePage {
 
                     this.board = new BoardComponents($(".board-components"),
                         this.getService<ModalHelper>(Services.ModalHelper),
-                        this.getService<AjaxRedirect>(Services.AjaxRedirect), (currentPath.pathname.contains("https://hub.app.geeks.ltd") ? currentPath.pathname : "https://hub.app.geeks.ltd" + currentPath.pathname));
+                        this.getService<AjaxRedirect>(Services.AjaxRedirect), (currentPath.pathname.startsWith("https://hub.app.geeks.ltd") ? currentPath.pathname : "https://hub.app.geeks.ltd" + currentPath.pathname));
                 }
             }
 
