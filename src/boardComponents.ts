@@ -208,7 +208,7 @@ export default class BoardComponents implements IService {
             //     urlToLoad = urlToLoad.substr(serviceName.length)
             // }
             if (urlToLoad) {
-                $(".board-components-result, [data-module=BoardView]").fadeOut('false', function () { $(this).remove() })
+                $(".board-components-result").fadeOut('false', function () { $(this).remove() })
                 if (!serviceName)
                     serviceName = $(this).attr("href").split('?')[0].split('/').pop()
                 $("[data-module-inner]").closest("service[of]").attr("of", serviceName)
@@ -320,8 +320,8 @@ export default class BoardComponents implements IService {
                 attr = "target=\"$modal\"";
             else if (item[i].Action == ActionEnum.NewWindow)
                 attr = "target=\"_blank\"";
-            //var link = $("<a class='btn btn-primary' href='" + this.boardPath + "?$boardContent={" + items[i].ManageUrl + "}'" + attr + ">")
-            var link = $("<a class='btn btn-primary' href='" + items[i].ManageUrl + "'" + attr + ">")
+            var link = $("<a class='btn btn-primary' href='" + item[i].url + "?$boardContent={" + items[i].Url + "}'" + attr + ">")
+            //var link = $("<a class='btn btn-primary' href='" + items[i].ManageUrl + "'" + attr + ">")
             link.append(item.Name)
             headerLinks.append(link);
             this.handelLinksClick(link)
