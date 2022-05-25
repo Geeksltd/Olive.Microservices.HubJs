@@ -320,8 +320,8 @@ export default class BoardComponents implements IService {
                 attr = "target=\"$modal\"";
             else if (item.Action == ActionEnum.NewWindow)
                 attr = "target=\"_blank\"";
-            var link = $("<a class='btn btn-primary' href='" + this.boardPath + "?$boardContent={" + items[i].ManageUrl + "}'" + attr + ">")
-            //var link = $("<a class='btn btn-primary' href='" + items[i].ManageUrl + "'" + attr + ">")
+            //var link = $("<a class='btn btn-primary' href='" + this.boardPath + "?$boardContent={" + items[i].ManageUrl + "}'" + attr + ">")
+            var link = $("<a class='btn btn-primary' href='" + items[i].ManageUrl + "'" + attr + ">")
             link.append(item.Name)
             headerLinks.append(link);
             this.handelLinksClick(link)
