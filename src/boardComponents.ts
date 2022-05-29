@@ -321,7 +321,8 @@ export default class BoardComponents implements IService {
             else if (item.Action == ActionEnum.NewWindow)
                 attr = "target=\"_blank\"";
             //var link = $("<a class='btn btn-primary' href='" + this.boardPath + "?$boardContent={" + items[i].ManageUrl + "}'" + attr + ">")
-            var link = $("<a class='btn btn-primary' href='" + items[i].ManageUrl + "'" + attr + ">")
+            //var link = $("<a class='btn btn-primary' href='" + items[i].ManageUrl + "'" + attr + ">")
+            var link = $("<a class='btn btn-primary' href='" + items[i].ManageUrl + "'" + " data-redirect='ajax' " + " target='board-body' " + attr + ">")
             link.append(item.Name)
             headerLinks.append(link);
             this.handelLinksClick(link)
