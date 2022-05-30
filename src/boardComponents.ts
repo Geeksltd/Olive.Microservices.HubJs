@@ -322,7 +322,11 @@ export default class BoardComponents implements IService {
                 attr = "target=\"_blank\"";
             //var link = $("<a class='btn btn-primary' href='" + this.boardPath + "?$boardContent={" + items[i].ManageUrl + "}'" + attr + ">")
             //var link = $("<a class='btn btn-primary' href='" + items[i].ManageUrl + "'" + attr + ">")
-            var link = $("<a class='btn btn-primary' href='" + items[i].ManageUrl + "'" + " data-redirect='ajax' " + " target='board-body' " + attr + ">")
+            if (item[i].ManageUrl.contains("repositories/repos"))
+                var link = $("<a class='btn btn-primary' href='" + items[i].ManageUrl + "'" + " data-redirect='ajax' " + " ajax-target='board-body' " + attr + ">")
+            else
+                var link = $("<a class='btn btn-primary' href='" + items[i].ManageUrl + "'" + attr + ">")
+
             link.append(item.Name)
             headerLinks.append(link);
             this.handelLinksClick(link)
