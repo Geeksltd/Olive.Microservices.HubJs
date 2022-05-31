@@ -110,7 +110,7 @@ export default class FeaturesMenu {
                 if (url.startsWith("/under/")) // Go to the children page
                 {
                     url = Service.fromName("hub").BaseUrl + url; // We should make URL absolute to fix cross module navigation ambiguous 
-                    this.ajaxRedirect.go(url)
+                    this.ajaxRedirect.go(url, undefined, undefined)
                     return false;
                 }
 

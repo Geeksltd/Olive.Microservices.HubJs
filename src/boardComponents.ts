@@ -96,7 +96,7 @@ export default class BoardComponents implements IService {
         var urlToLoad = new Url().getQuery("url", location.href);
         if (urlToLoad) {
             var serviceName = location.pathname.split('/')[3]
-            this.ajaxRedirect.go(serviceName + (urlToLoad.startsWith('/') ? '' : '/') + urlToLoad, $("[data-module-inner]"), false, false, false)
+            this.ajaxRedirect.go(serviceName + (urlToLoad.startsWith('/') ? '' : '/') + urlToLoad, $("[data-module-inner]"), null, false, false, false)
         }
         const ajaxList = urls.map((p): IAjaxObject => {
             const icon = p.split("#")[1].trim();
@@ -203,12 +203,12 @@ export default class BoardComponents implements IService {
                     serviceName = $(this).attr("href").split('?')[0].split('/').pop()
                 $("[data-module-inner]").closest("service[of]").attr("of", serviceName)
                 //if (currentServiceName == serviceName)
-                ajaxredirect.go(urlToLoad, $("[data-module-inner]"), false, false, false)
+                ajaxredirect.go(urlToLoad, $("[data-module-inner]"), null, false, false, false)
                 // else
                 //     ajaxredirect.go(serviceName + (urlToLoad.startsWith('/') ? '' : '/') + urlToLoad, $("[data-module-inner]"), false, false, false)
                 return false;
             }
-            ajaxredirect.go($(this).attr("href"), null, false, false, false)
+            ajaxredirect.go($(this).attr("href"), null, null, false, false, false)
 
             return false;
         })
