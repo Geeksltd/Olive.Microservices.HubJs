@@ -26,7 +26,7 @@ export default class HubAjaxRedirect extends AjaxRedirect {
     public go(
         url: string,
         trigger: JQuery = null,
-        ajaxTarget: string = undefined,
+        ajaxTarget: string,
         isBack: boolean = false,
         keepScroll: boolean = false,
         addToHistory = true,

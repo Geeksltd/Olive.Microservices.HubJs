@@ -3,6 +3,7 @@ import Url from "olive/components/url";
 import ResponseProcessor from "olive/mvc/responseProcessor";
 export default class AjaxRedirect implements IService {
     private url;
+    private ajaxTarget;
     private responseProcessor;
     private waiting;
     private requestCounter;
@@ -13,5 +14,5 @@ export default class AjaxRedirect implements IService {
     protected onRedirected(title: string, url: string): void;
     protected onRedirectionFailed(url: string, response: JQueryXHR): void;
     private redirect;
-    go(url: string, trigger?: JQuery, isBack?: boolean, keepScroll?: boolean, addToHistory?: boolean, onComplete?: (successful: boolean) => void): boolean;
+    go(url: string, trigger?: JQuery, ajaxTarget: string, isBack?: boolean, keepScroll?: boolean, addToHistory?: boolean, onComplete?: (successful: boolean) => void): boolean;
 }
