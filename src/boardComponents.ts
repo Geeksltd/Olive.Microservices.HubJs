@@ -130,7 +130,7 @@ export default class BoardComponents implements IService {
                     url: ajaxObject.url,
                     xhrFields: { withCredentials: true },
                     async: true,
-                    data: { boardItemId: context.boardItemId, boardType: context.boardType },
+                    data: { id: context.boardItemId, type: context.boardType },
                     success: (result) => this.onSuccess(ajaxObject, context, result, false),
                     complete: (jqXhr) => this.onComplete(context, jqXhr),
                     error: (jqXhr) => this.onError(ajaxObject, context.boardHolder, jqXhr),
