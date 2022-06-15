@@ -168,7 +168,7 @@ export default class BoardComponents implements IService {
 
         const searchItem = $("<div class='item' data-type='" + boxTitle + "'>");
         const h3 = $('<h3 >').html(boxTitle + "s").append(this.createHeaderAction(boxTitle, addableButtons))
-        searchItem.append($("<div class='header' " + "' style=\"" + this.addColour(colour) + "\">").append(h3))
+        searchItem.append($("<div class='header' " + " style=\"" + this.addColour(colour) + "\">").append(h3))
 
         //table.append($("<tr>").append($("<th " + "' style=\"" + this.addColour(items[0]) + "\" " + ">")
 
@@ -208,7 +208,7 @@ export default class BoardComponents implements IService {
             //     urlToLoad = urlToLoad.substr(serviceName.length)
             // }
             if (urlToLoad) {
-                $(".board-components-result").fadeOut('false', function () { $(this).remove() })
+                $(".board-components-result, [data-module=BoardView]").fadeOut('false', function () { $(this).remove() })
                 if (!serviceName)
                     serviceName = $(this).attr("href").split('?')[0].split('/').pop()
                 $("[data-module-inner]").closest("service[of]").attr("of", serviceName)
@@ -234,7 +234,8 @@ export default class BoardComponents implements IService {
             if (item.Action == ActionEnum.Popup)
                 attr = "target=\"$modal\"";
             else if (item.Action == ActionEnum.NewWindow)
-                attr = "target=\"_blank\"";            var text = item.Text;
+                attr = "target=\"_blank\"";
+            var text = item.Text;
             var tooltip = item.Tooltip;
             if (item.Text == null || item.Text == '' || item.Text == undefined)
                 text = "";
