@@ -16,13 +16,6 @@
     private onChanged(event: any) {
         this.input = this.input || $(event.currentTarget);
         let keywords = this.input.val().toLowerCase().split(' ');
-        let rows = this.input.closest('[data-module]').find(".olive-instant-search-item");
 
-        rows.each((index, e) => {
-            let row = $(e);
-            let content = row.text().toLowerCase();
-            let hasAllKeywords = keywords.filter((i) => content.indexOf(i) == -1).length == 0;
-            if (hasAllKeywords) row.show(); else row.hide();
-        });
     }
 }

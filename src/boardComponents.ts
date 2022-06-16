@@ -41,7 +41,7 @@ export default class BoardComponents implements IService {
     private onChanged(event: any) {
         this.filterInput = this.filterInput || $(event.currentTarget);
         let keywords = this.filterInput.val().toLowerCase().split(' ');
-        let rows = $(".hub-service").find('.board-components-result .item,.olive-instant-search-item');
+        let rows = $(".hub-service").find('.board-components-result .item');
         rows.each((index, e) => {
             let row = $(e);
             let content = row.text().toLowerCase();
