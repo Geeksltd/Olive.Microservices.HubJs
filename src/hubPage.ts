@@ -4,7 +4,6 @@ import { FeaturesMenuFactory } from './featuresMenu/featuresMenu';
 import AppContent from './appContent';
 import BadgeNumber from './badgeNumber';
 import ToggleCheckbox from './toggleCheckbox';
-import WidgetModule from './widgetModule';
 import ExpandCollapse from './expandCollapse';
 import BreadcrumbMenu from './featuresMenu/breadcrumbMenu';
 import FullMenuFiltering from './featuresMenu/fullMenuFiltering';
@@ -162,7 +161,6 @@ export default class HubPage extends OlivePage {
         appcontext.enableContentBlock($("AppContent"));
         appcontext.enableHelp($("Help"));
         ToggleCheckbox.enableToggleCheckbox($("input[class='form-check']"));
-        WidgetModule.enableWidget($("Widget"));
 
         const currentPath = this.getPathName();
         if (currentPath != undefined && currentPath != null && currentPath.pathname != undefined && currentPath.pathname != null) {

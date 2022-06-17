@@ -8,7 +8,6 @@ import CrossDomainEvent from "olive/components/crossDomainEvent";
 import Service from "./model/service";
 import BreadcrumbMenu from "./featuresMenu/breadcrumbMenu";
 import { ModalHelper } from "lib/olive.mvc/typings/components/modal";
-import HubInstantSearch from "./hubInstantSearch";
 
 export default class Hub implements IService {
     constructor(
@@ -41,7 +40,6 @@ export default class Hub implements IService {
         this.initServiceWorker();
 
         this.loadServiceHealthChecks();
-        HubInstantSearch.enable($("[name=HubInstantSearch]"));
     }
 
     initRightTaskMenu() {
