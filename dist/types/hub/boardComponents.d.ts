@@ -12,11 +12,9 @@ export default class BoardComponents implements IService {
     private myStorage;
     private boardPath;
     constructor(input: JQuery, modalHelper: ModalHelper, ajaxRedirect: AjaxRedirect, boardPath: string);
-    private filterEnable;
-    private onChanged;
     protected getResultPanel(): JQuery;
     protected getAddableItemsPanel(): JQuery;
-    protected createSearchComponent(urls: string[]): void;
+    protected createBoardComponent(urls: string[]): void;
     protected onResize(): void;
     protected createBoardItems(sender: IAjaxObject, context: IBoardContext, items: IInfoDto[], addableButtons: IButtonDto[], widgets: IWidgetDto[], html: IHtmlDto[], boxTitle: string): JQuery;
     private getItemBox;

@@ -18,38 +18,8 @@ export default class BoardComponents implements IService {
         var urls = input.attr("data-board-source").split(";");
         this.filterInput = this.input.parent().find(".board-components-filter");
         this.ajaxRedirect = ajaxRedirect;
-        this.filterEnable()
         this.modalHelper = modalHelper;
-        this.createSearchComponent(urls);
-    }
-
-    private filterEnable() {
-        this.filterInput.off("keyup.board-components-filter").on("keyup.board-components-filter",
-            function () {
-                if (this.timer != null && this.timer != undefined)
-                    clearTimeout(this.timer)
-                setTimeout(function () {
-                    window.page.board.onChanged()
-                }, 200)
-            }
-        );
-
-        this.filterInput.on("keydown", e => {
-            if (e.keyCode == 13) e.preventDefault();
-        });
-    }
-    private onChanged(event: any) {
-        this.filterInput = this.filterInput || $(event.currentTarget);
-        let keywords = this.filterInput.val().toLowerCase().split(' ');
-        let rows = $(".hub-service").find('.board-components-result .item');
-        rows.each((index, e) => {
-            let row = $(e);
-            let content = row.text().toLowerCase();
-            let hasAllKeywords = keywords.filter((i) => content.indexOf(i) == -1).length == 0;
-            if (hasAllKeywords) row.show(); else row.hide();
-            if (index == (rows.length - 1))
-                window.page.board.onResize()
-        });
+        this.createBoardComponent(urls);
     }
 
     protected getResultPanel() {
@@ -81,7 +51,7 @@ export default class BoardComponents implements IService {
         return resultPanel;
     }
 
-    protected createSearchComponent(urls: string[]) {
+    protected createBoardComponent(urls: string[]) {
         this.boardItemId = this.input.attr("data-id");
         this.boardType = this.input.attr("data-boardtype");
 
