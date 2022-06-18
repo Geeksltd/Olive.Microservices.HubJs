@@ -45,9 +45,13 @@ export default class HubResponseProcessor extends ResponseProcessor {
         }
         return asElement;
     }
-    public processAjaxResponse(response: any, containerModule: JQuery, trigger: JQuery, args: any) {
+    public processAjaxResponse(response: any, containerModule: JQuery, trigger: JQuery, args: any, ajaxTarget?: string) {
         let asElement = $(response);
         asElement = this.fixUrlsForOpenNewWindows(response);
+
+        if (ajaxTarget) {
+            return;
+        }
 
         if (trigger != null && trigger.is("[data-module-inner]") && typeof (response) != typeof ([])) {
             let innerMadule = $("[data-module-inner-container]");
