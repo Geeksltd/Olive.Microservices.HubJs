@@ -50,6 +50,7 @@ export default class HubResponseProcessor extends ResponseProcessor {
         asElement = this.fixUrlsForOpenNewWindows(response);
 
         if (ajaxTarget) {
+            this.navigatebyAjaxTarget(asElement, ajaxTarget);
             return;
         }
 
