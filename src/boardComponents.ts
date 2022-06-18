@@ -200,6 +200,7 @@ export default class BoardComponents implements IService {
             const link = $(e.currentTarget);
             if (link != undefined && link != null) {
                 var ajaxTarget = link.attr("ajax-target");
+                var ajaxhref = link.attr("ajaxhref");
             }
             if (urlToLoad) {
                 $(".board-components-result, [data-module=BoardView]").fadeOut('false', function () { $(this).remove() })
@@ -213,7 +214,7 @@ export default class BoardComponents implements IService {
                 //     ajaxredirect.go(serviceName + (urlToLoad.startsWith('/') ? '' : '/') + urlToLoad, $("[data-module-inner]"), false, false, false)
                 return false;
             }
-            ajaxredirect.go($(this).attr("href"), null, false, false, false, undefined, ajaxTarget)
+            ajaxredirect.go($(this).attr("href"), null, false, false, false, undefined, ajaxTarget, ajaxhref)
 
             return false;
         })
