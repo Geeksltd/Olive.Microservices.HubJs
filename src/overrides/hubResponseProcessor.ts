@@ -55,7 +55,7 @@ export default class HubResponseProcessor extends ResponseProcessor {
                 currentPath = currentPath.substring(0, currentPath.indexOf("?"));
             }
             this.navigatebyAjaxTarget(asElement, ajaxTarget);
-            history.pushState({}, "", currentPath + "?$=" + ajaxhref);
+            history.pushState({}, "", currentPath + "?$" + ajaxTarget + "=" + ajaxhref);
             return;
         }
 
