@@ -197,18 +197,23 @@ export default class BoardComponents implements IService {
             //     serviceName = urlToLoad.split('/')[0]
             //     urlToLoad = urlToLoad.substr(serviceName.length)
             // }
+            const link = $(e.currentTarget);
+            if (link != undefined && link != null) {
+                var ajaxTarget = link.attr("ajax-target");
+            }
             if (urlToLoad) {
                 $(".board-components-result, [data-module=BoardView]").fadeOut('false', function () { $(this).remove() })
                 if (!serviceName)
                     serviceName = $(this).attr("href").split('?')[0].split('/').pop()
                 $("[data-module-inner]").closest("service[of]").attr("of", serviceName)
                 //if (currentServiceName == serviceName)
-                ajaxredirect.go(urlToLoad, $("[data-module-inner]"), false, false, false)
+
+                ajaxredirect.go(urlToLoad, $("[data-module-inner]"), false, false, false, undefined, ajaxTarget)
                 // else
                 //     ajaxredirect.go(serviceName + (urlToLoad.startsWith('/') ? '' : '/') + urlToLoad, $("[data-module-inner]"), false, false, false)
                 return false;
             }
-            ajaxredirect.go($(this).attr("href"), null, false, false, false)
+            ajaxredirect.go($(this).attr("href"), null, false, false, false, undefined, ajaxTarget)
 
             return false;
         })
