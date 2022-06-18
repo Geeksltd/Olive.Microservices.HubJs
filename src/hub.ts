@@ -57,7 +57,7 @@ export default class Hub implements IService {
                     xhrFields: { withCredentials: true },
                     async: !false,
                     success: (response) => {
-                        this.responseProcessor.processAjaxResponse(response, iframe.find(".module-content"), null, null);
+                        this.responseProcessor.processAjaxResponse(response, iframe.find(".module-content"), null, null, null);
                     },
                     error: (event) => {
                     },
@@ -77,7 +77,7 @@ export default class Hub implements IService {
                     xhrFields: { withCredentials: true },
                     async: !false,
                     success: (response) => {
-                        this.responseProcessor.processAjaxResponse(response, projectIframe.find(".module-content"), null, null);
+                        this.responseProcessor.processAjaxResponse(response, projectIframe.find(".module-content"), null, null, null);
                     },
                     error: (event) => {
                     },
@@ -101,7 +101,7 @@ export default class Hub implements IService {
                 xhrFields: { withCredentials: true },
                 async: !false,
                 success: (response) => {
-                    this.responseProcessor.processAjaxResponse(response, iframe2.find(".module-content"), null, null);
+                    this.responseProcessor.processAjaxResponse(response, iframe2.find(".module-content"), null, null, null);
                     this.handleChange();
                 },
                 error: (event) => {
@@ -123,7 +123,7 @@ export default class Hub implements IService {
                     xhrFields: { withCredentials: true },
                     async: !false,
                     success: (response) => {
-                        this.responseProcessor.processAjaxResponse(response, iframe2.find(".module-content"), null, null);
+                        this.responseProcessor.processAjaxResponse(response, iframe2.find(".module-content"), null, null, null);
                         this.handleChange();
                     },
                     error: (event) => {
