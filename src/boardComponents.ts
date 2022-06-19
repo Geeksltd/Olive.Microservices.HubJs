@@ -200,7 +200,7 @@ export default class BoardComponents implements IService {
             const link = $(e.currentTarget);
             if (link != undefined && link != null) {
                 var ajaxTarget = link.attr("ajax-target");
-                var ajaxhref = link.attr("ajaxhref");
+                var ajaxhref = link.attr("href");
             }
             if (urlToLoad) {
                 $(".board-components-result, [data-module=BoardView]").fadeOut('false', function () { $(this).remove() })
@@ -209,7 +209,7 @@ export default class BoardComponents implements IService {
                 $("[data-module-inner]").closest("service[of]").attr("of", serviceName)
                 //if (currentServiceName == serviceName)
 
-                ajaxredirect.go(urlToLoad, $("[data-module-inner]"), false, false, false, undefined, ajaxTarget)
+                ajaxredirect.go(urlToLoad, $("[data-module-inner]"), false, false, false, undefined, ajaxTarget, ajaxhref)
                 // else
                 //     ajaxredirect.go(serviceName + (urlToLoad.startsWith('/') ? '' : '/') + urlToLoad, $("[data-module-inner]"), false, false, false)
                 return false;
