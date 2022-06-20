@@ -58,7 +58,6 @@ export default class Hub implements IService {
                     async: !false,
                     success: (response) => {
                         this.responseProcessor.processAjaxResponse(response, iframe.find(".module-content"), null, null, null);
-                        this.loadBoarservice();
                     },
                     error: (event) => {
                     },
