@@ -13,6 +13,7 @@ export default class Hub implements IService {
     constructor(url: Url, ajaxRedirect: AjaxRedirect, featuresMenuFactory: FeaturesMenuFactory, breadcrumbMenu: BreadcrumbMenu, responseProcessor: ResponseProcessor);
     initialize(): void;
     initRightTaskMenu(): void;
+    loadBoarservice(): void;
     loadTimesheetsWidget(): void;
     handleChange(): void;
     loadServiceHealthChecks(): void;

@@ -48,13 +48,21 @@ export default class HubResponseProcessor extends ResponseProcessor {
     public processAjaxResponse(response: any, containerModule: JQuery, trigger: JQuery, args: any, ajaxTarget?: string, ajaxhref?: string) {
         let asElement = $(response);
         asElement = this.fixUrlsForOpenNewWindows(response);
+        var urlPath = document.URL;
+        if (urlPath != undefined && urlPath != null) {
+            if (urlPath.contains("?$")) {
+                ajaxTarget = urlPath.substring(urlPath.indexOf("$") + 1, urlPath.indexOf("="));
+                ajaxhref = urlPath.substr(urlPath.indexOf("=") + 1);
 
+            }
+        }
         if (ajaxTarget) {
             var currentPath = document.URL;
             if (currentPath.contains("?$")) {
                 currentPath = currentPath.substring(0, currentPath.indexOf("?"));
             }
-            this.navigatebyAjaxTarget(asElement, ajaxTarget);
+            trigger = $("main[name='" + ajaxTarget + "']");
+            this.onViewChanged(asElement, trigger);
             history.pushState({}, "", currentPath + "?$" + ajaxTarget + "=" + ajaxhref);
             return;
         }

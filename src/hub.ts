@@ -58,6 +58,7 @@ export default class Hub implements IService {
                     async: !false,
                     success: (response) => {
                         this.responseProcessor.processAjaxResponse(response, iframe.find(".module-content"), null, null, null);
+                        this.loadBoarservice();
                     },
                     error: (event) => {
                     },
@@ -78,6 +79,7 @@ export default class Hub implements IService {
                     async: !false,
                     success: (response) => {
                         this.responseProcessor.processAjaxResponse(response, projectIframe.find(".module-content"), null, null, null);
+                        this.loadBoarservice();
                     },
                     error: (event) => {
                     },
@@ -90,6 +92,18 @@ export default class Hub implements IService {
         }, 2000);
     }
 
+    loadBoarservice() {
+        const documentUrl = document.URL;
+        if (documentUrl != undefined && documentUrl != null) {
+            if (documentUrl.contains("?$")) {
+                var baseUrl = documentUrl.substring(0, documentUrl.indexOf("?"));
+                var ajaxTarget = documentUrl.substring(documentUrl.indexOf("$") + 1, documentUrl.indexOf("="));
+                var subUrl = documentUrl.substring(documentUrl.indexOf("=") + 1);
+                var trigger = $("main[name='" + ajaxTarget + "']");
+                this.ajaxRedirect.go(subUrl, trigger, false, false, false, undefined, ajaxTarget, subUrl);
+            }
+        }
+    }
 
     loadTimesheetsWidget(): void {
         var iframe2 = $("#timesheets-container");
