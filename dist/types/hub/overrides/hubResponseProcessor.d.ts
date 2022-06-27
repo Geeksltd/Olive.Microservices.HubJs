@@ -3,5 +3,5 @@ export default class HubResponseProcessor extends ResponseProcessor {
     fixUrlForOpenNewWindows(url: string): string;
     fixElementForOpenNewWindows(element: JQuery): void;
     fixUrlsForOpenNewWindows(response: any): JQuery;
-    processAjaxResponse(response: any, containerModule: JQuery, trigger: JQuery, args: any): void;
+    processAjaxResponse(response: any, containerModule: JQuery, trigger: JQuery, args: any, ajaxTarget?: string, ajaxhref?: string): void;
 }
