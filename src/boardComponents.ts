@@ -78,7 +78,7 @@ export default class BoardComponents implements IService {
         }
         const ajaxList = urls.map((p): IAjaxObject => {
             return {
-                url: p.trim(),
+                url: p,
                 state: AjaxState.pending,
             };
         });
