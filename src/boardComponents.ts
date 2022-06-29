@@ -51,10 +51,7 @@ export default class BoardComponents implements IService {
         return resultPanel;
     }
 
-<<<<<<< HEAD
     protected createBoardComponent(urls: string[]) {
-=======
-    protected createSearchComponent(urls: string[]) {
 
         var currentUrl = document.URL;
         if (currentUrl != undefined && currentUrl != null && currentUrl.contains("?$")) {
@@ -63,7 +60,6 @@ export default class BoardComponents implements IService {
                 return;
         }
 
->>>>>>> 1460a262cdde818a90112c3dc911c7c2db8cc24a
         this.boardItemId = this.input.attr("data-id");
         this.boardType = this.input.attr("data-boardtype");
 
@@ -82,7 +78,7 @@ export default class BoardComponents implements IService {
         }
         const ajaxList = urls.map((p): IAjaxObject => {
             return {
-                url: p,
+                url: p.trim(),
                 state: AjaxState.pending,
             };
         });
@@ -407,6 +403,9 @@ export default class BoardComponents implements IService {
     }
 
     private generateStaticColorFromName(name) {
+        if (name === null || name === undefined || name === ""){
+            return "#000000" ;
+        } 
         var hash = 0;
         for (var i = 0; i < name.length; i++) {
             hash = name.charCodeAt(i) + ((hash << 5) - hash);
@@ -420,6 +419,9 @@ export default class BoardComponents implements IService {
     }
 
     private getTextColor(hexcolor) {
+        if (hexcolor === null || hexcolor === undefined || hexcolor === ""){
+            return 'white';
+        } 
         hexcolor = hexcolor.replace("#", "");
         var r = parseInt(hexcolor.substr(0, 2), 16);
         var g = parseInt(hexcolor.substr(2, 2), 16);
@@ -428,9 +430,12 @@ export default class BoardComponents implements IService {
         return (yiq >= 128) ? 'black' : 'white';
     }
     protected showIntroImage(intro: any): JQuery {
-        var iconText = intro.Name.substr(0, 2);
-        if (intro.Name.contains("href")) {
-            iconText = intro.Name.substr(intro.Name.lastIndexOf("➝") + 2, 2);
+        var iconText= "";
+        if (intro.Name !== null && intro.Name !== undefined && intro.Name !== "") {
+            iconText = intro.Name.substr(0, 2);
+            if (intro.Name.contains("href")) {
+                iconText = intro.Name.substr(intro.Name.lastIndexOf("➝") + 2, 2);
+            }
         }
         var staticColor = this.generateStaticColorFromName(intro.Name);
         var textColor = this.getTextColor(staticColor);
@@ -438,6 +443,7 @@ export default class BoardComponents implements IService {
             .css("background-color", staticColor)
             .css("color", textColor)
             .append(iconText);
+        
         if (intro.ImageUrl == null || intro.ImageUrl == "" || intro.ImageUrl == undefined) {
             return projectNameIcon;
         }
@@ -493,7 +499,7 @@ export default class BoardComponents implements IService {
                 }, {}); // empty object is the initial value for result object
             };
 
-            const personGroupedByType = groupBy(resultfiltered, 'BoxTitle').concat(groupBy(result.Widgets,'BoxTitle'),groupBy(result.Htmls, 'BoxTitle'));
+            const personGroupedByType = resultfiltered.map((v)=>v.BoxTitle).concat(result.Widgets.map((v)=>v.BoxTitle)).concat(result.Htmls.map((v)=>v.BoxTitle));
             var that = this;
             for (var element in personGroupedByType) {
                 //var element = personGroupedByType[i]
