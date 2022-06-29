@@ -82,6 +82,14 @@ export default class BoardComponents implements IService {
     }
 
     protected createSearchComponent(urls: string[]) {
+
+        var currentUrl = document.URL;
+        if (currentUrl != undefined && currentUrl != null && currentUrl.contains("?$")) {
+            var moduleinner = $("[data-module-inner]").find(".col-md-10").find(".board-links").children();
+            if (moduleinner != undefined && moduleinner != null && moduleinner.length > 0)
+                return;
+        }
+
         this.boardItemId = this.input.attr("data-id");
         this.boardType = this.input.attr("data-boardtype");
 

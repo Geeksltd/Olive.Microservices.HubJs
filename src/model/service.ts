@@ -48,8 +48,22 @@ export default class Service {
 
         var url = service.GetAddressBarValueFor(fullUrl);
 
+        var ajaxTarget = document.activeElement.getAttribute("ajax-target");
+        var ajaxhref = document.activeElement.getAttribute("href");
+
+        //if (ajaxTarget == undefined || ajaxhref == undefined) {
+        //    const documentUrl = document.URL;
+        //    if (documentUrl != undefined && documentUrl != null) {
+        //        if (documentUrl.contains("?$")) {
+        //            var ajaxTarget = documentUrl.substring(documentUrl.indexOf("$") + 1, documentUrl.indexOf("="));
+        //            var ajaxhref = documentUrl.substring(documentUrl.indexOf("=") + 1);
+        //        }
+        //    }
+        //}
+
         //if (!this.FirstPageLoad)
-        window.history.pushState(null, windowTitle, url);
+        if (ajaxTarget == undefined || ajaxhref == undefined)
+            window.history.pushState(null, windowTitle, url);
 
         if (this.FirstPageLoad)
             this.FirstPageLoad = false;
