@@ -195,7 +195,14 @@ export default class HubPage extends OlivePage {
         //    this.getService<ModalHelper>(Services.ModalHelper), 
         //    this.getService<AjaxRedirect>(Services.AjaxRedirect));
 
-        let currentService = $("service[of]").attr("of");
+        var currentService = $("service[of]").attr("of");
+        //if (currentService == "urls.aspx") {
+        //    var currentUrl = document.URL;
+        //    var startindex = currentUrl.lastIndexOf("=");
+        //    if (startindex != undefined && startindex != null && startindex > 0) {
+        //        currentService = currentUrl.substring(startindex + 1, currentUrl.length);
+        //    }
+        //}
 
         if (currentService) {
             currentService = currentService.toLocaleLowerCase();

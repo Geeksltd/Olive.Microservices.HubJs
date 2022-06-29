@@ -51,7 +51,19 @@ export default class BoardComponents implements IService {
         return resultPanel;
     }
 
+<<<<<<< HEAD
     protected createBoardComponent(urls: string[]) {
+=======
+    protected createSearchComponent(urls: string[]) {
+
+        var currentUrl = document.URL;
+        if (currentUrl != undefined && currentUrl != null && currentUrl.contains("?$")) {
+            var moduleinner = $("[data-module-inner]").find(".col-md-10").find(".board-links").children();
+            if (moduleinner != undefined && moduleinner != null && moduleinner.length > 0)
+                return;
+        }
+
+>>>>>>> 1460a262cdde818a90112c3dc911c7c2db8cc24a
         this.boardItemId = this.input.attr("data-id");
         this.boardType = this.input.attr("data-boardtype");
 
@@ -299,10 +311,12 @@ export default class BoardComponents implements IService {
                 attr = "target=\"_blank\"";
             //var link = $("<a class='btn btn-primary' href='" + this.boardPath + "?$boardContent={" + items[i].ManageUrl + "}'" + attr + ">")
             //var link = $("<a class='btn btn-primary' href='" + items[i].ManageUrl + "'" + attr + ">")
-            if (items[i].Url.contains("repositories/repos"))
-                var link = $("<a class='btn btn-primary' href='" + items[i].Url + "'" + " data-redirect='ajax' " + " ajax-target='board-body' " + attr + ">")
-            else
-                var link = $("<a class='btn btn-primary' href='" + items[i].Url + "'" + attr + ">")
+            //if (items[i].ManageUrl.contains("repositories/repos") || items[i].ManageUrl.contains("tasks/p") )
+            //    var link = $("<a class='btn btn-primary' href='" + items[i].ManageUrl + "'" + " data-redirect='ajax' " + " ajax-target='board-body' " + attr + ">")
+            //else
+            //    var link = $("<a class='btn btn-primary' href='" + items[i].ManageUrl + "'" + attr + ">")
+
+            var link = $("<a class='btn btn-primary' href='" + items[i].Url + "'" + " data-redirect='ajax' " + " ajax-target='board-body' " + attr + ">")
 
             link.append(item.Name)
             headerLinks.append(link);
