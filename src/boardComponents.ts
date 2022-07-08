@@ -236,10 +236,10 @@ export default class BoardComponents implements IService {
     protected createBoardIntro(sender: IAjaxObject, context: IBoardContext, intro: IIntroDto) {
         const result = $(".board-components-result");
         if ($(".board-image:visible").length > 0) return;
-        $(".board-image").append($("<a href='" + intro[0].Url + "' >").append(this.showIntroImage(intro).prop('outerHTML')))
+        $(".board-image").append($("<a href='" + intro.Url + "' >").append(this.showIntroImage(intro).prop('outerHTML')))
         $(".board-info").append(
-            $('<div class="col-md-9"><h2 class="mb-2">' + intro[0].Name + '</h2>\
-            <div class="text-gray">' + intro[0].Description + '</div></div>'))
+            $('<div class="col-md-9"><h2 class="mb-2">' + intro.Name + '</h2>\
+            <div class="text-gray">' + intro.Description + '</div></div>'))
         $('.board-header').show()
         
         return result;
@@ -386,10 +386,10 @@ export default class BoardComponents implements IService {
         });
     }
     protected showIcon(item: any): JQuery {
-        if (item.IconUrl.indexOf("fa-") > 0) {
-            return $("<div class='icon'>").append($("<i class='" + item.IconUrl + "'></i>"));
+        if (item.Url.indexOf("fa-") > 0) {
+            return $("<div class='icon'>").append($("<i class='" + item.Url + "'></i>"));
         } else {
-            return $("<div class='icon'>").append($("<img src='" + item.IconUrl + "'>"));
+            return $("<div class='icon'>").append($("<img src='" + item.Url + "'>"));
         }
     }
     private generateRandomColor() {
@@ -495,30 +495,31 @@ export default class BoardComponents implements IService {
 
             const personGroupedByType = resultfiltered.map((v)=>v.BoxTitle).concat(result.Widgets.map((v)=>v.BoxTitle)).concat(result.Htmls.map((v)=>v.BoxTitle));
             var that = this;
-            for (var element in personGroupedByType) {
-                //var element = personGroupedByType[i]
-                var filteredInfo = resultfiltered.filter((p) => p.BoxTitle == element);
-                var filteredWidgets = result.Widgets.filter((p)=> p.BoxTitle == element)
-                var filteredHtmls = result.Htmls.filter((p)=> p.BoxTitle == element)
-                var filteredButtons = result.Buttons.filter((p) => p.BoxTitle == element)
-                
-                const boardItem = that.createBoardItems(sender, context, filteredInfo, filteredButtons,filteredWidgets ,filteredHtmls, element);
-                if ($('.board-components-result .item[data-type="' + element + '"]').length > 0) {
-                    var item = $('.board-components-result .item[data-type="' + element + '"]')
-                    $(boardItem).attr('class', item.attr('class')).attr('id', $(item).attr('id'))
-                    $(item).replaceWith(boardItem);
+            if (personGroupedByType !== undefined)
+                for (var index=0; index<personGroupedByType.length; index++){
+                    var element = personGroupedByType[index]
+                    var filteredInfo = resultfiltered.filter((p) => p.BoxTitle == element);
+                    var filteredWidgets = result.Widgets.filter((p)=> p.BoxTitle == element)
+                    var filteredHtmls = result.Htmls.filter((p)=> p.BoxTitle == element)
+                    var filteredButtons = result.Buttons.filter((p) => p.BoxTitle == element)
+                    
+                    const boardItem = that.createBoardItems(sender, context, filteredInfo, filteredButtons,filteredWidgets ,filteredHtmls, element);
+                    if ($('.board-components-result .item[data-type="' + element + '"]').length > 0) {
+                        var item = $('.board-components-result .item[data-type="' + element + '"]')
+                        $(boardItem).attr('class', item.attr('class')).attr('id', $(item).attr('id'))
+                        $(item).replaceWith(boardItem);
+                    }
+                    else if (element.startsWith("Timesheet since")) {
+                        $('.board-components-result .item[data-type]').each(function () {
+                            if ($(this).attr("data-type").startsWith("Timesheet since")) {
+                                $(boardItem).attr('class', $(this).attr('class')).attr('id', $(this).attr('id'))
+                                $(this).replaceWith(boardItem)
+                            }
+                        });
+                    }
+                    else
+                        context.boardHolder.append(boardItem);
                 }
-                else if (element.startsWith("Timesheet since")) {
-                    $('.board-components-result .item[data-type]').each(function () {
-                        if ($(this).attr("data-type").startsWith("Timesheet since")) {
-                            $(boardItem).attr('class', $(this).attr('class')).attr('id', $(this).attr('id'))
-                            $(this).replaceWith(boardItem)
-                        }
-                    });
-                }
-                else
-                    context.boardHolder.append(boardItem);
-            }
 
             if (!loadFromCaceh)
                 this.onResize();
@@ -545,7 +546,7 @@ export default class BoardComponents implements IService {
 
         } else {
             sender.state = AjaxState.failed;
-            console.error("ajax success but failed to decode the response -> wellform expcted response is like this: [{Title:'',Description:'',IconUrl:'',Url:''}] ");
+            console.error("ajax success but failed to decode the response -> wellform expcted response is like this: [{Title:'',Description:'',Url:'',Url:''}] ");
         }
     }
     protected isValidResult(item: IInfoDto, context: IBoardContext) {

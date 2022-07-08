@@ -8,7 +8,7 @@
         "url": "git://github.com/Geeksltd/Olive.Microservices.HubJs.git"
     },
     "author": "Geeks Ltd",
-    "version": "3.7.14-alpha-uat",
+    "version": "3.7.15-alpha-uat",
     "license": "GPL-3.0",
     "private": false,
     "files": [
