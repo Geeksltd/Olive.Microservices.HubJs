@@ -21,7 +21,7 @@ export default class BoardComponents implements IService {
     private handelLinksClick;
     protected createHeaderAction(boxTitle: String, addableButtons: IButtonDto[]): JQuery;
     protected createAddableItems(sender: IAjaxObject, context: IBoardContext, items: IMenuDto[]): JQuery;
-    protected createBoardIntro(sender: IAjaxObject, context: IBoardContext, intro: IIntroDto[]): JQuery;
+    protected createBoardIntro(sender: IAjaxObject, context: IBoardContext, intro: IIntroDto): JQuery;
     protected relocateBoardComponentsHeaderActions(): void;
     protected removeBoardGap(): void;
     protected createManageItems(sender: IAjaxObject, context: IBoardContext, items: IMenuDto[]): JQuery;

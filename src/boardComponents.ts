@@ -141,7 +141,7 @@ export default class BoardComponents implements IService {
         var table = $("<table>");
         var colour = "#aaa"
         if (items.length > 0)colour = items[0].BoxColour
-        else if (widgets.length>0)colour = widgets[0].BoxColour
+        else if (widgets.length > 0)colour = widgets[0].BoxColour
         else if (html.length > 0 )colour = html[0].BoxColour
 
         const searchItem = $("<div class='item' data-type='" + boxTitle + "'>");
@@ -177,7 +177,7 @@ export default class BoardComponents implements IService {
             $(".board-links .btn").removeClass("active")
             $(this).addClass("active")
             var url = $(this).attr("href");
-            var serviceName = ''
+            var serviceName = '';
             var urlToLoad = $(this).attr("href");
             // var urlToLoad = new Url().getQuery("url", $(this).attr("href"));
             // if (!urlToLoad) {
@@ -219,13 +219,8 @@ export default class BoardComponents implements IService {
                 attr = "target=\"$modal\"";
             else if (item.Action == ActionEnum.NewWindow)
                 attr = "target=\"_blank\"";
-            var text = item.Text;
-            var tooltip = item.Tooltip;
-            if (item.Text == null || item.Text == '' || item.Text == undefined)
-                text = "";
-            if (item.Tooltip == null || item.Tooltip == '' || item.Tooltip == undefined)
-                tooltip = "";
-            headerAction.append($("<a href='" + item.Url + "' " + attr + ">").append('<i class="' + item.Icon + '" aria-hidden="true" ' + tooltip + '>' + item.Text + '</i>'));
+
+            headerAction.append($("<a href='" + item.Url.replace("https://hub.app.geeks.ltd", "") + "' " + attr + ">").append('<i class="' + item.Icon + '" aria-hidden="true" ></i>'));
         }
         return headerAction;
     }
@@ -238,16 +233,15 @@ export default class BoardComponents implements IService {
         }
         return result;
     }
-    protected createBoardIntro(sender: IAjaxObject, context: IBoardContext, intro: IIntroDto[]) {
+    protected createBoardIntro(sender: IAjaxObject, context: IBoardContext, intro: IIntroDto) {
         const result = $(".board-components-result");
         if ($(".board-image:visible").length > 0) return;
-        for(let i =0 ; i< intro.length ; i++){
-            $(".board-image").append($("<a href='" + intro[i].Url + "' >").append(this.showIntroImage(intro).prop('outerHTML')))
-            $(".board-info").append(
-                $('<div class="col-md-9"><h2 class="mb-2">' + intro[i].Name + '</h2>\
-                <div class="text-gray">' + intro[i].Description + '</div></div>'))
-            $('.board-header').show()
-        }
+        $(".board-image").append($("<a href='" + intro[0].Url + "' >").append(this.showIntroImage(intro).prop('outerHTML')))
+        $(".board-info").append(
+            $('<div class="col-md-9"><h2 class="mb-2">' + intro[0].Name + '</h2>\
+            <div class="text-gray">' + intro[0].Description + '</div></div>'))
+        $('.board-header').show()
+        
         return result;
 
 
@@ -545,8 +539,8 @@ export default class BoardComponents implements IService {
                 const addabledItem = this.createAddableItems(sender, context, resultfiltered);
             }
             if (result !== null && result !== undefined && result.Intros[0] !== null
-                && result.Intros[0] !== undefined && result.Intros[0].Name) {
-                this.createBoardIntro(sender, context, result.Intros)
+                && result.Intros[0] !== undefined && result.Intros[0].Name !== null) {
+                this.createBoardIntro(sender, context, result.Intros[0])
             }
 
         } else {
