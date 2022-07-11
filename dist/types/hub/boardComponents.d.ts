@@ -42,6 +42,7 @@ export default class BoardComponents implements IService {
     private setItem;
     protected onSuccess(sender: IAjaxObject, context: IBoardContext, result: IBoardResultDto, loadFromCaceh: boolean): void;
     protected isValidResult(item: IInfoDto, context: IBoardContext): boolean;
+    protected onlyUnique(value: any, index: any, self: any): boolean;
     protected onComplete(context: IBoardContext, jqXHR: JQueryXHR): void;
     protected onError(sender: IAjaxObject, boardHolder: JQuery, jqXHR: JQueryXHR): void;
 }

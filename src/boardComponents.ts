@@ -211,7 +211,7 @@ export default class BoardComponents implements IService {
     protected createHeaderAction(boxTitle: String, addableButtons: IButtonDto[]) {
         const buttons = addableButtons.filter((p) => p.Url != null && p.Url != undefined && this.getItemBox(p) == boxTitle);
 
-        const headerAction = $("<div class='header-actions'>")
+        const headerAction = $("<div class='header-actions'>");
         for (let i = 0; i < buttons.length; i++){
             var item = addableButtons[i]
             var attr = "";
@@ -220,7 +220,7 @@ export default class BoardComponents implements IService {
             else if (item.Action == ActionEnum.NewWindow)
                 attr = "target=\"_blank\"";
 
-            headerAction.append($("<a href='" + item.Url.replace("https://hub.app.geeks.ltd", "") + "' " + attr + ">").append('<i class="' + item.Icon + '" aria-hidden="true" ></i>'));
+            headerAction.append($("<a href='" + item.Url.replace("https://hub.app.geeks.ltd", "") + "' " + attr + ">").append('<i class="' + item.Icon + '" aria-hidden="true"></i>'));
         }
         return headerAction;
     }
@@ -340,7 +340,7 @@ export default class BoardComponents implements IService {
             type: 'GET',
             xhrFields: { withCredentials: true },
             success: (response) => {
-                result=response;
+                result = response;
                 (<any>window.page).revive();
             },
             error: (response, x) => {
@@ -493,11 +493,12 @@ export default class BoardComponents implements IService {
                 }, {}); // empty object is the initial value for result object
             };
 
-            const personGroupedByType = resultfiltered.map((v)=>v.BoxTitle).concat(result.Widgets.map((v)=>v.BoxTitle)).concat(result.Htmls.map((v)=>v.BoxTitle));
+            var personGroupedByType = resultfiltered.map((v)=>v.BoxTitle).concat(result.Widgets.map((v)=>v.BoxTitle)).concat(result.Htmls.map((v)=>v.BoxTitle));
+            const boardBoxes = personGroupedByType.filter(this.onlyUnique)
             var that = this;
-            if (personGroupedByType !== undefined)
-                for (var index=0; index<personGroupedByType.length; index++){
-                    var element = personGroupedByType[index]
+            if (boardBoxes !== undefined)
+                for (var index=0; index<boardBoxes.length; index++){
+                    var element = boardBoxes[index]
                     var filteredInfo = resultfiltered.filter((p) => p.BoxTitle == element);
                     var filteredWidgets = result.Widgets.filter((p)=> p.BoxTitle == element)
                     var filteredHtmls = result.Htmls.filter((p)=> p.BoxTitle == element)
@@ -551,6 +552,9 @@ export default class BoardComponents implements IService {
     }
     protected isValidResult(item: IInfoDto, context: IBoardContext) {
         return true;
+    }
+    protected onlyUnique(value, index, self) {
+        return self.indexOf(value) === index;
     }
     protected onComplete(context: IBoardContext, jqXHR: JQueryXHR) {
         context.ajaxCallCount++;
