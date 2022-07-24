@@ -54,6 +54,16 @@ export default class HubResponseProcessor extends ResponseProcessor {
                 currentPath = currentPath.substring(0, currentPath.indexOf("?"));
             }
             trigger = $("main[name='" + ajaxTarget + "']");
+            if (ajaxhref != undefined && ajaxhref != null && ajaxhref.contains(".aspx")) {
+                trigger.empty();
+                trigger.append($("<iframe name='dashboard-frame'>"));
+                trigger = $("iframe[name='dashboard-frame']");
+                trigger.attr("src", ajaxhref.replace("hub.app.geeks.ltd/dashboard", "dashboard.app.geeks.ltd"));
+                trigger.attr("class", "view-frame embed-responsive-item w-100 h-100");
+                trigger.attr("frameBorder", "0");
+                history.pushState({}, "", currentPath + "?$" + ajaxTarget + "=" + ajaxhref);
+                return;
+            }
             this.onViewChanged(asElement, trigger);
             history.pushState({}, "", currentPath + "?$" + ajaxTarget + "=" + ajaxhref);
             return;
