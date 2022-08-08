@@ -173,7 +173,7 @@ export default class BoardComponents implements IService {
         var table = $("<table>");
 
         const searchItem = $("<div class='item' data-type='" + items[0].Type + "'>");
-        const h3 = $('<h3 >').html(items[0].Type + "s").append(this.createHeaderAction(items[0].Type, addableItems))
+        const h3 = $('<h3 >').html(items[0].Type + (items[0].Type.endsWith("s") ? "" : "s")).append(this.createHeaderAction(items[0].Type, addableItems))
         searchItem.append($("<div class='header' " + " style=\"" + this.addColour(items[0]) + "\">").append(h3))
 
         //table.append($("<tr>").append($("<th " + "' style=\"" + this.addColour(items[0]) + "\" " + ">")
