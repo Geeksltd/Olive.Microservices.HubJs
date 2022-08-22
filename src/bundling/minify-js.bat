@@ -5,6 +5,7 @@ call tsc
 
 echo Bundeling ...
 @REM call replace-in-file "../../compile/hubEcharts.js" -set "echarts/echarts" "echarts" 
+@REM call replace-in-file "../../compiled/hub.js" -set "lib/@types/pako/index" "/../@types/pako/index.d.ts" 
 node r.js -o bundle-config.js
 
 echo Replacing content ...

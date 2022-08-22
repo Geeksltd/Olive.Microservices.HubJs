@@ -11,6 +11,9 @@
       "zrender": [
         "lib/zrender/dist"
       ],
+      "pako": [
+        "lib/pako/dist/pako"
+      ],
       "app/*": [
         "src/*"
       ]

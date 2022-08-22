@@ -38,7 +38,8 @@
         "bootstrap-select": "bootstrap-select/dist/js/bootstrap-select",
         "flickity": "flickity/dist/flickity.pkgd",
         "echarts":"echarts/dist/echarts",
-        "zrender":"zrender/dist/zrender"
+        "zrender":"zrender/dist/zrender",
+		"pako":"pako/dist/pako"
     },
     map: {
         "*": {
