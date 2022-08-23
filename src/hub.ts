@@ -8,7 +8,6 @@ import BreadcrumbMenu from "./featuresMenu/breadcrumbMenu";
 import { FeaturesMenuFactory } from "./featuresMenu/featuresMenu";
 import HubInstantSearch from "./hubInstantSearch";
 import Service from "./model/service";
-import pako = require('pako');
 
 export default class Hub implements IService {
     constructor(
@@ -18,16 +17,6 @@ export default class Hub implements IService {
         private breadcrumbMenu: BreadcrumbMenu,
         private responseProcessor: ResponseProcessor
     ) { }
-
-    public decodeGzipUrl(inputUrl: string): string {
-        if (inputUrl === undefined || inputUrl === null || inputUrl.startsWith("...") == false) return inputUrl;
-        var encodedUrl = inputUrl.substring(3).replace(new RegExp("%7E", 'g'), "~").replace(new RegExp("~", 'g'), "+").replace(new RegExp("_", 'g'), "/").replace(new RegExp("-", 'g'), "=");
-        if (encodedUrl === null || encodedUrl.length <= 0) return;
-        var binaryArray = Uint8Array.from(atob(encodedUrl), c => c.charCodeAt(0));
-        var unzippedBinaryArray = pako.ungzip(binaryArray);
-        var decodedString = String.fromCharCode.apply(null, unzippedBinaryArray);
-        return decodedString;
-    }
 
     public initialize() {
         Service.registerServices();
@@ -193,7 +182,6 @@ export default class Hub implements IService {
     }
 
     public go(url: string, iframe: boolean, trigger: any) {
-        var ss = this.decodeGzipUrl(url);
         if (iframe) {
             url = this.url.effectiveUrlProvider(url, null);
             if ($(trigger).closest("[data-module-inner]").length > 0) {

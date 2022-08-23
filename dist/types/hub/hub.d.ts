@@ -11,7 +11,6 @@ export default class Hub implements IService {
     private breadcrumbMenu;
     private responseProcessor;
     constructor(url: Url, ajaxRedirect: AjaxRedirect, featuresMenuFactory: FeaturesMenuFactory, breadcrumbMenu: BreadcrumbMenu, responseProcessor: ResponseProcessor);
-    decodeGzipUrl(inputUrl: string): string;
     initialize(): void;
     initRightTaskMenu(): void;
     loadBoarservice(): void;
