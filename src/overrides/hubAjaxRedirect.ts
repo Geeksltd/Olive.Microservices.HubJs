@@ -15,12 +15,16 @@ export default class HubAjaxRedirect extends AjaxRedirect {
     }
 
     protected onRedirectionFailed(url: string, response: JQueryXHR) {
-        let service = Service.fromUrl(url);
-
-        if (service)
-            ErrorViewsNavigator.goToServiceError(service, url);
-        else
-            super.onRedirectionFailed(url, response);
+        if (response.status == 401) {
+            document.location.href = url;
+        }
+        else {
+            let service = Service.fromUrl(url);
+            if (service)
+                ErrorViewsNavigator.goToServiceError(service, url);
+            else
+                super.onRedirectionFailed(url, response);
+        }
     }
 
     public go(
