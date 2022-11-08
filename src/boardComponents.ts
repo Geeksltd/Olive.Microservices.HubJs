@@ -1,6 +1,7 @@
 ﻿import { ModalHelper } from 'olive/components/modal'
 import Url from 'olive/components/url';
 import AjaxRedirect from 'olive/mvc/ajaxRedirect';
+import { getMainDomain } from './hub';
 
 export default class BoardComponents implements IService {
     private urlList: string[];
@@ -240,7 +241,7 @@ export default class BoardComponents implements IService {
                 attr = "target=\"$modal\"";
             else if (item.Action == ActionEnum.NewWindow)
                 attr = "target=\"_blank\"";
-            headerAction.append($("<a href='" + item.AddUrl.replace("https://hub.app.geeks.ltd", "") + "' " + attr + ">").append('<i class="fas fa-plus" aria-hidden="true"></i>'));
+            headerAction.append($("<a href='" + item.AddUrl.replace("https://hub." + getMainDomain(), "") + "' " + attr + ">").append('<i class="fas fa-plus" aria-hidden="true"></i>'));
         }
 
         if (manageFiltered.length > 0) {
@@ -250,7 +251,7 @@ export default class BoardComponents implements IService {
                 attr = "target=\"$modal\"";
             else if (item.Action == ActionEnum.NewWindow)
                 attr = "target=\"_blank\"";
-            headerAction.append($("<a href='" + item.ManageUrl.replace("https://hub.app.geeks.ltd", "") + "' " + attr + ">").append('<i class="fa fa-cog" aria-hidden="true"></i>'));
+            headerAction.append($("<a href='" + item.ManageUrl.replace("https://hub." + getMainDomain(), "") + "' " + attr + ">").append('<i class="fa fa-cog" aria-hidden="true"></i>'));
         }
         return headerAction;
     }

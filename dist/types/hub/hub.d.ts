@@ -22,3 +22,4 @@ export default class Hub implements IService {
     go(url: string, iframe: boolean, trigger: any): void;
     initServiceWorker(): any;
 }
+export declare const getMainDomain: () => string;

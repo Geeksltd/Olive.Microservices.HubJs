@@ -214,6 +214,13 @@ export default class Hub implements IService {
             }
         }
     }
-
-
 }
+
+
+export const getMainDomain = () => {
+    let domain = window.location.hostname;
+    if (domain.startsWith("hub.")) {
+        domain = domain.substring(4);
+    }
+    return domain;
+};

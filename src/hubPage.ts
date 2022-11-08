@@ -23,7 +23,7 @@ import HubForm from './overrides/hubForm';
 import Validate from 'olive/components/validate';
 import AjaxRedirect from 'olive/mvc/ajaxRedirect';
 import HubServices from './hubServices';
-import Hub from './hub';
+import Hub, { getMainDomain } from './hub';
 import HubUrl from './overrides/hubUrl';
 import HubModal from './hubModal';
 import BoardComponents from './boardComponents';
@@ -179,7 +179,7 @@ export default class HubPage extends OlivePage {
 
                     this.board = new BoardComponents($(".board-components"),
                         this.getService<ModalHelper>(Services.ModalHelper),
-                        this.getService<AjaxRedirect>(Services.AjaxRedirect), (currentPath.pathname.startsWith("https://hub.app.geeks.ltd") ? currentPath.pathname : "https://hub.app.geeks.ltd" + currentPath.pathname));
+                        this.getService<AjaxRedirect>(Services.AjaxRedirect), (currentPath.pathname.startsWith("https://hub." + getMainDomain()) ? currentPath.pathname : "https://hub." + getMainDomain() + currentPath.pathname));
                 }
             }
 
