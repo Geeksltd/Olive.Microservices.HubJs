@@ -2,7 +2,6 @@
     FeaturesMenuFactory: "featuresMenuFactory",
     Hub: "hub",
     HubEcharts: "hubEcharts",
-    AppContent: "appContent",
     BreadcrumbMenu: "breadcrumbMenu"
 }
 
