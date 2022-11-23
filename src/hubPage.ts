@@ -1,7 +1,6 @@
 ﻿
 import OlivePage from 'olive/olivePage';
 import { FeaturesMenuFactory } from './featuresMenu/featuresMenu';
-import AppContent from './appContent';
 import BadgeNumber from './badgeNumber';
 import ToggleCheckbox from './toggleCheckbox';
 import WidgetModule from './widgetModule';
@@ -111,10 +110,6 @@ export default class HubPage extends OlivePage {
             new FeaturesMenuFactory(url, waiting, ajaxRedirect))
             .withDependencies(Services.Url, Services.Waiting, Services.AjaxRedirect);
 
-        services.addSingleton(HubServices.AppContent, (waiting: Waiting, ajaxRedirect: AjaxRedirect) =>
-            new AppContent(waiting, ajaxRedirect))
-            .withDependencies(Services.Waiting, Services.AjaxRedirect);
-
         services.addSingleton(HubServices.BreadcrumbMenu, (ajaxRedirect: AjaxRedirect) => new BreadcrumbMenu(ajaxRedirect))
             .withDependencies(Services.AjaxRedirect);
 
@@ -158,9 +153,6 @@ export default class HubPage extends OlivePage {
         super.initialize();
         this.getService<FeaturesMenuFactory>(HubServices.FeaturesMenuFactory).bindItemListClick();
         this.getService<BreadcrumbMenu>(HubServices.BreadcrumbMenu).bindItemListClick();
-        const appcontext = this.getService<AppContent>(HubServices.AppContent);
-        appcontext.enableContentBlock($("AppContent"));
-        appcontext.enableHelp($("Help"));
         ToggleCheckbox.enableToggleCheckbox($("input[class='form-check']"));
         WidgetModule.enableWidget($("Widget"));
 
