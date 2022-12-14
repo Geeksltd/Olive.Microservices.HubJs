@@ -1,9 +1,9 @@
 /// <amd-dependency path="olive/olivePage" />
 import Url from "olive/components/url";
-import { FeaturesMenuFactory } from "./featuresMenu/featuresMenu";
 import AjaxRedirect from "olive/mvc/ajaxRedirect";
 import ResponseProcessor from 'olive/mvc/responseProcessor';
 import BreadcrumbMenu from "./featuresMenu/breadcrumbMenu";
+import { FeaturesMenuFactory } from "./featuresMenu/featuresMenu";
 export default class Hub implements IService {
     private url;
     private ajaxRedirect;
@@ -22,3 +22,4 @@ export default class Hub implements IService {
     go(url: string, iframe: boolean, trigger: any): void;
     initServiceWorker(): any;
 }
+export declare const getMainDomain: () => string;

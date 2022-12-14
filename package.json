@@ -8,7 +8,7 @@
         "url": "git://github.com/Geeksltd/Olive.Microservices.HubJs.git"
     },
     "author": "Geeks Ltd",
-    "version": "3.7.16-alpha-uat",
+    "version": "4.1.0-alpha-uat",
     "license": "GPL-3.0",
     "private": false,
     "files": [
@@ -24,6 +24,9 @@
     },
     "devDependencies": {
         "@fortawesome/fontawesome-free": "npm:@fortawesome/fontawesome-free@^5.4.2",
+        "@types/chartist": "^0.11.1",
+        "@types/echarts": "^4.9.16",
+        "@types/zrender": "^4.0.1",
         "alertify": "fabien-d/alertify.js-shim#~0.3.10",
         "alertify-bootstrap-3": "dbtek/alertify-bootstrap-3#~1.1.1",
         "alertifyjs": "alertifyjs/alertify.js#~0.3.18",
@@ -39,6 +42,7 @@
         "chosen-js": "1.8.7",
         "ckeditor": "ckeditor/ckeditor-releases#full/4.6.x",
         "combodate": "vitalets/combodate#*",
+        "echarts": "echarts#^5.3.3",
         "eonasdan-bootstrap-datetimepicker": "Eonasdan/bootstrap-datetimepicker#~4.7.14",
         "flickity": "metafizzy/flickity#2.2.1",
         "hammer.js": "hammerjs/hammer.js#^2.0.8",
@@ -46,7 +50,6 @@
         "handlebars": "components/handlebars.js#^4.0.11",
         "jquery": "jquery/jquery-dist#3.2.1",
         "jquery-file-upload": "blueimp/jQuery-File-Upload#*",
-        "jquery-mentions-input": "^1.6.0",
         "jquery-typeahead": "running-coder/jquery-typeahead#2.10.4",
         "jquery-ui": "components/jqueryui#^1.12.1",
         "jquery-validation": "jzaefferer/jquery-validation#1.19.1",
@@ -56,7 +59,7 @@
         "modernizr": "Modernizr/Modernizr#*",
         "moment": "moment/moment#2.8.0",
         "muuri": "haltu/muuri#^0.5.4",
-        "olive.mvc": "Geeksltd/Olive.MvcJs#2.1.41",
+        "olive.mvc": "Geeksltd/Olive.MvcJs#2.1.94",
         "popper.js": "^1.14.4",
         "pwstrength-bootstrap": "ablanco/jquery.pwstrength.bootstrap#~1.2.7",
         "requirejs": "2.3.6",
@@ -65,11 +68,7 @@
         "underscore": "1.8.3",
         "web-animations-js": "web-animations/web-animations-js#^2.0.9",
         "which-pm-runs": "^1.0.0",
-        "zxcvbn": "dropbox/zxcvbn#^4.2.0",
-        "@types/chartist": "^0.11.1",
-        "echarts": "echarts#^5.2.2",
         "zrender": "^5.3.0",
-        "@types/echarts": "^4.9.13",
-        "@types/zrender": "^4.0.1"
+        "zxcvbn": "dropbox/zxcvbn#^4.2.0"
     }
 }

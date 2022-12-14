@@ -5,8 +5,10 @@ export default class HubUrl extends Url {
     goBack = function () {
         if (this.current().indexOf(this.baseContentUrl + "/##") === 0)
             history.back();
+            
         else {
             var returnUrl = this.getQuery("ReturnUrl");
+            returnUrl = this.decodeGzipUrl(returnUrl);
             if (returnUrl) {
                 let isInServiceTag = $(event.target).closest("service").length > 0;
                 let serviceName = $("service").attr("of");

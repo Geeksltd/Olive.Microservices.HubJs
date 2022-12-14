@@ -1,7 +1,6 @@
 ﻿
 import OlivePage from 'olive/olivePage';
 import { FeaturesMenuFactory } from './featuresMenu/featuresMenu';
-import AppContent from './appContent';
 import BadgeNumber from './badgeNumber';
 import ToggleCheckbox from './toggleCheckbox';
 import ExpandCollapse from './expandCollapse';
@@ -22,7 +21,7 @@ import HubForm from './overrides/hubForm';
 import Validate from 'olive/components/validate';
 import AjaxRedirect from 'olive/mvc/ajaxRedirect';
 import HubServices from './hubServices';
-import Hub from './hub';
+import Hub, { getMainDomain } from './hub';
 import HubUrl from './overrides/hubUrl';
 import HubModal from './hubModal';
 import BoardComponents from './boardComponents';
@@ -110,10 +109,6 @@ export default class HubPage extends OlivePage {
             new FeaturesMenuFactory(url, waiting, ajaxRedirect))
             .withDependencies(Services.Url, Services.Waiting, Services.AjaxRedirect);
 
-        services.addSingleton(HubServices.AppContent, (waiting: Waiting, ajaxRedirect: AjaxRedirect) =>
-            new AppContent(waiting, ajaxRedirect))
-            .withDependencies(Services.Waiting, Services.AjaxRedirect);
-
         services.addSingleton(HubServices.BreadcrumbMenu, (ajaxRedirect: AjaxRedirect) => new BreadcrumbMenu(ajaxRedirect))
             .withDependencies(Services.AjaxRedirect);
 
@@ -157,9 +152,6 @@ export default class HubPage extends OlivePage {
         super.initialize();
         this.getService<FeaturesMenuFactory>(HubServices.FeaturesMenuFactory).bindItemListClick();
         this.getService<BreadcrumbMenu>(HubServices.BreadcrumbMenu).bindItemListClick();
-        const appcontext = this.getService<AppContent>(HubServices.AppContent);
-        appcontext.enableContentBlock($("AppContent"));
-        appcontext.enableHelp($("Help"));
         ToggleCheckbox.enableToggleCheckbox($("input[class='form-check']"));
 
         const currentPath = this.getPathName();
@@ -177,7 +169,7 @@ export default class HubPage extends OlivePage {
 
                     this.board = new BoardComponents($(".board-components"),
                         this.getService<ModalHelper>(Services.ModalHelper),
-                        this.getService<AjaxRedirect>(Services.AjaxRedirect), (currentPath.pathname.startsWith("https://hub.app.geeks.ltd") ? currentPath.pathname : "https://hub.app.geeks.ltd" + currentPath.pathname));
+                        this.getService<AjaxRedirect>(Services.AjaxRedirect), (currentPath.pathname.startsWith("https://hub." + getMainDomain()) ? currentPath.pathname : "https://hub." + getMainDomain() + currentPath.pathname));
                 }
             }
 

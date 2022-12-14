@@ -1,13 +1,13 @@
 ﻿/// <amd-dependency path='olive/olivePage' />
 
+import CrossDomainEvent from "olive/components/crossDomainEvent";
 import Url from "olive/components/url";
-import { FeaturesMenuFactory } from "./featuresMenu/featuresMenu";
 import AjaxRedirect from "olive/mvc/ajaxRedirect";
 import ResponseProcessor from 'olive/mvc/responseProcessor';
-import CrossDomainEvent from "olive/components/crossDomainEvent";
-import Service from "./model/service";
 import BreadcrumbMenu from "./featuresMenu/breadcrumbMenu";
 import { ModalHelper } from "lib/olive.mvc/typings/components/modal";
+import { FeaturesMenuFactory } from "./featuresMenu/featuresMenu";
+import Service from "./model/service";
 
 export default class Hub implements IService {
     constructor(
@@ -214,3 +214,12 @@ export default class Hub implements IService {
         }
     }
 }
+
+
+export const getMainDomain = () => {
+    let domain = window.location.hostname;
+    if (domain.startsWith("hub.")) {
+        domain = domain.substring(4);
+    }
+    return domain;
+};

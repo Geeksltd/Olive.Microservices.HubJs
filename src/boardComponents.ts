@@ -1,6 +1,7 @@
 ﻿import { ModalHelper } from 'olive/components/modal'
 import Url from 'olive/components/url';
 import AjaxRedirect from 'olive/mvc/ajaxRedirect';
+import { getMainDomain } from './hub';
 
 export default class BoardComponents implements IService {
     private urlList: string[];
@@ -145,7 +146,7 @@ export default class BoardComponents implements IService {
         else if (html.length > 0 )colour = html[0].BoxColour
 
         const searchItem = $("<div class='item' data-type='" + boxTitle + "'>");
-        const h3 = $('<h3 >').html(boxTitle + "s").append(this.createHeaderAction(boxTitle, addableButtons))
+        const h3 = $('<h3 >').html(boxTitle + (boxTitle.endsWith("s") ? "" : "s")).append(this.createHeaderAction(boxTitle, addableButtons))
         searchItem.append($("<div class='header' " + " style=\"" + this.addColour(colour) + "\">").append(h3))
 
         //table.append($("<tr>").append($("<th " + "' style=\"" + this.addColour(items[0]) + "\" " + ">")
@@ -220,7 +221,7 @@ export default class BoardComponents implements IService {
             else if (item.Action == ActionEnum.NewWindow)
                 attr = "target=\"_blank\"";
 
-            headerAction.append($("<a href='" + item.Url.replace("https://hub.app.geeks.ltd", "") + "' " + attr + ">").append('<i class="' + item.Icon + '" aria-hidden="true"></i>'));
+            headerAction.append($("<a href='" + item.Url.replace("https://hub." + getMainDomain(), "") + "' " + attr + ">").append('<i class="' + item.Icon + '" aria-hidden="true"></i>'));
         }
         return headerAction;
     }

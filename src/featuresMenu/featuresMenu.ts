@@ -454,7 +454,18 @@ export default class FeaturesMenu {
     }
     generateTopMenuHtml(topMenuData, element, Handlebars) {
 
-        let data = { menus: this.getObjects(JSON.parse(topMenuData), "ID", $(element).attr("id")) };
+        var data = { menus: this.getObjects(JSON.parse(topMenuData), "ID", $(element).attr("id")) };
+
+        var jqueryelement = $(element);
+        if (jqueryelement != undefined && jqueryelement != null) {
+            var elementchildrens = jqueryelement.children("ul");
+            if (elementchildrens.length <= 0) {
+                var elementparentid = jqueryelement.attr("side-menu-parent");
+                if (elementparentid != undefined && elementparentid != null) {
+                    data = { menus: this.getObjects(JSON.parse(topMenuData), "ID", elementparentid) };
+                }
+            }
+        }
 
         let template = $("#sumMenu-template").html();
 
