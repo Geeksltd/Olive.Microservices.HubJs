@@ -481,7 +481,7 @@ export default class BoardComponents implements IService {
         if (result !== null && result !== undefined && typeof (result.Infos) === typeof ([])) {
             sender.state = AjaxState.success;
 
-            const resultfiltered = result.Infos.filter((p) => this.isValidResult(p, context));
+            const resultfiltered = result.Infos?.filter((p) => this.isValidResult(p, context)) ?? [];
             const groupBy = (array, key) => {
                 // Return the end result
                 return array.reduce((result, currentValue) => {
@@ -494,16 +494,16 @@ export default class BoardComponents implements IService {
                 }, {}); // empty object is the initial value for result object
             };
 
-            var personGroupedByType = resultfiltered.map((v)=>v.BoxTitle).concat(result.Widgets.map((v)=>v.BoxTitle)).concat(result.Htmls.map((v)=>v.BoxTitle));
+            var personGroupedByType = resultfiltered.map((v)=>v.BoxTitle).concat(result.Widgets?.map((v)=>v.BoxTitle) ?? []).concat(result.Htmls?.map((v)=>v.BoxTitle) ?? []);
             const boardBoxes = personGroupedByType.filter(this.onlyUnique)
             var that = this;
             if (boardBoxes !== undefined)
                 for (var index=0; index<boardBoxes.length; index++){
                     var element = boardBoxes[index]
-                    var filteredInfo = resultfiltered.filter((p) => p.BoxTitle == element);
-                    var filteredWidgets = result.Widgets.filter((p)=> p.BoxTitle == element)
-                    var filteredHtmls = result.Htmls.filter((p)=> p.BoxTitle == element)
-                    var filteredButtons = result.Buttons.filter((p) => p.BoxTitle == element)
+                    var filteredInfo = resultfiltered.filter((p) => p.BoxTitle == element) ?? [];
+                    var filteredWidgets = result.Widgets?.filter((p) => p.BoxTitle == element) ?? [];
+                    var filteredHtmls = result.Htmls?.filter((p) => p.BoxTitle == element) ?? [];
+                    var filteredButtons = result.Buttons?.filter((p) => p.BoxTitle == element) ?? [];
                     
                     const boardItem = that.createBoardItems(sender, context, filteredInfo, filteredButtons,filteredWidgets ,filteredHtmls, element);
                     if ($('.board-components-result .item[data-type="' + element + '"]').length > 0) {
@@ -530,18 +530,18 @@ export default class BoardComponents implements IService {
 
                 context.resultPanel.append(context.boardHolder);
             }
-            if (result !== null && result !== undefined && typeof (result.menus) === typeof ([])) {
+            if (result !== null && result !== undefined && result.menus !== null && result.menus !== undefined && typeof (result.menus) === typeof ([])) {
                 sender.state = AjaxState.success;
 
                 var header = this.filterInput.parent();
 
-                const managefiltered = result.menus.filter((p) => p.Url != null && p.Url != undefined);
+                const managefiltered = result.menus?.filter((p) => p.Url != null && p.Url != undefined) ?? [];
                 const manageItem = this.createManageItems(sender, context, managefiltered);
-                const resultfiltered = result.menus.filter((p) => p.Url != null && p.Url != undefined);
+                const resultfiltered = result.menus?.filter((p) => p.Url != null && p.Url != undefined) ?? [];
 
                 const addabledItem = this.createAddableItems(sender, context, resultfiltered);
             }
-            if (result !== null && result !== undefined && result.Intros[0] !== null
+            if (result !== null && result !== undefined && result.Intros !== null && result.Intros !== undefined && result.Intros[0] !== null
                 && result.Intros[0] !== undefined && result.Intros[0].Name !== null) {
                 this.createBoardIntro(sender, context, result.Intros[0])
             }
