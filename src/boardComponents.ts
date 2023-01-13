@@ -52,7 +52,7 @@ export default class BoardComponents implements IService {
         return resultPanel;
     }
 
-    protected createBoardComponent(urls: string[]) {
+    protected async createBoardComponent(urls: string[]) {
 
         var currentUrl = document.URL;
         if (currentUrl != undefined && currentUrl != null && currentUrl.contains("?$")) {
@@ -137,7 +137,7 @@ export default class BoardComponents implements IService {
                 'columns': parseInt((($(document).outerWidth() - width) / 300).toString())
             });
     }
-    protected createBoardItems(sender: IAjaxObject, context: IBoardContext, items: IInfoDto[], addableButtons: IButtonDto[], widgets: IWidgetDto[], html: IHtmlDto[], boxTitle: string) {
+    protected async createBoardItems(sender: IAjaxObject, context: IBoardContext, items: IInfoDto[], addableButtons: IButtonDto[], widgets: IWidgetDto[], html: IHtmlDto[], boxTitle: string) {
         if (items.length == 0 && widgets.length == 0 && html.length==0) return null;
         var table = $("<table>");
         var colour = "#aaa"
@@ -157,7 +157,7 @@ export default class BoardComponents implements IService {
         }
         for (let i = 0; i < widgets.length; i++) {
             context.resultCount++;
-            table.append(this.createWidgets(widgets[i], context));
+            table.append(await this.createWidgets(widgets[i], context));
         }
         for (let i = 0; i < html.length; i++) {
             context.resultCount++;
@@ -333,24 +333,24 @@ export default class BoardComponents implements IService {
                 .append($("<div>").append($("<span class=\"board-component-name\">").append(item.Name))
                     .append($("<span>").html(item.Description)))));
     }
-    protected createWidgets(item: IWidgetDto, context: IBoardContext) {
+    protected async createWidgets(item: IWidgetDto, context: IBoardContext) {
+        item.Result = $("Widget").append("<br/><br/><center>loading...</center>")
 
-        var result = "";
-        $.ajax({
+        await $.ajax({
             url: item.Url,
             type: 'GET',
+            async: false,
             xhrFields: { withCredentials: true },
             success: (response) => {
-                result = response;
-                (<any>window.page).revive();
+                item.Result.replaceWith(response)
             },
             error: (response, x) => {
                 console.log(response);
                 console.log(x);
-                result = "<br/><br/><br/><center>Failed to load <a target='_blank' href='" + this.input.attr("src") + "'>widget</a></center>";
+                item.Result.replaceWith( "<br/><br/><br/><center>Failed to load <a target='_blank' href='" + this.input.attr("src") + "'>widget</a></center>");
             }
         });
-        return result
+        return item.Result;
     }
     protected createAddableItem(item: IMenuDto, context: IBoardContext) {
         return $("<div class=\"menu-item\">")
@@ -473,7 +473,7 @@ export default class BoardComponents implements IService {
         var projectId = this.getProjectId()
         this.myStorage.setItem(projectId + "_" + key, JSON.stringify(value))
     }
-    protected onSuccess(sender: IAjaxObject, context: IBoardContext, result: IBoardResultDto, loadFromCaceh: boolean) {
+    protected async onSuccess(sender: IAjaxObject, context: IBoardContext, result: IBoardResultDto, loadFromCaceh: boolean) {
         sender.result = result;
         var cache = this.getItem(sender.url)
         if (!loadFromCaceh && JSON.stringify(cache) === JSON.stringify(result)) return
@@ -505,7 +505,7 @@ export default class BoardComponents implements IService {
                     var filteredHtmls = result.Htmls?.filter((p) => p.BoxTitle == element) ?? [];
                     var filteredButtons = result.Buttons?.filter((p) => p.BoxTitle == element) ?? [];
                     
-                    const boardItem = that.createBoardItems(sender, context, filteredInfo, filteredButtons,filteredWidgets ,filteredHtmls, element);
+                    const boardItem = await that.createBoardItems(sender, context, filteredInfo, filteredButtons,filteredWidgets ,filteredHtmls, element);
                     if ($('.board-components-result .item[data-type="' + element + '"]').length > 0) {
                         var item = $('.board-components-result .item[data-type="' + element + '"]')
                         $(boardItem).attr('class', item.attr('class')).attr('id', $(item).attr('id'))
@@ -659,6 +659,7 @@ export interface IWidgetDto {
     BoxColour: string;
     BoxTitle: string;
     Url: string;
+    Result: JQuery;
 }
 
 export interface IHtmlDto {
