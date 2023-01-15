@@ -53,7 +53,8 @@
             "app": "../compiled",
             "jquery-validation": "jquery-validate",
             "jquery.validate.unobtrusive": "jquery-validate-unobtrusive",
-            "jquery-sortable": "jquery-ui/ui/widgets/sortable"
+            "jquery-sortable": "jquery-ui/ui/widgets/sortable",
+            "jquery-ui-touch-punch": "jquery-ui-touch-punch/jquery.ui.touch-punch"
         }
     },
     shim: {

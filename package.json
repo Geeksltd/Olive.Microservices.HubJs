@@ -8,7 +8,7 @@
     "url": "git://github.com/Geeksltd/Olive.Microservices.HubJs.git"
   },
   "author": "Geeks Ltd",
-  "version": "4.1.0",
+  "version": "4.1.1",
   "license": "GPL-3.0",
   "private": false,
   "files": [
@@ -59,7 +59,7 @@
     "modernizr": "Modernizr/Modernizr#*",
     "moment": "moment/moment#2.8.0",
     "muuri": "haltu/muuri#^0.5.4",
-    "olive.mvc": "Geeksltd/Olive.MvcJs#2.1.98",
+    "olive.mvc": "Geeksltd/Olive.MvcJs#2.1.99",
     "popper.js": "^1.14.4",
     "pwstrength-bootstrap": "ablanco/jquery.pwstrength.bootstrap#~1.2.7",
     "requirejs": "2.3.6",
@@ -69,6 +69,7 @@
     "web-animations-js": "web-animations/web-animations-js#^2.0.9",
     "which-pm-runs": "^1.0.0",
     "zrender": "^5.3.0",
-    "zxcvbn": "dropbox/zxcvbn#^4.2.0"
+    "zxcvbn": "dropbox/zxcvbn#^4.2.0",
+    "jquery-ui-touch-punch": "^0.2.3"
   }
 }
