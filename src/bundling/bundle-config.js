@@ -55,7 +55,7 @@
             "jquery.validate.unobtrusive": "jquery-validate-unobtrusive",
             "jquery-sortable": "jquery-ui/ui/widgets/sortable",
             "jquery-ui-mouse": "jquery-ui/ui/widgets/mouse",
-            "jquery-ui-touch-punch": "jquery-ui-touch-punch/jquery.ui.touch-punch"
+            "jquery-ui-touch-punch": "jquery-ui-touch-punch/jquery.ui.touch-punch.min"
         }
     },
     shim: {
