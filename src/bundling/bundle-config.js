@@ -39,8 +39,7 @@
         "flickity": "flickity/dist/flickity.pkgd",
         "echarts":"echarts/dist/echarts",
         "zrender":"zrender/dist/zrender",
-        "pako": "pako",
-        "mouse": "jquery-ui/ui/widgets/mouse"
+        "pako": "pako"
     },
     map: {
         "*": {
@@ -56,6 +55,8 @@
             "jquery.validate.unobtrusive": "jquery-validate-unobtrusive",
             "jquery-sortable": "jquery-ui/ui/widgets/sortable",
             "jquery-ui-mouse": "jquery-ui/ui/widgets/mouse",
+            "jquery-ui-widget": "jquery-ui/ui/widget",
+            "jquery-ui-all": "jquery-ui/jquery-ui",
             "jquery-ui-touch-punch": "jquery-ui-touch-punch/jquery.ui.touch-punch"
         }
     },
