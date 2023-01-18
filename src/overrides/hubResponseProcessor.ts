@@ -77,6 +77,14 @@ export default class HubResponseProcessor extends ResponseProcessor {
             this.onViewChanged(asElement, trigger);
             return;
         }
+
+        if (trigger != null && trigger.is("[data-module-target]") && typeof (response) != typeof ([])) {
+            let targetModule = $("[data-module='" + trigger.attr("data-module-target") + "']");
+            targetModule.replaceWith(asElement);
+            this.onViewChanged(asElement, trigger);
+            return;
+        }
+
         if (asElement.is("main")) {
             this.navigate(asElement, trigger, args);
             return;
