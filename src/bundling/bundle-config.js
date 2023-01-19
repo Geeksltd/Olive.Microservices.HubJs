@@ -39,7 +39,7 @@
         "flickity": "flickity/dist/flickity.pkgd",
         "echarts":"echarts/dist/echarts",
         "zrender":"zrender/dist/zrender",
-		"pako":"pako"
+        "pako": "pako"
     },
     map: {
         "*": {
