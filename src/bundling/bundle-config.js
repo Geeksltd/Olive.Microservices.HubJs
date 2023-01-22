@@ -4,6 +4,7 @@
         "jquery": "jquery/dist/jquery",
         "jquery-ui-all": "jquery-ui/jquery-ui",
         "jquery-ui-widget": "jquery-ui/ui/widget",
+        "jquery-ui-touch-punch": "jquery-ui-touch-punch/jquery.ui.touch-punch",
         "jquery-validate": "jquery-validation/dist/jquery.validate",
         "jquery-validate-unobtrusive": "jquery-validation-unobtrusive/src/jquery.validate.unobtrusive",
         "underscore": "underscore/underscore",
@@ -46,14 +47,14 @@
             "app": "../compiled",
             "jquery-validation": "jquery-validate",
             "jquery.validate.unobtrusive": "jquery-validate-unobtrusive",
-            "jquery-sortable": "jquery-ui/ui/widgets/sortable",
-            "jquery-ui-touch-punch": "jquery-ui-touch-punch/jquery.ui.touch-punch"
+            "jquery-sortable": "jquery-ui/ui/widgets/sortable"
         }
     },
     shim: {
         "underscore": {
             exports: '_'
         },
+        
         "bootstrap": ["jquery", "popper"],//,"requirejs"
         "bootstrap-select": ['jquery', 'bootstrap'],//,"requirejs"
         "bootstrapToggle": ["jquery"],
@@ -87,6 +88,9 @@
         "jquery-events-input": ["jquery"],
         "jquery-mentions": ['jquery', "underscore", "jquery-elastic", "jquery-events-input"]
     },
+    exclude: [
+        "jquery-ui-touch-punch"
+        ],
     optimize: "none",
     //generateSourceMaps: false,
     //preserveLicenseComments: false,    
