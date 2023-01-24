@@ -60,7 +60,7 @@
     "modernizr": "Modernizr/Modernizr#*",
     "moment": "moment/moment#2.8.0",
     "muuri": "haltu/muuri#^0.5.4",
-    "olive.mvc": "Geeksltd/Olive.MvcJs#2.2.5",
+    "olive.mvc": "Geeksltd/Olive.MvcJs#2.2.7",
     "popper.js": "^1.14.4",
     "pwstrength-bootstrap": "ablanco/jquery.pwstrength.bootstrap#~1.2.7",
     "requirejs": "2.3.6",
