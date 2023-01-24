@@ -40,9 +40,9 @@
     "bootstrap-toggle": "minhur/bootstrap-toggle#*",
     "chartist": "chartist-js",
     "chosen-js": "1.8.7",
+    "echarts": "echarts#^5.3.3",
     "ckeditor": "ckeditor/ckeditor-releases#full/4.6.x",
     "combodate": "vitalets/combodate#*",
-    "echarts": "echarts#^5.3.3",
     "eonasdan-bootstrap-datetimepicker": "Eonasdan/bootstrap-datetimepicker#~4.7.14",
     "flickity": "metafizzy/flickity#2.2.1",
     "hammer.js": "hammerjs/hammer.js#^2.0.8",
@@ -52,6 +52,7 @@
     "jquery-file-upload": "blueimp/jQuery-File-Upload#*",
     "jquery-typeahead": "running-coder/jquery-typeahead#2.10.4",
     "jquery-ui": "components/jqueryui#^1.12.1",
+    "jquery-ui-touch-punch": "^0.2.3",
     "jquery-validation": "jzaefferer/jquery-validation#1.19.1",
     "jquery-validation-bootstrap-tooltip": "Thrilleratplay/jquery-validation-bootstrap-tooltip#*",
     "jquery-validation-unobtrusive": "aspnet/jquery-validation-unobtrusive#3.2.11",
@@ -59,7 +60,7 @@
     "modernizr": "Modernizr/Modernizr#*",
     "moment": "moment/moment#2.8.0",
     "muuri": "haltu/muuri#^0.5.4",
-    "olive.mvc": "Geeksltd/Olive.MvcJs#2.2.4",
+    "olive.mvc": "Geeksltd/Olive.MvcJs#2.2.5",
     "popper.js": "^1.14.4",
     "pwstrength-bootstrap": "ablanco/jquery.pwstrength.bootstrap#~1.2.7",
     "requirejs": "2.3.6",
@@ -69,7 +70,6 @@
     "web-animations-js": "web-animations/web-animations-js#^2.0.9",
     "which-pm-runs": "^1.0.0",
     "zrender": "^5.3.0",
-    "zxcvbn": "dropbox/zxcvbn#^4.2.0",
-    "jquery-ui-touch-punch": "^0.2.3"
+    "zxcvbn": "dropbox/zxcvbn#^4.2.0"
   }
 }

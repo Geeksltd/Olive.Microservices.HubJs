@@ -1,14 +1,11 @@
 ({
     baseUrl: "../../lib/", // comes from launchsettings
     paths: {
-        // JQuery:
         "jquery": "jquery/dist/jquery",
-        //"jquery-ui/ui/widget": "jquery-ui/ui/widget",
-        //"jquery-ui/ui/focusable": "jquery-ui/ui/focusable",
         "jquery-ui-all": "jquery-ui/jquery-ui",
+        "jquery-ui-widget": "jquery-ui/ui/widget",
         "jquery-validate": "jquery-validation/dist/jquery.validate",
         "jquery-validate-unobtrusive": "jquery-validation-unobtrusive/src/jquery.validate.unobtrusive",
-        // Jquery plugins:
         "underscore": "underscore/underscore",
         "alertify": "alertifyjs/dist/js/alertify",
         "smartmenus": "smartmenus/src/jquery.smartmenus",
@@ -22,8 +19,6 @@
         "chosen": "chosen-js/chosen.jquery",
         "jquery-elastic": "jquery-mentions-input/lib/jquery.elastic",
         "jquery-events-input": "jquery-mentions-input/lib/jquery.events.input",
-        //"requirejs": "requirejs/require",
-        // Bootstrap
         "popper": "popper.js/dist/umd/popper",
         "bootstrap": "bootstrap/dist/js/bootstrap",
         "validation-style": "jquery-validation-bootstrap-tooltip/jquery-validate.bootstrap-tooltip",
@@ -43,17 +38,16 @@
     },
     map: {
         "*": {
-        //  "chartist":"chartist",
-        //"requirejs": "requirejs",
-        "echarts":"echarts",
-        "zrender":"zrender",
+            "echarts": "echarts",
+            "zrender": "zrender",
             "popper.js": "popper",
             '../moment': 'moment',
             'olive': "olive.mvc/dist",
             "app": "../compiled",
             "jquery-validation": "jquery-validate",
             "jquery.validate.unobtrusive": "jquery-validate-unobtrusive",
-            "jquery-sortable": "jquery-ui/ui/widgets/sortable"
+            "jquery-sortable": "jquery-ui/ui/widgets/sortable",
+            "jquery-ui-touch-punch": "jquery-ui-touch-punch/jquery.ui.touch-punch"
         }
     },
     shim: {
