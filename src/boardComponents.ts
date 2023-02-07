@@ -88,8 +88,8 @@ export default class BoardComponents implements IService {
             ajaxList,
             ajaxCallCount: 0,
             resultCount: 0,
-            resultPanel,
-            addableItemsPanel,
+            resultPanel: resultPanel,
+            addableItemsPanel: addableItemsPanel,
             boardHolder: boardHolder,
             addabledItemsHolder: addabledItemsHolder,
             beginSearchStarted: true,
@@ -137,13 +137,13 @@ export default class BoardComponents implements IService {
                 'columns': parseInt((($(document).outerWidth() - width) / 300).toString())
             });
     }
-    protected async createBoardItems(sender: IAjaxObject, context: IBoardContext, items: IInfoDto[], addableButtons: IButtonDto[], widgets: IWidgetDto[], html: IHtmlDto[], boxTitle: string) {
-        if (items.length == 0 && widgets.length == 0 && html.length==0) return null;
+    protected createBoardItems(sender: IAjaxObject, context: IBoardContext, items: IInfoDto[], addableButtons: IButtonDto[], widgets: IWidgetDto[], html: IHtmlDto[], boxTitle: string) {
+        if (items.length == 0 && widgets.length == 0 && html.length == 0) return null;
         var table = $("<table>");
         var colour = "#aaa"
-        if (items.length > 0)colour = items[0].BoxColour
-        else if (widgets.length > 0)colour = widgets[0].BoxColour
-        else if (html.length > 0 )colour = html[0].BoxColour
+        if (items.length > 0) colour = items[0].BoxColour
+        else if (widgets.length > 0) colour = widgets[0].BoxColour
+        else if (html.length > 0) colour = html[0].BoxColour
 
         const searchItem = $("<div class='item' data-type='" + boxTitle + "'>");
         const h3 = $('<h3 >').html(boxTitle + (boxTitle.endsWith("s") ? "" : "s")).append(this.createHeaderAction(boxTitle, addableButtons))
@@ -157,11 +157,12 @@ export default class BoardComponents implements IService {
         }
         for (let i = 0; i < widgets.length; i++) {
             context.resultCount++;
-            table.append(await this.createWidgets(widgets[i], context));
+            table.append('<tr><td data-url="' + widgets[i].Url + '"><br/><br/><center>loading...</center></td></tr>');
+            this.createWidgets(widgets[i], context);
         }
         for (let i = 0; i < html.length; i++) {
             context.resultCount++;
-            table.append(html[i].RawHtml);
+            table.append('<tr><td>' + html[i].RawHtml + '</td></tr>');
         }
         searchItem.append($("<div>").append(table))
         return searchItem;
@@ -213,7 +214,7 @@ export default class BoardComponents implements IService {
         const buttons = addableButtons.filter((p) => p.Url != null && p.Url != undefined && this.getItemBox(p) == boxTitle);
 
         const headerAction = $("<div class='header-actions'>");
-        for (let i = 0; i < buttons.length; i++){
+        for (let i = 0; i < buttons.length; i++) {
             var item = addableButtons[i]
             var attr = "";
             if (item.Action == ActionEnum.Popup)
@@ -242,7 +243,7 @@ export default class BoardComponents implements IService {
             $('<div class="col-md-9"><h2 class="mb-2">' + intro.Name + '</h2>\
             <div class="text-gray">' + intro.Description + '</div></div>'))
         $('.board-header').show()
-        
+
         return result;
 
 
@@ -333,24 +334,24 @@ export default class BoardComponents implements IService {
                 .append($("<div>").append($("<span class=\"board-component-name\">").append(item.Name))
                     .append($("<span>").html(item.Description)))));
     }
-    protected async createWidgets(item: IWidgetDto, context: IBoardContext) {
-        item.Result = $("Widget").append("<br/><br/><center>loading...</center>")
-
-        await $.ajax({
+    protected createWidgets(item: IWidgetDto, context: IBoardContext) {
+        const callback = htmlContent => {
+            $("td[data-url='" + item.Url + "']").html(htmlContent);
+        }
+        $.ajax({
             url: item.Url,
             type: 'GET',
-            async: false,
+            async: true,
             xhrFields: { withCredentials: true },
             success: (response) => {
-                item.Result.replaceWith(response)
+                callback(response);
             },
             error: (response, x) => {
                 console.log(response);
                 console.log(x);
-                item.Result.replaceWith( "<br/><br/><br/><center>Failed to load <a target='_blank' href='" + this.input.attr("src") + "'>widget</a></center>");
+                callback("<br/><br/><br/><center>Failed to load <a target='_blank' href='" + this.input.attr("src") + "'>widget</a></center>");
             }
         });
-        return item.Result;
     }
     protected createAddableItem(item: IMenuDto, context: IBoardContext) {
         return $("<div class=\"menu-item\">")
@@ -398,9 +399,9 @@ export default class BoardComponents implements IService {
     }
 
     private generateStaticColorFromName(name) {
-        if (name === null || name === undefined || name === ""){
-            return "#000000" ;
-        } 
+        if (name === null || name === undefined || name === "") {
+            return "#000000";
+        }
         var hash = 0;
         for (var i = 0; i < name.length; i++) {
             hash = name.charCodeAt(i) + ((hash << 5) - hash);
@@ -414,9 +415,9 @@ export default class BoardComponents implements IService {
     }
 
     private getTextColor(hexcolor) {
-        if (hexcolor === null || hexcolor === undefined || hexcolor === ""){
+        if (hexcolor === null || hexcolor === undefined || hexcolor === "") {
             return 'white';
-        } 
+        }
         hexcolor = hexcolor.replace("#", "");
         var r = parseInt(hexcolor.substr(0, 2), 16);
         var g = parseInt(hexcolor.substr(2, 2), 16);
@@ -425,7 +426,7 @@ export default class BoardComponents implements IService {
         return (yiq >= 128) ? 'black' : 'white';
     }
     protected showIntroImage(intro: any): JQuery {
-        var iconText= "";
+        var iconText = "";
         if (intro.Name !== null && intro.Name !== undefined && intro.Name !== "") {
             iconText = intro.Name.substr(0, 2);
             if (intro.Name.contains("href")) {
@@ -438,7 +439,7 @@ export default class BoardComponents implements IService {
             .css("background-color", staticColor)
             .css("color", textColor)
             .append(iconText);
-        
+
         if (intro.ImageUrl == null || intro.ImageUrl == "" || intro.ImageUrl == undefined) {
             return projectNameIcon;
         }
@@ -473,7 +474,7 @@ export default class BoardComponents implements IService {
         var projectId = this.getProjectId()
         this.myStorage.setItem(projectId + "_" + key, JSON.stringify(value))
     }
-    protected async onSuccess(sender: IAjaxObject, context: IBoardContext, result: IBoardResultDto, loadFromCaceh: boolean) {
+    protected onSuccess(sender: IAjaxObject, context: IBoardContext, result: IBoardResultDto, loadFromCaceh: boolean) {
         sender.result = result;
         var cache = this.getItem(sender.url)
         if (!loadFromCaceh && JSON.stringify(cache) === JSON.stringify(result)) return
@@ -494,18 +495,18 @@ export default class BoardComponents implements IService {
                 }, {}); // empty object is the initial value for result object
             };
 
-            var personGroupedByType = resultfiltered.map((v)=>v.BoxTitle).concat(result.Widgets?.map((v)=>v.BoxTitle) ?? []).concat(result.Htmls?.map((v)=>v.BoxTitle) ?? []);
+            var personGroupedByType = resultfiltered.map((v) => v.BoxTitle).concat(result.Widgets?.map((v) => v.BoxTitle) ?? []).concat(result.Htmls?.map((v) => v.BoxTitle) ?? []);
             const boardBoxes = personGroupedByType.filter(this.onlyUnique)
             var that = this;
-            if (boardBoxes !== undefined)
-                for (var index=0; index<boardBoxes.length; index++){
+            if (boardBoxes !== undefined && boardBoxes.length > 0) {
+                for (var index = 0; index < boardBoxes.length; index++) {
                     var element = boardBoxes[index]
                     var filteredInfo = resultfiltered.filter((p) => p.BoxTitle == element) ?? [];
                     var filteredWidgets = result.Widgets?.filter((p) => p.BoxTitle == element) ?? [];
                     var filteredHtmls = result.Htmls?.filter((p) => p.BoxTitle == element) ?? [];
                     var filteredButtons = result.Buttons?.filter((p) => p.BoxTitle == element) ?? [];
-                    
-                    const boardItem = await that.createBoardItems(sender, context, filteredInfo, filteredButtons,filteredWidgets ,filteredHtmls, element);
+
+                    const boardItem = that.createBoardItems(sender, context, filteredInfo, filteredButtons, filteredWidgets, filteredHtmls, element);
                     if ($('.board-components-result .item[data-type="' + element + '"]').length > 0) {
                         var item = $('.board-components-result .item[data-type="' + element + '"]')
                         $(boardItem).attr('class', item.attr('class')).attr('id', $(item).attr('id'))
@@ -519,15 +520,16 @@ export default class BoardComponents implements IService {
                             }
                         });
                     }
-                    else
+                    else {
                         context.boardHolder.append(boardItem);
+                    }
                 }
-
+            }
             if (!loadFromCaceh)
                 this.onResize();
 
-            if (resultfiltered.length > 0) {
-
+            if (resultfiltered.length > 0 || (result.Widgets && result.Widgets.length > 0) || (result.Htmls && result.Htmls.length > 0)) {
+                console.log("resultfiltered has item");
                 context.resultPanel.append(context.boardHolder);
             }
             if (result !== null && result !== undefined && result.menus !== null && result.menus !== undefined && typeof (result.menus) === typeof ([])) {
