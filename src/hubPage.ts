@@ -159,8 +159,18 @@ export default class HubPage extends OlivePage {
             if (
                 currentPath.pathname.startsWith("/hub/project/") ||
                 currentPath.pathname.startsWith("/project/") ||
+
+                currentPath.pathname.startsWith("/hub/person/") ||
                 currentPath.pathname.startsWith("/person/") ||
-                currentPath.pathname.startsWith("/enrolment/")
+
+                currentPath.pathname.startsWith("/hub/enrolment/") ||
+                currentPath.pathname.startsWith("/enrolment/") ||
+
+                currentPath.pathname.startsWith("/hub/programme/") ||
+                currentPath.pathname.startsWith("/programme/") ||
+
+                currentPath.pathname.startsWith("/hub/module/") ||
+                currentPath.pathname.startsWith("/module/")
             ) {
 
                 var masonryGrids = $(".board-components-result").find(".masonry-grid-origin");
