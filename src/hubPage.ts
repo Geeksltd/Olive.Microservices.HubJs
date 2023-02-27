@@ -170,7 +170,10 @@ export default class HubPage extends OlivePage {
                 currentPath.pathname.startsWith("/programme/") ||
 
                 currentPath.pathname.startsWith("/hub/module/") ||
-                currentPath.pathname.startsWith("/module/")
+                currentPath.pathname.startsWith("/module/") ||
+
+                currentPath.pathname.startsWith("/hub/moduleoffer/") ||
+                    currentPath.pathname.startsWith("/moduleoffer/")
             ) {
 
                 var masonryGrids = $(".board-components-result").find(".masonry-grid-origin");
