@@ -36,11 +36,14 @@ export default class ExtendJQueryFunction {
             }
             // Add class to already existent items
             $this.addClass('masonry-grid-origin');
+            $this.css('display','flex').css('flex-wrap','wrap');
             $this.find(".item:visible").addClass('masonry-grid-item');
-
+           
             function createMasonry() {
 
                 currentColumn = 1;
+
+                $(this).append('<div class="masonry-grid-multicolumn"></div>');
 
                 // Add columns
                 for (var columnCount = 1; columnCount <= settings.columns; columnCount++) {
@@ -49,16 +52,11 @@ export default class ExtendJQueryFunction {
                     });
                 }
 
-                // Add basic styles to columns
-                $this.each(function () {
-                    $(this).css('display', 'flex').find('.masonry-grid-column').css('width', '100%');
-                });
-
                 $this.each(function () {
 
                     var currentGrid = $(this);
 
-                    currentGrid.find('.masonry-grid-item').each(function () {
+                    currentGrid.find('.masonry-grid-item:not([class*="item-col"])').each(function () {
                         // Reset current column
                         if (currentColumn > settings.columns) currentColumn = 1;
 
@@ -69,6 +67,10 @@ export default class ExtendJQueryFunction {
                         // Increase current column and item count
                         currentColumn++;
                         itemCount++;
+                    });
+
+                    currentGrid.find('[class*="item-col"]').each(function() {
+                        $(this).appendTo(currentGrid.find('.masonry-grid-multicolumn'));
                     });
                 });
             }
@@ -81,6 +83,7 @@ export default class ExtendJQueryFunction {
                             $('.masonry-grid-item').appendTo($this).removeAttr("id").removeClass('masonry-grid-item');
                     // Remove columns
                     $(this).find('.masonry-grid-column').remove();
+                    $(this).find('.masonry-grid-multicolumn').remove();
 
                     // Remove basic styles
                     $(this).css('display', 'block').removeClass('masonry-grid-origin').find('.masonry-grid-column').css('width', 'auto')

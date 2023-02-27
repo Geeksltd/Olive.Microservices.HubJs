@@ -146,6 +146,10 @@ export default class BoardComponents implements IService {
         else if (html.length > 0) colour = html[0].BoxColour
 
         const searchItem = $("<div class='item' data-type='" + boxTitle + "'>");
+        
+        var columnsCount = (items[0].BoxColumnsCount > 3 || items[0].BoxColumnsCount <= 1 ) ? 1 : items[0].BoxColumnsCount;
+        if(columnsCount > 1) searchItem.addClass(`item-col-${columnsCount}`);
+
         const h3 = $('<h3 >').html(boxTitle + (boxTitle.endsWith("s") ? "" : "s")).append(this.createHeaderAction(boxTitle, addableButtons))
         searchItem.append($("<div class='header' " + " style=\"" + this.addColour(colour) + "\">").append(h3))
 
@@ -633,6 +637,7 @@ export enum ActionEnum {
 export interface IInfoDto {
     BoxColour: string;
     BoxTitle: string;
+    BoxColumnsCount: number;
     Url: string;
     Name: string;
     Description?: string;
