@@ -17,7 +17,7 @@ export default class BoardComponents implements IService {
     protected getResultPanel(): JQuery;
     protected getAddableItemsPanel(): JQuery;
     protected createSearchComponent(urls: string[]): void;
-    protected onResize(): void;
+    onResize(): void;
     protected createBoardItems(sender: IAjaxObject, context: IBoardContext, items: IResultItemDto[], addableItems: IAddableItemDto[]): JQuery;
     private getItemType;
     private handelLinksClick;

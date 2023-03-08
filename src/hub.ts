@@ -205,7 +205,7 @@ export default class Hub implements IService {
                 navigator.serviceWorker
                     .register("service-worker.js")
                     .then(() => {
-                        console.log("Service worker registered");
+                        //console.log("Service worker registered");
                     })
                     .catch(error => { console.log(error); });
             }

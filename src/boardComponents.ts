@@ -152,13 +152,22 @@ export default class BoardComponents implements IService {
                 $(".board-addable-items-container,.board-manage-items-container").fadeOut();
         })
         $(window).on('resize', function () {
-            this.onResize()
+            var width = 0;
+            if ($(".sidebarCollapse.collapse").length == 0)
+                width += 230;
+            if ($("#taskBarCollapse.collapse").length == 0)
+                width += 300;
+            if ($.fn.masonryGrid)
+                $(".board-components-result .list-items").masonryGrid({
+                    'columns': parseInt((($(document).outerWidth() - width) / 300).toString())
+                });
         });
 
         this.relocateBoardComponentsHeaderActions();
         this.removeBoardGap();
     }
-    protected onResize() {
+
+    public onResize() {
         var width = 0;
         if ($(".sidebarCollapse.collapse").length == 0)
             width += 230;
@@ -169,6 +178,7 @@ export default class BoardComponents implements IService {
                 'columns': parseInt((($(document).outerWidth() - width) / 300).toString())
             });
     }
+
     protected createBoardItems(sender: IAjaxObject, context: IBoardContext, items: IResultItemDto[], addableItems: IAddableItemDto[]) {
         if (items.length == 0) return null;
         var table = $("<table>");
