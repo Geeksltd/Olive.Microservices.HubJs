@@ -5,8 +5,11 @@ import Service from '../model/service';
 
 
 export default class ErrorViewsNavigator {
-    public static goToServiceError(service: Service, url: string) {
-        let errorContent = errorTemplates.SERVICE.replace("[#URL#]", url).replace("[#SERVICE#]", service.Name);
+    public static goToServiceError(service: Service, url: string, response: JQueryXHR) {
+        let errorContent = errorTemplates.SERVICE
+            .replace("[#URL#]", url)
+            .replace("[#SERVICE#]", service.Name)
+            .replace("[#RESPONSE#]", response.responseText);
         if($('[data-module-inner-container]').length > 0)
         $("[data-module-inner-container]").html(errorContent)
         else

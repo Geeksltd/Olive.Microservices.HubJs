@@ -3,5 +3,5 @@
 /// <amd-dependency path="../extensions" />
 import Service from '../model/service';
 export default class ErrorViewsNavigator {
-    static goToServiceError(service: Service, url: string): void;
+    static goToServiceError(service: Service, url: string, response: JQueryXHR): void;
 }
