@@ -5,7 +5,6 @@ import Url from "olive/components/url";
 import AjaxRedirect from "olive/mvc/ajaxRedirect";
 import ResponseProcessor from 'olive/mvc/responseProcessor';
 import BreadcrumbMenu from "./featuresMenu/breadcrumbMenu";
-import { ModalHelper } from "lib/olive.mvc/typings/components/modal";
 import { FeaturesMenuFactory } from "./featuresMenu/featuresMenu";
 import Service from "./model/service";
 
@@ -204,7 +203,7 @@ export default class Hub implements IService {
                 navigator.serviceWorker
                     .register("service-worker.js")
                     .then(() => {
-                        console.log("Service worker registered");
+                        //console.log("Service worker registered");
                     })
                     .catch(error => { console.log(error); });
             }

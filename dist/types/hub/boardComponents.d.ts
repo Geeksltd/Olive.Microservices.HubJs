@@ -15,7 +15,7 @@ export default class BoardComponents implements IService {
     protected getResultPanel(): JQuery;
     protected getAddableItemsPanel(): JQuery;
     protected createBoardComponent(urls: string[]): Promise<void>;
-    protected onResize(): void;
+    onResize(): void;
     protected createBoardItems(sender: IAjaxObject, context: IBoardContext, items: IInfoDto[], addableButtons: IButtonDto[], widgets: IWidgetDto[], html: IHtmlDto[], boxTitle: string): JQuery;
     private getItemBox;
     private handelLinksClick;
