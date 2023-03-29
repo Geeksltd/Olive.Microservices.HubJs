@@ -398,9 +398,9 @@ export default class BoardComponents implements IService {
     }
     protected showIcon(item: any): JQuery {
         if (item.Url.indexOf("fa-") > 0) {
-            return $("<div class='icon'>").append($("<i class='" + item.Url + "'></i>"));
+            return $("<div class='icon'>").append($("<i class='" + item.icon + "'></i>"));
         } else {
-            return $("<div class='icon'>").append($("<img src='" + item.Url + "'>"));
+            return $("<div class='icon'>").append($("<img src='" + item.icon + "'>"));
         }
     }
     private generateRandomColor() {
