@@ -375,7 +375,7 @@ export default class BoardComponents implements IService {
     protected createManageItem(item: IMenuDto, context: IBoardContext) {
         return $("<div class=\"menu-item\">")
             .append($("<a href='" + item.Url + ">")
-                .append((item.Url === null || item.Url === undefined) ?
+                .append((item.Icon === null || item.Icon === undefined) ?
                     $("<div class='icon'>") : this.showIcon(item)
                         .append(item.Name)
                         .append($("<small>")
@@ -397,10 +397,10 @@ export default class BoardComponents implements IService {
         });
     }
     protected showIcon(item: any): JQuery {
-        if (item.Url.indexOf("fa-") > 0) {
-            return $("<div class='icon'>").append($("<i class='" + item.icon + "'></i>"));
+        if (item.Icon.indexOf("fa-") > 0) {
+            return $("<div class='icon'>").append($("<i class='" + item.Icon + "'></i>"));
         } else {
-            return $("<div class='icon'>").append($("<img src='" + item.icon + "'>"));
+            return $("<div class='icon'>").append($("<img src='" + item.Icon + "'>"));
         }
     }
     private generateRandomColor() {
