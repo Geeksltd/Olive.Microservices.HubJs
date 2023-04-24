@@ -148,7 +148,8 @@ export default class BoardComponents implements IService {
     }
     protected createBoardItems(sender: IAjaxObject, context: IBoardContext, items: IInfoDto[], addableButtons: IButtonDto[], widgets: IWidgetDto[], html: IHtmlDto[], boxTitle: string) {
         if (items.length == 0 && widgets.length == 0 && html.length == 0) return null;
-        var table = $("<table>");
+        var content = $("<table>");
+        if (items.length == 0 && widgets.length != 0 && html.length == 0) content = $("<div>");
         var colour = "#aaa"
         if (items.length > 0) colour = items[0].BoxColour
         else if (widgets.length > 0) colour = widgets[0].BoxColour
@@ -162,18 +163,18 @@ export default class BoardComponents implements IService {
 
         for (let i = 0; i < items.length; i++) {
             context.resultCount++;
-            table.append(this.createInfo(items[i], context));
+            content.append(this.createInfo(items[i], context));
         }
         for (let i = 0; i < widgets.length; i++) {
             context.resultCount++;
-            table.append('<tr><td data-url="' + widgets[i].Url + '"><br/><br/><center>loading...</center></td></tr>');
+            content.append('<div data-url="' + widgets[i].Url + '"><br/><br/><center>loading...</center></div>');
             this.createWidgets(widgets[i], context);
         }
         for (let i = 0; i < html.length; i++) {
             context.resultCount++;
-            table.append('<tr><td>' + html[i].RawHtml + '</td></tr>');
+            content.append('<tr><td>' + html[i].RawHtml + '</td></tr>');
         }
-        searchItem.append($("<div>").append(table))
+        searchItem.append($("<div>").append(content))
         return searchItem;
     }
     private getItemBox(button: IButtonDto) {
@@ -345,7 +346,7 @@ export default class BoardComponents implements IService {
     }
     protected createWidgets(item: IWidgetDto, context: IBoardContext) {
         const callback = htmlContent => {
-            $("td[data-url='" + item.Url + "']").html(htmlContent);
+            $("div[data-url='" + item.Url + "']").html(htmlContent);
         }
         $.ajax({
             url: item.Url,
