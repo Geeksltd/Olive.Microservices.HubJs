@@ -78,6 +78,7 @@ export declare enum ActionEnum {
 export interface IInfoDto {
     BoxColour: string;
     BoxTitle: string;
+    BoxOrder?: number;
     Url: string;
     Name: string;
     Description?: string;
@@ -87,6 +88,7 @@ export interface IInfoDto {
 export interface IButtonDto {
     BoxColour: string;
     BoxTitle: string;
+    BoxOrder?: number;
     Icon: string;
     Url: string;
     Text?: string;
@@ -102,12 +104,14 @@ export interface IIntroDto {
 export interface IWidgetDto {
     BoxColour: string;
     BoxTitle: string;
+    BoxOrder?: number;
     Url: string;
     Result: JQuery;
 }
 export interface IHtmlDto {
     BoxColour: string;
     BoxTitle: string;
+    BoxOrder?: number;
     RawHtml: string;
 }
 export interface IMenuDto {
@@ -115,6 +119,11 @@ export interface IMenuDto {
     Name: string;
     Body?: string;
     Icon?: string;
+}
+export interface Box {
+    BoxColour: string;
+    BoxTitle: string;
+    BoxOrder?: number;
 }
 export interface IBoardResultDto {
     Widgets?: IWidgetDto[];

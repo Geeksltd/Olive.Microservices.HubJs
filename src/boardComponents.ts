@@ -505,8 +505,10 @@ export default class BoardComponents implements IService {
                 }, {}); // empty object is the initial value for result object
             };
 
-            var personGroupedByType = resultfiltered.map((v) => v.BoxTitle).concat(result.Widgets?.map((v) => v.BoxTitle) ?? []).concat(result.Htmls?.map((v) => v.BoxTitle) ?? []);
-            const boardBoxes = personGroupedByType.filter(this.onlyUnique)
+            var personGroupedByType = resultfiltered.map((v) => ( {title:v.BoxTitle, order:v.BoxOrder || 100 }))
+                                        .concat(result.Widgets?.map((v) => ( {title:v.BoxTitle, order:v.BoxOrder || 100 })) || [])
+                                        .concat(result.Htmls?.map((v) => ( {title:v.BoxTitle, order:v.BoxOrder || 100 })) || []);
+            const boardBoxes = personGroupedByType.sort((a,b) => b.order-a.order).map((v)=> v.title).filter(this.onlyUnique)
             var that = this;
             if (boardBoxes !== undefined && boardBoxes.length > 0) {
                 for (var index = 0; index < boardBoxes.length; index++) {
@@ -643,6 +645,7 @@ export enum ActionEnum {
 export interface IInfoDto {
     BoxColour: string;
     BoxTitle: string;
+    BoxOrder?: number;
     Url: string;
     Name: string;
     Description?: string;
@@ -653,6 +656,7 @@ export interface IInfoDto {
 export interface IButtonDto {
     BoxColour: string;
     BoxTitle: string;
+    BoxOrder?: number;
     Icon: string;
     Url: string;
     Text?: string;
@@ -670,6 +674,7 @@ export interface IIntroDto {
 export interface IWidgetDto {
     BoxColour: string;
     BoxTitle: string;
+    BoxOrder?: number;
     Url: string;
     Result: JQuery;
 }
@@ -677,6 +682,7 @@ export interface IWidgetDto {
 export interface IHtmlDto {
     BoxColour: string;
     BoxTitle: string;
+    BoxOrder?: number;
     RawHtml: string;
 }
 export interface IMenuDto {
@@ -684,6 +690,11 @@ export interface IMenuDto {
     Name: string;
     Body?: string;
     Icon?: string;
+}
+export interface Box {
+    BoxColour: string;
+    BoxTitle: string;
+    BoxOrder?: number;
 }
 
 export interface IBoardResultDto {
