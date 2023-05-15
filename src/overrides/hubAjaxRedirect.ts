@@ -21,7 +21,7 @@ export default class HubAjaxRedirect extends AjaxRedirect {
         else {
             let service = Service.fromUrl(url);
             if (service)
-                ErrorViewsNavigator.goToServiceError(service, url);
+                ErrorViewsNavigator.goToServiceError(service, url, response);
             else
                 super.onRedirectionFailed(url, response);
         }

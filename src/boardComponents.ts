@@ -19,38 +19,8 @@ export default class BoardComponents implements IService {
         var urls = input.attr("data-board-source").split(";");
         this.filterInput = this.input.parent().find(".board-components-filter");
         this.ajaxRedirect = ajaxRedirect;
-        this.filterEnable()
         this.modalHelper = modalHelper;
-        this.createSearchComponent(urls);
-    }
-
-    private filterEnable() {
-        this.filterInput.off("keyup.board-components-filter").on("keyup.board-components-filter",
-            function () {
-                if (this.timer != null && this.timer != undefined)
-                    clearTimeout(this.timer)
-                setTimeout(function () {
-                    window.page.board.onChanged()
-                }, 200)
-            }
-        );
-
-        this.filterInput.on("keydown", e => {
-            if (e.keyCode == 13) e.preventDefault();
-        });
-    }
-    private onChanged(event: any) {
-        this.filterInput = this.filterInput || $(event.currentTarget);
-        let keywords = this.filterInput.val().toLowerCase().split(' ');
-        let rows = $(".hub-service").find('.board-components-result .item,.olive-instant-search-item');
-        rows.each((index, e) => {
-            let row = $(e);
-            let content = row.text().toLowerCase();
-            let hasAllKeywords = keywords.filter((i) => content.indexOf(i) == -1).length == 0;
-            if (hasAllKeywords) row.show(); else row.hide();
-            if (index == (rows.length - 1))
-                window.page.board.onResize()
-        });
+        this.createBoardComponent(urls);
     }
 
     protected getResultPanel() {
@@ -82,7 +52,7 @@ export default class BoardComponents implements IService {
         return resultPanel;
     }
 
-    protected createSearchComponent(urls: string[]) {
+    protected async createBoardComponent(urls: string[]) {
 
         var currentUrl = document.URL;
         if (currentUrl != undefined && currentUrl != null && currentUrl.contains("?$")) {
@@ -108,10 +78,8 @@ export default class BoardComponents implements IService {
             this.ajaxRedirect.go(serviceName + (urlToLoad.startsWith('/') ? '' : '/') + urlToLoad, $("[data-module-inner]"), false, false, false)
         }
         const ajaxList = urls.map((p): IAjaxObject => {
-            const icon = p.split("#")[1].trim();
             return {
-                url: p.split("#")[0].trim(),
-                icon,
+                url: p,
                 state: AjaxState.pending,
             };
         });
@@ -120,8 +88,8 @@ export default class BoardComponents implements IService {
             ajaxList,
             ajaxCallCount: 0,
             resultCount: 0,
-            resultPanel,
-            addableItemsPanel,
+            resultPanel: resultPanel,
+            addableItemsPanel: addableItemsPanel,
             boardHolder: boardHolder,
             addabledItemsHolder: addabledItemsHolder,
             beginSearchStarted: true,
@@ -141,7 +109,7 @@ export default class BoardComponents implements IService {
                     url: ajaxObject.url,
                     xhrFields: { withCredentials: true },
                     async: true,
-                    data: { boardItemId: context.boardItemId, boardType: context.boardType },
+                    data: { id: context.boardItemId, type: context.boardType },
                     success: (result) => this.onSuccess(ajaxObject, context, result, false),
                     complete: (jqXhr) => this.onComplete(context, jqXhr),
                     error: (jqXhr) => this.onError(ajaxObject, context.boardHolder, jqXhr),
@@ -178,28 +146,41 @@ export default class BoardComponents implements IService {
                 'columns': parseInt((($(document).outerWidth() - width) / 300).toString())
             });
     }
+    protected createBoardItems(sender: IAjaxObject, context: IBoardContext, items: IInfoDto[], addableButtons: IButtonDto[], widgets: IWidgetDto[], html: IHtmlDto[], boxTitle: string) {
+        if (items.length == 0 && widgets.length == 0 && html.length == 0) return null;
+        var content = $("<table>");
+        if (items.length == 0 && widgets.length != 0 && html.length == 0) content = $("<div>");
+        var colour = "#aaa"
+        if (items.length > 0) colour = items[0].BoxColour
+        else if (widgets.length > 0) colour = widgets[0].BoxColour
+        else if (html.length > 0) colour = html[0].BoxColour
 
-    protected createBoardItems(sender: IAjaxObject, context: IBoardContext, items: IResultItemDto[], addableItems: IAddableItemDto[]) {
-        if (items.length == 0) return null;
-        var table = $("<table>");
-
-        const searchItem = $("<div class='item' data-type='" + items[0].Type + "'>");
-        const h3 = $('<h3 >').html(items[0].Type + (items[0].Type.endsWith("s") ? "" : "s")).append(this.createHeaderAction(items[0].Type, addableItems))
-        searchItem.append($("<div class='header' " + " style=\"" + this.addColour(items[0]) + "\">").append(h3))
+        const searchItem = $("<div class='item' data-type='" + boxTitle + "'>");
+        const h3 = $('<h3 >').html(boxTitle + (boxTitle.endsWith("s") ? "" : "s")).append(this.createHeaderAction(boxTitle, addableButtons))
+        searchItem.append($("<div class='header' " + " style=\"" + this.addColour(colour) + "\">").append(h3))
 
         //table.append($("<tr>").append($("<th " + "' style=\"" + this.addColour(items[0]) + "\" " + ">")
 
         for (let i = 0; i < items.length; i++) {
             context.resultCount++;
-            table.append(this.createItem(items[i], context));
+            content.append(this.createInfo(items[i], context));
         }
-        searchItem.append($("<div>").append(table))
+        for (let i = 0; i < widgets.length; i++) {
+            context.resultCount++;
+            content.append('<div data-url="' + widgets[i].Url + '"><br/><br/><center>loading...</center></div>');
+            this.createWidgets(widgets[i], context);
+        }
+        for (let i = 0; i < html.length; i++) {
+            context.resultCount++;
+            content.append('<tr><td>' + html[i].RawHtml + '</td></tr>');
+        }
+        searchItem.append($("<div>").append(content))
         return searchItem;
     }
-    private getItemType(addableItem: IAddableItemDto) {
-        if (addableItem.Type == null || addableItem.Type == '' || addableItem.Type == undefined)
-            return addableItem.Name;
-        return addableItem.Type;
+    private getItemBox(button: IButtonDto) {
+        if (button.BoxTitle == null || button.BoxTitle == '' || button.BoxTitle == undefined)
+            return button.BoxColour;
+        return button.BoxTitle;
     }
     private handelLinksClick(link: any) {
         var ajaxredirect = this.ajaxRedirect;
@@ -208,7 +189,7 @@ export default class BoardComponents implements IService {
             $(".board-links .btn").removeClass("active")
             $(this).addClass("active")
             var url = $(this).attr("href");
-            var serviceName = ''
+            var serviceName = '';
             var urlToLoad = $(this).attr("href");
             // var urlToLoad = new Url().getQuery("url", $(this).attr("href"));
             // if (!urlToLoad) {
@@ -238,42 +219,24 @@ export default class BoardComponents implements IService {
             return false;
         })
     }
-    protected createHeaderAction(type: String, addableItems: IAddableItemDto[]) {
-        const manageFiltered = addableItems.filter((p) => p.ManageUrl != null && p.ManageUrl != undefined && this.getItemType(p) == type);
-        const addFiltered = addableItems.filter((p) => p.AddUrl != null && p.AddUrl != undefined && this.getItemType(p) == type);
+    //Adding menu Items and buttons
+    protected createHeaderAction(boxTitle: String, addableButtons: IButtonDto[]) {
+        const buttons = addableButtons.filter((p) => p.Url != null && p.Url != undefined && this.getItemBox(p) == boxTitle);
 
         const headerAction = $("<div class='header-actions'>");
-
-        if (addFiltered.length > 0) {
-            var item = addFiltered[0];
+        for (let i = 0; i < buttons.length; i++) {
+            var item = addableButtons[i]
             var attr = "";
             if (item.Action == ActionEnum.Popup)
                 attr = "target=\"$modal\"";
             else if (item.Action == ActionEnum.NewWindow)
                 attr = "target=\"_blank\"";
-            headerAction.append($("<a href='" + item.AddUrl.replace("https://hub." + getMainDomain(), "") + "' " + attr + ">").append('<i class="fas fa-plus" aria-hidden="true"></i>'));
-        }
 
-        if (manageFiltered.length > 0) {
-            var item = manageFiltered[0];
-            var attr = "";
-            if (item.Action == ActionEnum.Popup)
-                attr = "target=\"$modal\"";
-            else if (item.Action == ActionEnum.NewWindow)
-                attr = "target=\"_blank\"";
-            headerAction.append($("<a href='" + item.ManageUrl.replace("https://hub." + getMainDomain(), "") + "' " + attr + ">").append('<i class="fa fa-cog" aria-hidden="true"></i>'));
+            headerAction.append($("<a href='" + item.Url.replace("https://hub." + getMainDomain(), "") + "' " + attr + ">").append('<i class="' + item.Icon + '" aria-hidden="true"></i>'));
         }
         return headerAction;
     }
-
-    protected isemptystring(str: string) {
-        if ((typeof str == 'undefined') || (str == null) || (!str) || (str.length === 0) || (str === "") || (!/[^\s]/.test(str)) || (/^\s*$/.test(str)) || (str.replace(/\s/g, "") === ""))
-            return true;
-        else
-            return false;
-    }
-
-    protected createAddableItems(sender: IAjaxObject, context: IBoardContext, items: IAddableItemDto[]) {
+    protected createAddableItems(sender: IAjaxObject, context: IBoardContext, items: IMenuDto[]) {
         const result = $(".board-addable-items-container");
 
         for (let i = 0; i < items.length; i++) {
@@ -282,15 +245,18 @@ export default class BoardComponents implements IService {
         }
         return result;
     }
-    protected createBoardIntro(sender: IAjaxObject, context: IBoardContext, intro: IBoardComponentsIntroDto) {
+    protected createBoardIntro(sender: IAjaxObject, context: IBoardContext, intro: IIntroDto) {
         const result = $(".board-components-result");
         if ($(".board-image:visible").length > 0) return;
-        $(".board-image").append($("<a href='" + intro.BoardUrl + "' >").append(this.showIntroImage(intro).prop('outerHTML')))
+        $(".board-image").append($("<a href='" + intro.Url + "' >").append(this.showIntroImage(intro).prop('outerHTML')))
         $(".board-info").append(
             $('<div class="col-md-9"><h2 class="mb-2">' + intro.Name + '</h2>\
             <div class="text-gray">' + intro.Description + '</div></div>'))
-        $('.board-header').show();
+        $('.board-header').show()
+
         return result;
+
+
     }
 
     protected relocateBoardComponentsHeaderActions() {
@@ -323,7 +289,7 @@ export default class BoardComponents implements IService {
         }
     }
 
-    protected createManageItems(sender: IAjaxObject, context: IBoardContext, items: IAddableItemDto[]) {
+    protected createManageItems(sender: IAjaxObject, context: IBoardContext, items: IMenuDto[]) {
         let result = $(".board-manage-items-container");
         if (result.length == 0) {
             result = $("<div class='board-manage-items-container'>");
@@ -337,13 +303,13 @@ export default class BoardComponents implements IService {
         });
         for (let i = 0; i < items.length; i++) {
             var item = items[i];
-            if ($("a[href='" + item.ManageUrl + "']").length > 0)
-                $("a[href='" + item.ManageUrl + "']").remove();
+            if ($("a[href='" + item.Url + "']").length > 0)
+                $("a[href='" + item.Url + "']").remove();
             result.append(this.createManageItem(items[i], context));
             var attr = "";
-            if (item.Action == ActionEnum.Popup)
+            if (item[i].Action == ActionEnum.Popup)
                 attr = "target=\"$modal\"";
-            else if (item.Action == ActionEnum.NewWindow)
+            else if (item[i].Action == ActionEnum.NewWindow)
                 attr = "target=\"_blank\"";
             //var link = $("<a class='btn btn-primary' href='" + this.boardPath + "?$boardContent={" + items[i].ManageUrl + "}'" + attr + ">")
             //var link = $("<a class='btn btn-primary' href='" + items[i].ManageUrl + "'" + attr + ">")
@@ -352,7 +318,7 @@ export default class BoardComponents implements IService {
             //else
             //    var link = $("<a class='btn btn-primary' href='" + items[i].ManageUrl + "'" + attr + ">")
 
-            var link = $("<a class='btn btn-primary' href='" + items[i].ManageUrl + "'" + " data-redirect='ajax' " + " ajax-target='board-body' " + attr + ">")
+            var link = $("<a class='btn btn-primary' href='" + items[i].Url + "'" + " data-redirect='ajax' " + " ajax-target='board-body' " + attr + ">")
 
             link.append(item.Name)
             headerLinks.append(link);
@@ -360,12 +326,12 @@ export default class BoardComponents implements IService {
         }
         return result;
     }
-    protected addColour(item: IResultItemDto) {
-        if (item.Colour != undefined && item.Colour != null && item.Colour != "")
-            return "background-color:" + item.Colour + ";"
+    protected addColour(color: string) {
+        if (color != undefined && color != null && color != "")
+            return "background-color:" + color + ";"
         return "background-color:#aaa;";
     }
-    protected createItem(item: IResultItemDto, context: IBoardContext) {
+    protected createInfo(item: IInfoDto, context: IBoardContext) {
         var attr = "";
         if (item.Action == ActionEnum.Popup)
             attr = "target=\"$modal\"";
@@ -374,35 +340,43 @@ export default class BoardComponents implements IService {
 
         return $("<tr>").append($("<td >")
             .append($("<a href='" + item.Url + "' " + attr + " >")
-                .append((item.IconUrl === null || item.IconUrl === undefined) ? $("<div class='icon'>") : this.showIcon(item))
+                .append((item.Icon === null || item.Icon === undefined) ? $("<div class='icon'>") : this.showIcon(item))
                 .append($("<div>").append($("<span class=\"board-component-name\">").append(item.Name))
-                    .append($("<span>").html(item.Body)))));
+                    .append($("<span>").html(item.Description)))));
     }
-    protected createAddableItem(item: IAddableItemDto, context: IBoardContext) {
-        var attr = "";
-        if (item.Action == ActionEnum.Popup)
-            attr = "target=\"$modal\"";
-        else if (item.Action == ActionEnum.NewWindow)
-            attr = "target=\"_blank\"";
+    protected createWidgets(item: IWidgetDto, context: IBoardContext) {
+        const callback = htmlContent => {
+            $("div[data-url='" + item.Url + "']").html(htmlContent);
+        }
+        $.ajax({
+            url: item.Url,
+            type: 'GET',
+            async: true,
+            xhrFields: { withCredentials: true },
+            success: (response) => {
+                callback(response);
+            },
+            error: (response, x) => {
+                console.log(response);
+                console.log(x);
+                callback("<br/><br/><br/><center>Failed to load <a target='_blank' href='" + this.input.attr("src") + "'>widget</a></center>");
+            }
+        });
+    }
+    protected createAddableItem(item: IMenuDto, context: IBoardContext) {
         return $("<div class=\"menu-item\">")
-            .append($("<a href='" + item.AddUrl + "' " + attr + "'>")
-                .append((item.IconUrl === null || item.IconUrl === undefined) ?
+            .append($("<a href='" + item.Url + ">")
+                .append((item.Icon === null || item.Icon === undefined) ?
                     $("<div class='icon'>") : this.showIcon(item)
                         .append(item.Name)
                         .append($("<small>")
                             .html(item.Body))));
     }
 
-    protected createManageItem(item: IAddableItemDto, context: IBoardContext) {
-        var attr = "";
-        if (item.Action == ActionEnum.Popup)
-            attr = "target=\"$modal\"";
-        else if (item.Action == ActionEnum.NewWindow)
-            attr = "target=\"_blank\"";
-
+    protected createManageItem(item: IMenuDto, context: IBoardContext) {
         return $("<div class=\"menu-item\">")
-            .append($("<a href='" + item.ManageUrl + "' " + attr + "'>")
-                .append((item.IconUrl === null || item.IconUrl === undefined) ?
+            .append($("<a href='" + item.Url + ">")
+                .append((item.Icon === null || item.Icon === undefined) ?
                     $("<div class='icon'>") : this.showIcon(item)
                         .append(item.Name)
                         .append($("<small>")
@@ -424,10 +398,10 @@ export default class BoardComponents implements IService {
         });
     }
     protected showIcon(item: any): JQuery {
-        if (item.IconUrl.indexOf("fa-") > 0) {
-            return $("<div class='icon'>").append($("<i class='" + item.IconUrl + "'></i>"));
+        if (item.Icon.indexOf("fa-") > 0) {
+            return $("<div class='icon'>").append($("<i class='" + item.Icon + "'></i>"));
         } else {
-            return $("<div class='icon'>").append($("<img src='" + item.IconUrl + "'>"));
+            return $("<div class='icon'>").append($("<img src='" + item.Icon + "'>"));
         }
     }
     private generateRandomColor() {
@@ -435,6 +409,9 @@ export default class BoardComponents implements IService {
     }
 
     private generateStaticColorFromName(name) {
+        if (name === null || name === undefined || name === "") {
+            return "#000000";
+        }
         var hash = 0;
         for (var i = 0; i < name.length; i++) {
             hash = name.charCodeAt(i) + ((hash << 5) - hash);
@@ -448,6 +425,9 @@ export default class BoardComponents implements IService {
     }
 
     private getTextColor(hexcolor) {
+        if (hexcolor === null || hexcolor === undefined || hexcolor === "") {
+            return 'white';
+        }
         hexcolor = hexcolor.replace("#", "");
         var r = parseInt(hexcolor.substr(0, 2), 16);
         var g = parseInt(hexcolor.substr(2, 2), 16);
@@ -456,9 +436,12 @@ export default class BoardComponents implements IService {
         return (yiq >= 128) ? 'black' : 'white';
     }
     protected showIntroImage(intro: any): JQuery {
-        var iconText = intro.Name.substr(0, 2);
-        if (intro.Name.contains("href")) {
-            iconText = intro.Name.substr(intro.Name.lastIndexOf("➝") + 2, 2);
+        var iconText = "";
+        if (intro.Name !== null && intro.Name !== undefined && intro.Name !== "") {
+            iconText = intro.Name.substr(0, 2);
+            if (intro.Name.contains("href")) {
+                iconText = intro.Name.substr(intro.Name.lastIndexOf("➝") + 2, 2);
+            }
         }
         var staticColor = this.generateStaticColorFromName(intro.Name);
         var textColor = this.getTextColor(staticColor);
@@ -466,6 +449,7 @@ export default class BoardComponents implements IService {
             .css("background-color", staticColor)
             .css("color", textColor)
             .append(iconText);
+
         if (intro.ImageUrl == null || intro.ImageUrl == "" || intro.ImageUrl == undefined) {
             return projectNameIcon;
         }
@@ -501,14 +485,14 @@ export default class BoardComponents implements IService {
         this.myStorage.setItem(projectId + "_" + key, JSON.stringify(value))
     }
     protected onSuccess(sender: IAjaxObject, context: IBoardContext, result: IBoardResultDto, loadFromCaceh: boolean) {
-        sender.result = result.Results;
+        sender.result = result;
         var cache = this.getItem(sender.url)
         if (!loadFromCaceh && JSON.stringify(cache) === JSON.stringify(result)) return
         this.setItem(sender.url, result)
-        if (result !== null && result !== undefined && typeof (result.Results) === typeof ([])) {
+        if (result !== null && result !== undefined && typeof (result.Infos) === typeof ([])) {
             sender.state = AjaxState.success;
 
-            const resultfiltered = result.Results.filter((p) => this.isValidResult(p, context));
+            const resultfiltered = result.Infos?.filter((p) => this.isValidResult(p, context)) ?? [];
             const groupBy = (array, key) => {
                 // Return the end result
                 return array.reduce((result, currentValue) => {
@@ -521,60 +505,69 @@ export default class BoardComponents implements IService {
                 }, {}); // empty object is the initial value for result object
             };
 
-            const personGroupedByType = groupBy(resultfiltered, 'Type');
+            var personGroupedByType = resultfiltered.map((v) => v.BoxTitle).concat(result.Widgets?.map((v) => v.BoxTitle) ?? []).concat(result.Htmls?.map((v) => v.BoxTitle) ?? []);
+            const boardBoxes = personGroupedByType.filter(this.onlyUnique)
             var that = this;
-            for (var element in personGroupedByType) {
-                //var element = personGroupedByType[i]
-                var filterdResult = resultfiltered.filter((p) => p.Type == element);
+            if (boardBoxes !== undefined && boardBoxes.length > 0) {
+                for (var index = 0; index < boardBoxes.length; index++) {
+                    var element = boardBoxes[index]
+                    var filteredInfo = resultfiltered.filter((p) => p.BoxTitle == element) ?? [];
+                    var filteredWidgets = result.Widgets?.filter((p) => p.BoxTitle == element) ?? [];
+                    var filteredHtmls = result.Htmls?.filter((p) => p.BoxTitle == element) ?? [];
+                    var filteredButtons = result.Buttons?.filter((p) => p.BoxTitle == element) ?? [];
 
-                const boardItem = that.createBoardItems(sender, context, filterdResult, result.AddabledItems);
-                if ($('.board-components-result .item[data-type="' + element + '"]').length > 0) {
-                    var item = $('.board-components-result .item[data-type="' + element + '"]')
-                    $(boardItem).attr('class', item.attr('class')).attr('id', $(item).attr('id'))
-                    $(item).replaceWith(boardItem);
+                    const boardItem = that.createBoardItems(sender, context, filteredInfo, filteredButtons, filteredWidgets, filteredHtmls, element);
+                    if ($('.board-components-result .item[data-type="' + element + '"]').length > 0) {
+                        var item = $('.board-components-result .item[data-type="' + element + '"]')
+                        $(boardItem).attr('class', item.attr('class')).attr('id', $(item).attr('id'))
+                        $(item).replaceWith(boardItem);
+                    }
+                    else if (element.startsWith("Timesheet since")) {
+                        $('.board-components-result .item[data-type]').each(function () {
+                            if ($(this).attr("data-type").startsWith("Timesheet since")) {
+                                $(boardItem).attr('class', $(this).attr('class')).attr('id', $(this).attr('id'))
+                                $(this).replaceWith(boardItem)
+                            }
+                        });
+                    }
+                    else {
+                        context.boardHolder.append(boardItem);
+                    }
                 }
-                else if (element.startsWith("Timesheet since")) {
-                    $('.board-components-result .item[data-type]').each(function () {
-                        if ($(this).attr("data-type").startsWith("Timesheet since")) {
-                            $(boardItem).attr('class', $(this).attr('class')).attr('id', $(this).attr('id'))
-                            $(this).replaceWith(boardItem)
-                        }
-                    });
-                }
-                else
-                    context.boardHolder.append(boardItem);
             }
-
             if (!loadFromCaceh)
                 this.onResize();
 
-            if (resultfiltered.length > 0) {
-
+            if (resultfiltered.length > 0 || (result.Widgets && result.Widgets.length > 0) || (result.Htmls && result.Htmls.length > 0)) {
+                console.log("resultfiltered has item");
                 context.resultPanel.append(context.boardHolder);
             }
-            if (result !== null && result !== undefined && typeof (result.AddabledItems) === typeof ([])) {
+            if (result !== null && result !== undefined && result.menus !== null && result.menus !== undefined && typeof (result.menus) === typeof ([])) {
                 sender.state = AjaxState.success;
 
                 var header = this.filterInput.parent();
 
-                const managefiltered = result.AddabledItems.filter((p) => p.ManageUrl != null && p.ManageUrl != undefined);
+                const managefiltered = result.menus?.filter((p) => p.Url != null && p.Url != undefined) ?? [];
                 const manageItem = this.createManageItems(sender, context, managefiltered);
-                const resultfiltered = result.AddabledItems.filter((p) => p.AddUrl != null && p.AddUrl != undefined);
+                const resultfiltered = result.menus?.filter((p) => p.Url != null && p.Url != undefined) ?? [];
 
                 const addabledItem = this.createAddableItems(sender, context, resultfiltered);
             }
-            if (result !== null && result !== undefined && result.BoardComponentsIntro !== null
-                && result.BoardComponentsIntro !== undefined && result.BoardComponentsIntro.Name) {
-                this.createBoardIntro(sender, context, result.BoardComponentsIntro)
+            if (result !== null && result !== undefined && result.Intros !== null && result.Intros !== undefined && result.Intros[0] !== null
+                && result.Intros[0] !== undefined && result.Intros[0].Name !== null) {
+                this.createBoardIntro(sender, context, result.Intros[0])
             }
 
         } else {
             sender.state = AjaxState.failed;
-            console.error("ajax success but failed to decode the response -> wellform expcted response is like this: [{Title:'',Description:'',IconUrl:'',Url:''}] ");
+            console.error("ajax success but failed to decode the response -> wellform expcted response is like this: [{Title:'',Description:'',Url:'',Url:''}] ");
         }
     }
-    protected isValidResult(item: IResultItemDto, context: IBoardContext) {
+    protected isValidResult(item: IInfoDto, context: IBoardContext) {
         return true;
+    }
+    protected onlyUnique(value, index, self) {
+        return self.indexOf(value) === index;
     }
     protected onComplete(context: IBoardContext, jqXHR: JQueryXHR) {
         context.ajaxCallCount++;
@@ -628,43 +621,10 @@ export interface IBoardContext {
 }
 export interface IAjaxObject {
     url: string;
-    icon: string;
     state: AjaxState;
     ajx?: JQueryXHR;
     displayMessage?: string;
-    result?: IResultItemDto[];
-}
-
-
-export interface IResultItemDto {
-    Name: string;
-    Type: string;
-    Body: string;
-    IconUrl: string;
-    Action: ActionEnum;
-    Url: string;
-    Colour: string;
-}
-
-export interface IAddableItemDto {
-    Name: string;
-    Type: string;
-    Body: string;
-    IconUrl: string;
-    AddUrl: string;
-    ManageUrl: string;
-    Action: ActionEnum;
-}
-export interface IBoardComponentsIntroDto {
-    Name: string;
-    Description: string;
-    ImageUrl: string;
-    BoardUrl: string;
-}
-export interface IBoardResultDto {
-    Results: IResultItemDto[];
-    AddabledItems: IAddableItemDto[];
-    BoardComponentsIntro: IBoardComponentsIntroDto;
+    result?: IBoardResultDto;
 }
 
 export enum AjaxState {
@@ -678,4 +638,60 @@ export enum ActionEnum {
     NewWindow,
 }
 
+
+
+export interface IInfoDto {
+    BoxColour: string;
+    BoxTitle: string;
+    Url: string;
+    Name: string;
+    Description?: string;
+    Icon?: string;
+    Action: ActionEnum;
+}
+
+export interface IButtonDto {
+    BoxColour: string;
+    BoxTitle: string;
+    Icon: string;
+    Url: string;
+    Text?: string;
+    Tooltip?: string;
+    Action: ActionEnum;
+}
+
+export interface IIntroDto {
+    Url: string;
+    Name: string;
+    ImageUrl?: string;
+    Description?: string;
+}
+
+export interface IWidgetDto {
+    BoxColour: string;
+    BoxTitle: string;
+    Url: string;
+    Result: JQuery;
+}
+
+export interface IHtmlDto {
+    BoxColour: string;
+    BoxTitle: string;
+    RawHtml: string;
+}
+export interface IMenuDto {
+    Url: string;
+    Name: string;
+    Body?: string;
+    Icon?: string;
+}
+
+export interface IBoardResultDto {
+    Widgets?: IWidgetDto[];
+    Htmls?: IHtmlDto[];
+    Buttons?: IButtonDto[];
+    Infos?: IInfoDto[];
+    menus?: IMenuDto[];
+    Intros?: IIntroDto[];
+}
 //var boardComponents = new BoardComponents($(".board-components"));

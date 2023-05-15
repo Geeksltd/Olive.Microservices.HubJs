@@ -6,7 +6,6 @@ import AjaxRedirect from "olive/mvc/ajaxRedirect";
 import ResponseProcessor from 'olive/mvc/responseProcessor';
 import BreadcrumbMenu from "./featuresMenu/breadcrumbMenu";
 import { FeaturesMenuFactory } from "./featuresMenu/featuresMenu";
-import HubInstantSearch from "./hubInstantSearch";
 import Service from "./model/service";
 
 export default class Hub implements IService {
@@ -40,7 +39,6 @@ export default class Hub implements IService {
         this.initServiceWorker();
 
         this.loadServiceHealthChecks();
-        HubInstantSearch.enable($("[name=HubInstantSearch]"));
     }
 
     initRightTaskMenu() {

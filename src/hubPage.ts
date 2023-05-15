@@ -3,7 +3,6 @@ import OlivePage from 'olive/olivePage';
 import { FeaturesMenuFactory } from './featuresMenu/featuresMenu';
 import BadgeNumber from './badgeNumber';
 import ToggleCheckbox from './toggleCheckbox';
-import WidgetModule from './widgetModule';
 import ExpandCollapse from './expandCollapse';
 import BreadcrumbMenu from './featuresMenu/breadcrumbMenu';
 import FullMenuFiltering from './featuresMenu/fullMenuFiltering';
@@ -154,11 +153,28 @@ export default class HubPage extends OlivePage {
         this.getService<FeaturesMenuFactory>(HubServices.FeaturesMenuFactory).bindItemListClick();
         this.getService<BreadcrumbMenu>(HubServices.BreadcrumbMenu).bindItemListClick();
         ToggleCheckbox.enableToggleCheckbox($("input[class='form-check']"));
-        WidgetModule.enableWidget($("Widget"));
 
         const currentPath = this.getPathName();
         if (currentPath != undefined && currentPath != null && currentPath.pathname != undefined && currentPath.pathname != null) {
-            if (currentPath.pathname.startsWith("/hub/project/") || currentPath.pathname.startsWith("/project/") || currentPath.pathname.startsWith("/person/")) {
+            if (
+                currentPath.pathname.startsWith("/hub/project/") ||
+                currentPath.pathname.startsWith("/project/") ||
+
+                currentPath.pathname.startsWith("/hub/person/") ||
+                currentPath.pathname.startsWith("/person/") ||
+
+                currentPath.pathname.startsWith("/hub/enrolment/") ||
+                currentPath.pathname.startsWith("/enrolment/") ||
+
+                currentPath.pathname.startsWith("/hub/programme/") ||
+                currentPath.pathname.startsWith("/programme/") ||
+
+                currentPath.pathname.startsWith("/hub/module/") ||
+                currentPath.pathname.startsWith("/module/") ||
+
+                currentPath.pathname.startsWith("/hub/moduleoffer/") ||
+                    currentPath.pathname.startsWith("/moduleoffer/")
+            ) {
 
                 var masonryGrids = $(".board-components-result").find(".masonry-grid-origin");
                 if (masonryGrids == undefined || masonryGrids == null || masonryGrids.length == 0) {
