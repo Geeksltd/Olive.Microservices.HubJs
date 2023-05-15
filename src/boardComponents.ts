@@ -307,10 +307,10 @@ export default class BoardComponents implements IService {
                 $("a[href='" + item.Url + "']").remove();
             result.append(this.createManageItem(items[i], context));
             var attr = "";
-            if (item[i].Action == ActionEnum.Popup)
-                attr = "target=\"$modal\"";
-            else if (item[i].Action == ActionEnum.NewWindow)
-                attr = "target=\"_blank\"";
+            // if (item[i].Action == ActionEnum.Popup)
+            //     attr = "target=\"$modal\"";
+            // else if (item[i].Action == ActionEnum.NewWindow)
+            attr = "target=\"_blank\"";
             //var link = $("<a class='btn btn-primary' href='" + this.boardPath + "?$boardContent={" + items[i].ManageUrl + "}'" + attr + ">")
             //var link = $("<a class='btn btn-primary' href='" + items[i].ManageUrl + "'" + attr + ">")
             //if (items[i].ManageUrl.contains("repositories/repos") || items[i].ManageUrl.contains("tasks/p") )
@@ -542,14 +542,14 @@ export default class BoardComponents implements IService {
                 console.log("resultfiltered has item");
                 context.resultPanel.append(context.boardHolder);
             }
-            if (result !== null && result !== undefined && result.menus !== null && result.menus !== undefined && typeof (result.menus) === typeof ([])) {
+            if (result !== null && result !== undefined && result.Menus !== null && result.Menus !== undefined && typeof (result.Menus) === typeof ([]) && result.Menus.length > 0) {
                 sender.state = AjaxState.success;
 
                 var header = this.filterInput.parent();
 
-                const managefiltered = result.menus?.filter((p) => p.Url != null && p.Url != undefined) ?? [];
+                const managefiltered = result.Menus?.filter((p) => p.Url != null && p.Url != undefined) ?? [];
                 const manageItem = this.createManageItems(sender, context, managefiltered);
-                const resultfiltered = result.menus?.filter((p) => p.Url != null && p.Url != undefined) ?? [];
+                const resultfiltered = result.Menus?.filter((p) => p.Url != null && p.Url != undefined) ?? [];
 
                 const addabledItem = this.createAddableItems(sender, context, resultfiltered);
             }
@@ -691,7 +691,7 @@ export interface IBoardResultDto {
     Htmls?: IHtmlDto[];
     Buttons?: IButtonDto[];
     Infos?: IInfoDto[];
-    menus?: IMenuDto[];
+    Menus?: IMenuDto[];
     Intros?: IIntroDto[];
 }
 //var boardComponents = new BoardComponents($(".board-components"));

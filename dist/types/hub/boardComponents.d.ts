@@ -121,6 +121,6 @@ export interface IBoardResultDto {
     Htmls?: IHtmlDto[];
     Buttons?: IButtonDto[];
     Infos?: IInfoDto[];
-    menus?: IMenuDto[];
+    Menus?: IMenuDto[];
     Intros?: IIntroDto[];
 }
