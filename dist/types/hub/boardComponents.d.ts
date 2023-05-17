@@ -20,7 +20,7 @@ export default class BoardComponents implements IService {
     private getItemBox;
     private handelLinksClick;
     protected createHeaderAction(boxTitle: String, addableButtons: IButtonDto[]): JQuery;
-    protected createAddableItems(sender: IAjaxObject, context: IBoardContext, items: IMenuDto[]): JQuery;
+    protected createAddableItems(sender: IAjaxObject, context: IBoardContext, items: IButtonDto[]): JQuery;
     protected createBoardIntro(sender: IAjaxObject, context: IBoardContext, intro: IIntroDto): JQuery;
     protected relocateBoardComponentsHeaderActions(): void;
     protected removeBoardGap(): void;
@@ -28,7 +28,7 @@ export default class BoardComponents implements IService {
     protected addColour(color: string): string;
     protected createInfo(item: IInfoDto, context: IBoardContext): JQuery;
     protected createWidgets(item: IWidgetDto, context: IBoardContext): void;
-    protected createAddableItem(item: IMenuDto, context: IBoardContext): JQuery;
+    protected createAddableItem(item: IButtonDto, context: IBoardContext): JQuery;
     protected createManageItem(item: IMenuDto, context: IBoardContext): JQuery;
     protected bindAddableItemsButtonClick(context: IBoardContext): void;
     protected showIcon(item: any): JQuery;

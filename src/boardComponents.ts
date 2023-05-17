@@ -120,15 +120,7 @@ export default class BoardComponents implements IService {
                 $(".board-addable-items-container,.board-manage-items-container").fadeOut();
         })
         $(window).on('resize', function () {
-            var width = 0;
-            if ($(".sidebarCollapse.collapse").length == 0)
-                width += 230;
-            if ($("#taskBarCollapse.collapse").length == 0)
-                width += 300;
-            if ($.fn.masonryGrid)
-                $(".board-components-result .list-items").masonryGrid({
-                    'columns': parseInt((($(document).outerWidth() - width) / 300).toString())
-                });
+            this.onResize()
         });
 
         this.relocateBoardComponentsHeaderActions();
@@ -236,7 +228,7 @@ export default class BoardComponents implements IService {
         }
         return headerAction;
     }
-    protected createAddableItems(sender: IAjaxObject, context: IBoardContext, items: IMenuDto[]) {
+    protected createAddableItems(sender: IAjaxObject, context: IBoardContext, items: IButtonDto[]) {
         const result = $(".board-addable-items-container");
 
         for (let i = 0; i < items.length; i++) {
@@ -262,7 +254,7 @@ export default class BoardComponents implements IService {
     protected relocateBoardComponentsHeaderActions() {
         const boardPanel = this.input.parent();
         let headerActions = boardPanel.find(".board-components-header-actions");
-        let addablecomponents = boardPanel.find(".board-addable-items-container ");
+        let addablecomponents = boardPanel.find(".board-addable-items-container");
         if (headerActions === undefined || headerActions === null || headerActions.length === 0) {
             console.log("Header Actions not found");
         }
@@ -363,19 +355,32 @@ export default class BoardComponents implements IService {
             }
         });
     }
-    protected createAddableItem(item: IMenuDto, context: IBoardContext) {
+    protected createAddableItem(item: IButtonDto, context: IBoardContext) {
+        var attr = "";
+        if (item.Action == ActionEnum.Popup)
+            attr = "target=\"$modal\"";
+        else if (item.Action == ActionEnum.NewWindow)
+            attr = "target=\"_blank\"";
+        if (item.Text == null || item.Text == undefined ) 
+            item.Text == "";
+
         return $("<div class=\"menu-item\">")
-            .append($("<a href='" + item.Url + ">")
+                .append($("<a href='" + item.Url + "' " + attr + "'>")
                 .append((item.Icon === null || item.Icon === undefined) ?
                     $("<div class='icon'>") : this.showIcon(item)
-                        .append(item.Name)
+                        .append(item.BoxTitle)
                         .append($("<small>")
-                            .html(item.Body))));
+                            .html(item.Text))));
     }
 
     protected createManageItem(item: IMenuDto, context: IBoardContext) {
+        var attr = "target=\"_blank\"";;
+        // if (item.Action == ActionEnum.Popup)
+        //     attr = "target=\"$modal\"";
+        // else if (item.Action == ActionEnum.NewWindow)
+        //     attr = "target=\"_blank\"";
         return $("<div class=\"menu-item\">")
-            .append($("<a href='" + item.Url + ">")
+                .append($("<a href='" + item.Url + "' " + attr + "'>")
                 .append((item.Icon === null || item.Icon === undefined) ?
                     $("<div class='icon'>") : this.showIcon(item)
                         .append(item.Name)
@@ -385,14 +390,14 @@ export default class BoardComponents implements IService {
     protected bindAddableItemsButtonClick(context: IBoardContext) {
         context.resultPanel.parent().find(".add-button").off("click").click(function (e) {
             e.preventDefault();
-            $(".board-manage-items-container,.board-addable-items-container ").fadeOut();
+            $(".board-manage-items-container,.board-addable-items-container").fadeOut();
             $(this).parent().parent().find(".board-addable-items-container")
                 .fadeToggle();
         });
 
         context.resultPanel.parent().find(".manage-button").off("click").click(function (e) {
             e.preventDefault();
-            $(".board-manage-items-container,.board-addable-items-container ").fadeOut();
+            $(".board-manage-items-container,.board-addable-items-container").fadeOut();
             $(this).parent().parent().find(".board-manage-items-container")
                 .fadeToggle();
         });
@@ -549,8 +554,7 @@ export default class BoardComponents implements IService {
 
                 const managefiltered = result.Menus?.filter((p) => p.Url != null && p.Url != undefined) ?? [];
                 const manageItem = this.createManageItems(sender, context, managefiltered);
-                const resultfiltered = result.Menus?.filter((p) => p.Url != null && p.Url != undefined) ?? [];
-
+                const resultfiltered = result.Buttons?.filter((p) => p.Url != null && p.Url != undefined &&  (p.Icon == "fas fa-add" || p.Icon == "fas fa-plus")) ?? [];
                 const addabledItem = this.createAddableItems(sender, context, resultfiltered);
             }
             if (result !== null && result !== undefined && result.Intros !== null && result.Intros !== undefined && result.Intros[0] !== null
