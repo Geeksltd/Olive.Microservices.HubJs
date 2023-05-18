@@ -228,7 +228,7 @@ export default class BoardComponents implements IService {
         }
         return headerAction;
     }
-    protected createAddableItems(sender: IAjaxObject, context: IBoardContext, items: IButtonDto[]) {
+    protected createAddableItems(sender: IAjaxObject, context: IBoardContext, items: IMenuDto[]) {
         const result = $(".board-addable-items-container");
 
         for (let i = 0; i < items.length; i++) {
@@ -355,26 +355,26 @@ export default class BoardComponents implements IService {
             }
         });
     }
-    protected createAddableItem(item: IButtonDto, context: IBoardContext) {
+    protected createAddableItem(item: IMenuDto, context: IBoardContext) {
         var attr = "";
-        if (item.Action == ActionEnum.Popup)
-            attr = "target=\"$modal\"";
-        else if (item.Action == ActionEnum.NewWindow)
-            attr = "target=\"_blank\"";
-        if (item.Text == null || item.Text == undefined ) 
-            item.Text == "";
+        // if (item.Action == ActionEnum.Popup)
+        //     attr = "target=\"$modal\"";
+        // else if (item.Action == ActionEnum.NewWindow)
+        //     attr = "target=\"_blank\"";
+        // if (item.Text == null || item.Text == undefined ) 
+        //     item.Text == "";
 
         return $("<div class=\"menu-item\">")
                 .append($("<a href='" + item.Url + "' " + attr + "'>")
                 .append((item.Icon === null || item.Icon === undefined) ?
                     $("<div class='icon'>") : this.showIcon(item)
-                        .append(item.BoxTitle)
+                        .append(item.Name)
                         .append($("<small>")
-                            .html(item.Text))));
+                            .html(item.Body))));
     }
 
     protected createManageItem(item: IMenuDto, context: IBoardContext) {
-        var attr = "target=\"_blank\"";;
+        var attr = "";;
         // if (item.Action == ActionEnum.Popup)
         //     attr = "target=\"$modal\"";
         // else if (item.Action == ActionEnum.NewWindow)
@@ -552,9 +552,9 @@ export default class BoardComponents implements IService {
 
                 var header = this.filterInput.parent();
 
-                const managefiltered = result.Menus?.filter((p) => p.Url != null && p.Url != undefined) ?? [];
+                const managefiltered = result.Menus?.filter((p) => p.Url != null && p.Url != undefined && p.IsDropDown != true) ?? [];
                 const manageItem = this.createManageItems(sender, context, managefiltered);
-                const resultfiltered = result.Buttons?.filter((p) => p.Url != null && p.Url != undefined &&  (p.Icon == "fas fa-add" || p.Icon == "fas fa-plus")) ?? [];
+                const resultfiltered = result.Menus?.filter((p) => p.Url != null && p.Url != undefined && p.IsDropDown == true) ?? [];
                 const addabledItem = this.createAddableItems(sender, context, resultfiltered);
             }
             if (result !== null && result !== undefined && result.Intros !== null && result.Intros !== undefined && result.Intros[0] !== null
@@ -688,6 +688,7 @@ export interface IMenuDto {
     Name: string;
     Body?: string;
     Icon?: string;
+    IsDropDown?: boolean;
 }
 
 export interface IBoardResultDto {
