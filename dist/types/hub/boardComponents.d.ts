@@ -119,6 +119,7 @@ export interface IMenuDto {
     Name: string;
     Body?: string;
     Icon?: string;
+    IsDropDown?: boolean;
 }
 export interface Box {
     BoxColour: string;
@@ -130,6 +131,6 @@ export interface IBoardResultDto {
     Htmls?: IHtmlDto[];
     Buttons?: IButtonDto[];
     Infos?: IInfoDto[];
-    menus?: IMenuDto[];
+    Menus?: IMenuDto[];
     Intros?: IIntroDto[];
 }

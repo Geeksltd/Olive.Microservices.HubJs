@@ -120,15 +120,7 @@ export default class BoardComponents implements IService {
                 $(".board-addable-items-container,.board-manage-items-container").fadeOut();
         })
         $(window).on('resize', function () {
-            var width = 0;
-            if ($(".sidebarCollapse.collapse").length == 0)
-                width += 230;
-            if ($("#taskBarCollapse.collapse").length == 0)
-                width += 300;
-            if ($.fn.masonryGrid)
-                $(".board-components-result .list-items").masonryGrid({
-                    'columns': parseInt((($(document).outerWidth() - width) / 300).toString())
-                });
+            this.onResize()
         });
 
         this.relocateBoardComponentsHeaderActions();
@@ -262,7 +254,7 @@ export default class BoardComponents implements IService {
     protected relocateBoardComponentsHeaderActions() {
         const boardPanel = this.input.parent();
         let headerActions = boardPanel.find(".board-components-header-actions");
-        let addablecomponents = boardPanel.find(".board-addable-items-container ");
+        let addablecomponents = boardPanel.find(".board-addable-items-container");
         if (headerActions === undefined || headerActions === null || headerActions.length === 0) {
             console.log("Header Actions not found");
         }
@@ -307,10 +299,10 @@ export default class BoardComponents implements IService {
                 $("a[href='" + item.Url + "']").remove();
             result.append(this.createManageItem(items[i], context));
             var attr = "";
-            if (item[i].Action == ActionEnum.Popup)
-                attr = "target=\"$modal\"";
-            else if (item[i].Action == ActionEnum.NewWindow)
-                attr = "target=\"_blank\"";
+            // if (item[i].Action == ActionEnum.Popup)
+            //     attr = "target=\"$modal\"";
+            // else if (item[i].Action == ActionEnum.NewWindow)
+            attr = "target=\"_blank\"";
             //var link = $("<a class='btn btn-primary' href='" + this.boardPath + "?$boardContent={" + items[i].ManageUrl + "}'" + attr + ">")
             //var link = $("<a class='btn btn-primary' href='" + items[i].ManageUrl + "'" + attr + ">")
             //if (items[i].ManageUrl.contains("repositories/repos") || items[i].ManageUrl.contains("tasks/p") )
@@ -364,8 +356,16 @@ export default class BoardComponents implements IService {
         });
     }
     protected createAddableItem(item: IMenuDto, context: IBoardContext) {
+        var attr = "";
+        // if (item.Action == ActionEnum.Popup)
+        //     attr = "target=\"$modal\"";
+        // else if (item.Action == ActionEnum.NewWindow)
+        //     attr = "target=\"_blank\"";
+        // if (item.Text == null || item.Text == undefined ) 
+        //     item.Text == "";
+
         return $("<div class=\"menu-item\">")
-            .append($("<a href='" + item.Url + ">")
+                .append($("<a href='" + item.Url + "' " + attr + "'>")
                 .append((item.Icon === null || item.Icon === undefined) ?
                     $("<div class='icon'>") : this.showIcon(item)
                         .append(item.Name)
@@ -374,8 +374,13 @@ export default class BoardComponents implements IService {
     }
 
     protected createManageItem(item: IMenuDto, context: IBoardContext) {
+        var attr = "";;
+        // if (item.Action == ActionEnum.Popup)
+        //     attr = "target=\"$modal\"";
+        // else if (item.Action == ActionEnum.NewWindow)
+        //     attr = "target=\"_blank\"";
         return $("<div class=\"menu-item\">")
-            .append($("<a href='" + item.Url + ">")
+                .append($("<a href='" + item.Url + "' " + attr + "'>")
                 .append((item.Icon === null || item.Icon === undefined) ?
                     $("<div class='icon'>") : this.showIcon(item)
                         .append(item.Name)
@@ -385,14 +390,14 @@ export default class BoardComponents implements IService {
     protected bindAddableItemsButtonClick(context: IBoardContext) {
         context.resultPanel.parent().find(".add-button").off("click").click(function (e) {
             e.preventDefault();
-            $(".board-manage-items-container,.board-addable-items-container ").fadeOut();
+            $(".board-manage-items-container,.board-addable-items-container").fadeOut();
             $(this).parent().parent().find(".board-addable-items-container")
                 .fadeToggle();
         });
 
         context.resultPanel.parent().find(".manage-button").off("click").click(function (e) {
             e.preventDefault();
-            $(".board-manage-items-container,.board-addable-items-container ").fadeOut();
+            $(".board-manage-items-container,.board-addable-items-container").fadeOut();
             $(this).parent().parent().find(".board-manage-items-container")
                 .fadeToggle();
         });
@@ -544,15 +549,14 @@ export default class BoardComponents implements IService {
                 console.log("resultfiltered has item");
                 context.resultPanel.append(context.boardHolder);
             }
-            if (result !== null && result !== undefined && result.menus !== null && result.menus !== undefined && typeof (result.menus) === typeof ([])) {
+            if (result !== null && result !== undefined && result.Menus !== null && result.Menus !== undefined && typeof (result.Menus) === typeof ([]) && result.Menus.length > 0) {
                 sender.state = AjaxState.success;
 
                 var header = this.filterInput.parent();
 
-                const managefiltered = result.menus?.filter((p) => p.Url != null && p.Url != undefined) ?? [];
+                const managefiltered = result.Menus?.filter((p) => p.Url != null && p.Url != undefined && p.IsDropDown != true) ?? [];
                 const manageItem = this.createManageItems(sender, context, managefiltered);
-                const resultfiltered = result.menus?.filter((p) => p.Url != null && p.Url != undefined) ?? [];
-
+                const resultfiltered = result.Menus?.filter((p) => p.Url != null && p.Url != undefined && p.IsDropDown == true) ?? [];
                 const addabledItem = this.createAddableItems(sender, context, resultfiltered);
             }
             if (result !== null && result !== undefined && result.Intros !== null && result.Intros !== undefined && result.Intros[0] !== null
@@ -690,6 +694,7 @@ export interface IMenuDto {
     Name: string;
     Body?: string;
     Icon?: string;
+    IsDropDown?: boolean;
 }
 export interface Box {
     BoxColour: string;
@@ -702,7 +707,7 @@ export interface IBoardResultDto {
     Htmls?: IHtmlDto[];
     Buttons?: IButtonDto[];
     Infos?: IInfoDto[];
-    menus?: IMenuDto[];
+    Menus?: IMenuDto[];
     Intros?: IIntroDto[];
 }
 //var boardComponents = new BoardComponents($(".board-components"));
