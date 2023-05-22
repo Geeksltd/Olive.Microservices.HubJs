@@ -499,6 +499,7 @@ export default class BoardComponents implements IService {
 
             const resultfiltered = result.Infos?.filter((p) => this.isValidResult(p, context)) ?? [];
             const groupBy = (array, key) => {
+
                 // Return the end result
                 return array.reduce((result, currentValue) => {
                     // If an array already present for key, push it to the array. Else create an array and push the object
@@ -510,10 +511,16 @@ export default class BoardComponents implements IService {
                 }, {}); // empty object is the initial value for result object
             };
 
-            var personGroupedByType = resultfiltered.map((v) => ( {title:v.BoxTitle, order:v.BoxOrder || 100 }))
-                                        .concat(result.Widgets?.map((v) => ( {title:v.BoxTitle, order:v.BoxOrder || 100 })) || [])
-                                        .concat(result.Htmls?.map((v) => ( {title:v.BoxTitle, order:v.BoxOrder || 100 })) || []);
-            const boardBoxes = personGroupedByType.sort((a,b) => b.order-a.order).map((v)=> v.title).filter(this.onlyUnique)
+            var personGroupedByType = resultfiltered.map((v) => ( {title:v.BoxTitle, order:v.BoxOrder}))
+                                        .concat(result.Widgets?.map((v) => ( {title:v.BoxTitle, order:v.BoxOrder})) || [])
+                                        .concat(result.Htmls?.map((v) => ( {title:v.BoxTitle, order:v.BoxOrder})) || []);
+
+            const boardBoxes = personGroupedByType.sort((a,b) =>{
+                const orderA = a.order !== null && a.order !== undefined ? a.order : 100;
+                const orderB = b.order !== null && b.order !== undefined ? b.order : 100;
+                return orderB-orderA;
+            } ).map((v)=> v.title).filter(this.onlyUnique);
+
             var that = this;
             if (boardBoxes !== undefined && boardBoxes.length > 0) {
                 for (var index = 0; index < boardBoxes.length; index++) {
