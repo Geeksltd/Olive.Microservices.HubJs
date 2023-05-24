@@ -513,13 +513,14 @@ export default class BoardComponents implements IService {
 
             var personGroupedByType = resultfiltered.map((v) => ( {title:v.BoxTitle, order:v.BoxOrder}))
                                         .concat(result.Widgets?.map((v) => ( {title:v.BoxTitle, order:v.BoxOrder})) || [])
-                                        .concat(result.Htmls?.map((v) => ( {title:v.BoxTitle, order:v.BoxOrder})) || []);
+                                        .concat(result.Htmls?.map((v) => ( {title:v.BoxTitle, order:v.BoxOrder})) || [])
+                                        .filter((b, index, self) =>index === self.findIndex((v) => v.title === b.title));
 
             const boardBoxes = personGroupedByType.sort((a,b) =>{
                 const orderA = a.order !== null && a.order !== undefined ? a.order : 100;
                 const orderB = b.order !== null && b.order !== undefined ? b.order : 100;
                 return orderB-orderA;
-            } ).map((v)=> v.title).filter(this.onlyUnique);
+            } ).map((v)=> v.title);
 
             var that = this;
             if (boardBoxes !== undefined && boardBoxes.length > 0) {
