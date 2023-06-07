@@ -224,7 +224,7 @@ export default class BoardComponents implements IService {
             else if (item.Action == ActionEnum.NewWindow)
                 attr = "target=\"_blank\"";
 
-            headerAction.append($("<a href='" + item.Url.replace("https://hub." + getMainDomain(), "") + "' " + attr + ">").append('<i class="' + item.Icon + '" aria-hidden="true"></i>'));
+            headerAction.append($("<a href='" + item.Url + "' " + attr + ">").append('<i class="' + item.Icon + '" aria-hidden="true"></i>'));
         }
         return headerAction;
     }
@@ -363,9 +363,9 @@ export default class BoardComponents implements IService {
         //     attr = "target=\"_blank\"";
         // if (item.Text == null || item.Text == undefined ) 
         //     item.Text == "";
-
+            ///data-redirect="ajax" ajax-target="board-body" target="_blank"
         return $("<div class=\"menu-item\">")
-                .append($("<a href='" + item.Url + "' " + attr + "'>")
+                .append($("<a href='" + item.Url + "' data-redirect=\"ajax\" ajax-target=\"board-body\" target=\"_blank\">")
                 .append((item.Icon === null || item.Icon === undefined) ?
                     $("<div class='icon'>") : this.showIcon(item)
                         .append(item.Name)
@@ -380,7 +380,7 @@ export default class BoardComponents implements IService {
         // else if (item.Action == ActionEnum.NewWindow)
         //     attr = "target=\"_blank\"";
         return $("<div class=\"menu-item\">")
-                .append($("<a href='" + item.Url + "' " + attr + "'>")
+                .append($("<a href='" + item.Url + "' data-redirect=\"ajax\" ajax-target=\"board-body\" target=\"_blank\">")
                 .append((item.Icon === null || item.Icon === undefined) ?
                     $("<div class='icon'>") : this.showIcon(item)
                         .append(item.Name)
@@ -519,7 +519,7 @@ export default class BoardComponents implements IService {
             const boardBoxes = personGroupedByType.sort((a,b) =>{
                 const orderA = a.order !== null && a.order !== undefined ? a.order : 100;
                 const orderB = b.order !== null && b.order !== undefined ? b.order : 100;
-                return orderB-orderA;
+                return orderA-orderB;
             } ).map((v)=> v.title);
 
             var that = this;
