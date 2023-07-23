@@ -33,6 +33,11 @@ export default class HubUrl extends Url {
         if (serviceContainer.length === 0)
             throw new Error("<service of='...' /> is not found on the page.");
 
+        //upload with parameters
+        if (trigger && trigger.attr("parameters")) {
+            url = url + trigger.attr("parameters");
+        }
+
         serviceName = serviceContainer.attr("of").toLocaleLowerCase();
 
         if (!this.isAbsolute(url)) {
