@@ -5,7 +5,7 @@ export default class HubUrl extends Url {
     goBack = function () {
         if (this.current().indexOf(this.baseContentUrl + "/##") === 0)
             history.back();
-            
+
         else {
             var returnUrl = this.getQuery("ReturnUrl");
             returnUrl = this.decodeGzipUrl(returnUrl);
@@ -47,21 +47,23 @@ export default class HubUrl extends Url {
             if (url.startsWith("/")) innerUrl = url.trimStart("/");
             else innerUrl = url;
 
+            innerUrl = innerUrl.prependIsolatedRoute();
+
             // Explicitly specified on the link?
-            if (innerUrl.startsWith("[") && innerUrl.contains("]")) {
-                serviceName = innerUrl.substring(1, innerUrl.indexOf("]"));
-                innerUrl = innerUrl.substring(serviceName.length + 2);
+            if (innerUrl.startsWith("[".prependIsolatedRoute()) && innerUrl.contains("]")) {
+                serviceName = innerUrl.substring("[".prependIsolatedRoute().length, innerUrl.indexOf("]"));
+                innerUrl = innerUrl.substring(serviceName.prependIsolatedRoute().length + 2).prependIsolatedRoute();
                 serviceContainer.attr("of", serviceName);
             }
 
             //All urls starting with "under" are from HUB service.
-            if (innerUrl.startsWith("under")) serviceName = "hub";
+            if (innerUrl.startsWith("under".prependIsolatedRoute())) serviceName = "hub";
 
             var baseUrl = Service.fromName(serviceName).BaseUrl;
 
             if (!baseUrl.startsWith("http"))
                 baseUrl = baseUrl.withPrefix("http://");
-
+            
             return this.makeAbsolute(baseUrl, innerUrl);
         }
 

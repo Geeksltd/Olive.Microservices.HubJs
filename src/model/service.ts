@@ -13,18 +13,18 @@ export default class Service {
     public GetAddressBarValueFor(fullFeatureUrl: string): string {
         let relativePath = fullFeatureUrl.trimStart(this.BaseUrl);
 
-        if (relativePath.startsWith("/under") || relativePath.startsWith("/hub")) {
+        if (relativePath.startsWith("/under".prependIsolatedRoute()) || relativePath.startsWith("/hub".prependIsolatedRoute())) {
             return relativePath.trim();
         }
 
-        return this.AddressBarPrefix.trimEnd("/") + "/" + relativePath.trimStart("/");
+        return this.AddressBarPrefix.trimEnd("/") + "/" + relativePath.trimIsolatedRoute().trimStart("/");
     }
 
     constructor(args: Service) {
         if (args) {
             this.BaseUrl = args.BaseUrl;
             this.Name = args.Name;
-            this.AddressBarPrefix = this.Name.toLowerCase().withPrefix("/");
+            this.AddressBarPrefix = this.Name.toLowerCase().withPrefix("/").prependIsolatedRoute();
         }
 
         if (!this.BaseUrl)
@@ -83,7 +83,7 @@ export default class Service {
     }
 
     public static fromName(name: string): Service {
-
+        
         name = name.toLowerCase();
         for (var service of this.Services) {
             if (name === service.Name.toLowerCase()) return service;

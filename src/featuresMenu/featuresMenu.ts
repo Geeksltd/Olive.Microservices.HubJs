@@ -107,15 +107,15 @@ export default class FeaturesMenu {
 
                 let url = link.attr("href");
 
-                if (url.startsWith("/under/")) // Go to the children page
+                if (url.startsWith("/under/".prependIsolatedRoute())) // Go to the children page
                 {
                     url = Service.fromName("hub").BaseUrl + url; // We should make URL absolute to fix cross module navigation ambiguous 
                     this.ajaxRedirect.go(url)
                     return false;
                 }
 
-                if (!url.startsWith("/[") || !url.contains("]")) {
-                    console.log("The url does not contain the service info part. Urls should start with [ServiceName]/.");
+                if (!url.startsWith("/[".prependIsolatedRoute()) || !url.contains("]")) {
+                    console.log("The url does not contain the service info part. Urls should start with [ServiceName]/.",url);
                     return;
                 }
 
@@ -125,7 +125,7 @@ export default class FeaturesMenu {
                 if (!baseUrl.startsWith("http"))
                     baseUrl = baseUrl.withPrefix(window.location.protocol + "//");
 
-                url = url.substring(serviceName.length + 3)
+                url = url.substring(serviceName.prependIsolatedRoute().length + 3)
                 url = this.url.makeAbsolute(baseUrl, url);
 
                 targetIframe.attr("src", url);
@@ -244,11 +244,12 @@ export default class FeaturesMenu {
     }
     getPathName() {
         var path = window.location.pathname.toLowerCase().startsWith("/") ? window.location.pathname.toLowerCase().substring(1) : window.location.pathname.toLowerCase();
+        path = path.trimIsolatedRoute();
         var pos = path.indexOf("/");
 
         return {
             pathname: window.location.pathname.toLowerCase(),
-            pathnameWithBrackets: "/[" + path.substring(0, pos) + "]" + path.substring(pos)
+            pathnameWithBrackets: ("/[" + path.substring(0, pos) + "]" + path.substring(pos)).prependIsolatedRoute()
         };
     }
     onLinkClicked(link: JQuery) {
@@ -414,7 +415,7 @@ export default class FeaturesMenu {
     }
     generatePageBreadcrumb(data) {
         $(".breadcrumb").html("");
-        $(".breadcrumb").append(`<li class="breadcrumb-item"><a href="${window.location.origin}/under/" data-redirect="ajax">Home</a></li>`);
+        $(".breadcrumb").append(`<li class="breadcrumb-item"><a href="${window.location.origin.appendIsolatedRoute()}/under/" data-redirect="ajax">Home</a></li>`);
         //check to see if click event is from mid-page or left page
 
         $.each(data, (i: number, d) => {
@@ -426,16 +427,17 @@ export default class FeaturesMenu {
                     let li = $(`<li class="breadcrumb-item"><a href="${path}" data-redirect="ajax" data-itemid="">${text}</a></li>`)
                         .appendTo($(".breadcrumb"));
 
-                    if (!path.startsWith("/under/"))
+                    if (!path.startsWith("/under/".prependIsolatedRoute()))
                         li.find("a").removeAttr("data-redirect");
 
                     var featuresMenu = $(".features-side-menu [href='" + path + "']");
                     if (featuresMenu.length == 0)
                         featuresMenu = $(".features-side-menu [href='" + path.split("?")[0] + "']");
                     if (featuresMenu.length == 0) {
+                        path = path.trimIsolatedRoute();
                         var ms = path.startsWith("/") ? path.substring(1).split("/")[0] : path.split("/")[0];
                         path = "/[" + ms + "]" + path.split(ms)[1];
-                        featuresMenu = $(".features-side-menu [href='" + path.split("?")[0] + "']");
+                        featuresMenu = $(".features-side-menu [href='" + path.split("?")[0].prependIsolatedRoute() + "']");
                     }
                     if (featuresMenu.length > 0) {
                         if (featuresMenu.parent().attr("is-side-menu-child") == "true")

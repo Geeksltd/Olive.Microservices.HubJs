@@ -140,11 +140,12 @@ export default class HubPage extends OlivePage {
     }
     getPathName() {
         var path = window.location.pathname.toLowerCase().startsWith("/") ? window.location.pathname.toLowerCase().substring(1) : window.location.pathname.toLowerCase();
+        path = path.trimIsolatedRoute();
         var pos = path.indexOf("/");
 
         return {
             pathname: window.location.pathname.toLowerCase(),
-            pathnameWithBrackets: "/[" + path.substring(0, pos) + "]" + path.substring(pos)
+            pathnameWithBrackets: ("/[" + path.substring(0, pos) + "]" + path.substring(pos)).prependIsolatedRoute()
         };
     }
     initialize() {
@@ -156,26 +157,9 @@ export default class HubPage extends OlivePage {
 
         const currentPath = this.getPathName();
         if (currentPath != undefined && currentPath != null && currentPath.pathname != undefined && currentPath.pathname != null) {
-            if (
-                currentPath.pathname.startsWith("/hub/project/") ||
-                currentPath.pathname.startsWith("/project/") ||
-
-                currentPath.pathname.startsWith("/hub/person/") ||
-                currentPath.pathname.startsWith("/person/") ||
-
-                currentPath.pathname.startsWith("/hub/enrolment/") ||
-                currentPath.pathname.startsWith("/enrolment/") ||
-
-                currentPath.pathname.startsWith("/hub/programme/") ||
-                currentPath.pathname.startsWith("/programme/") ||
-
-                currentPath.pathname.startsWith("/hub/module/") ||
-                currentPath.pathname.startsWith("/module/") ||
-
-                currentPath.pathname.startsWith("/hub/class/") ||
-                currentPath.pathname.startsWith("/class/")
-            ) {
-
+            const allBoards = window["boards"] && window["boards"].length ? window["boards"] : [];
+            const currentBoard = allBoards.filter(b => currentPath.pathname.startsWith("/hub/" + b + "/") || currentPath.pathname.startsWith("/" + b + "/"));
+            if (currentBoard && currentBoard.length) {
                 var masonryGrids = $(".board-components-result").find(".masonry-grid-origin");
                 if (masonryGrids == undefined || masonryGrids == null || masonryGrids.length == 0) {
                     var w100 = $(".hub-service").find(".w-100");
@@ -184,13 +168,11 @@ export default class HubPage extends OlivePage {
                             w100[0].lastChild.remove();
                         }
                     }
-
                     this.board = new BoardComponents($(".board-components"),
                         this.getService<ModalHelper>(Services.ModalHelper),
                         this.getService<AjaxRedirect>(Services.AjaxRedirect), (currentPath.pathname.startsWith("https://hub." + getMainDomain()) ? currentPath.pathname : "https://hub." + getMainDomain() + currentPath.pathname));
                 }
             }
-
             else {
                 var hubserv = $(".board-components");
                 if (hubserv != undefined && hubserv != null) {
@@ -244,5 +226,15 @@ export default class HubPage extends OlivePage {
         // Any custom initiation goes here.
 
         new ExtendJQueryFunction();
+
+        $("a[data-redirect=ajax]").each(function(){
+            var $this = $(this);
+            var href = $this.attr("href");
+            if(href.startsWith('/')){
+                href=href.prependIsolatedRoute();
+                $this.attr('href',href);
+            }
+        });
+
     }
 }

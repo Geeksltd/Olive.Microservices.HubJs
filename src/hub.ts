@@ -181,7 +181,7 @@ export default class Hub implements IService {
 
     public go(url: string, iframe: boolean, trigger: any) {
         if (iframe) {
-            url = this.url.effectiveUrlProvider(url, null);
+            url = this.url.effectiveUrlProvider(url, null).trimIsolatedRoute();
             if ($(trigger).closest("[data-module-inner]").length > 0) {
                 $("iframe.view-frame").attr("src", url);
                 $("iframe.view-frame").show();
@@ -215,7 +215,7 @@ export default class Hub implements IService {
 }
 
 
-export const getMainDomain = () => {
+export const getMainDomain = function (): string {
     let domain = window.location.hostname;
     if (domain.startsWith("hub.")) {
         domain = domain.substring(4);
