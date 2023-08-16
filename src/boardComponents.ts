@@ -138,7 +138,7 @@ export default class BoardComponents implements IService {
                 'columns': parseInt((($(document).outerWidth() - width) / 300).toString())
             });
     }
-    protected createBoardItems(sender: IAjaxObject, context: IBoardContext, items: IInfoDto[], addableButtons: IButtonDto[], widgets: IWidgetDto[], html: IHtmlDto[], boxTitle: string) {
+    protected createBoardItems(sender: IAjaxObject, context: IBoardContext, items: IInfoDto[], addableButtons: IButtonDto[], widgets: IWidgetDto[], html: IHtmlDto[], boxTitle: string, boxOrder: number) {
         if (items.length == 0 && widgets.length == 0 && html.length == 0) return null;
         var content = $("<table>");
         if (items.length == 0 && widgets.length != 0 && html.length == 0) content = $("<div>");
@@ -149,6 +149,7 @@ export default class BoardComponents implements IService {
 
         const searchItem = $("<div class='item' data-type='" + boxTitle + "'>");
         const h3 = $('<h3 >').html(boxTitle + (boxTitle.endsWith("s") ? "" : "s")).append(this.createHeaderAction(boxTitle, addableButtons))
+        searchItem.attr('box-order', boxOrder);
         searchItem.append($("<div class='header' " + " style=\"" + this.addColour(colour) + "\">").append(h3))
 
         //table.append($("<tr>").append($("<th " + "' style=\"" + this.addColour(items[0]) + "\" " + ">")
@@ -530,8 +531,12 @@ export default class BoardComponents implements IService {
                     var filteredWidgets = result.Widgets?.filter((p) => p.BoxTitle == element) ?? [];
                     var filteredHtmls = result.Htmls?.filter((p) => p.BoxTitle == element) ?? [];
                     var filteredButtons = result.Buttons?.filter((p) => p.BoxTitle == element) ?? [];
+                    var boxOrder = -1;
+                    if (result.BoxOrder !== null && result.BoxOrder != undefined) {
 
-                    const boardItem = that.createBoardItems(sender, context, filteredInfo, filteredButtons, filteredWidgets, filteredHtmls, element);
+                        boxOrder = result.BoxOrder[0];
+                    }
+                    const boardItem = that.createBoardItems(sender, context, filteredInfo, filteredButtons, filteredWidgets, filteredHtmls, element, boxOrder);
                     if ($('.board-components-result .item[data-type="' + element + '"]').length > 0) {
                         var item = $('.board-components-result .item[data-type="' + element + '"]')
                         $(boardItem).attr('class', item.attr('class')).attr('id', $(item).attr('id'))
@@ -571,12 +576,20 @@ export default class BoardComponents implements IService {
                 && result.Intros[0] !== undefined && result.Intros[0].Name !== null) {
                 this.createBoardIntro(sender, context, result.Intros[0])
             }
-
-        } else {
+            if (result !== null && result !== undefined && result.BoxOrder !== null && result.BoxOrder !== undefined) {
+                this.OrderBoxes();
+            }
+        }
+        else {
             sender.state = AjaxState.failed;
             console.error("ajax success but failed to decode the response -> wellform expcted response is like this: [{Title:'',Description:'',Url:'',Url:''}] ");
         }
     }
+
+    protected OrderBoxes() {
+
+    }
+
     protected isValidResult(item: IInfoDto, context: IBoardContext) {
         return true;
     }
@@ -711,6 +724,7 @@ export interface Box {
 }
 
 export interface IBoardResultDto {
+    BoxOrder?: number[];
     Widgets?: IWidgetDto[];
     Htmls?: IHtmlDto[];
     Buttons?: IButtonDto[];

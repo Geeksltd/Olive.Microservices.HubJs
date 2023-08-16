@@ -16,7 +16,7 @@ export default class BoardComponents implements IService {
     protected getAddableItemsPanel(): JQuery;
     protected createBoardComponent(urls: string[]): Promise<void>;
     onResize(): void;
-    protected createBoardItems(sender: IAjaxObject, context: IBoardContext, items: IInfoDto[], addableButtons: IButtonDto[], widgets: IWidgetDto[], html: IHtmlDto[], boxTitle: string): JQuery;
+    protected createBoardItems(sender: IAjaxObject, context: IBoardContext, items: IInfoDto[], addableButtons: IButtonDto[], widgets: IWidgetDto[], html: IHtmlDto[], boxTitle: string, boxOrder: number): JQuery;
     private getItemBox;
     private handelLinksClick;
     protected createHeaderAction(boxTitle: String, addableButtons: IButtonDto[]): JQuery;
@@ -41,6 +41,7 @@ export default class BoardComponents implements IService {
     private getItem;
     private setItem;
     protected onSuccess(sender: IAjaxObject, context: IBoardContext, result: IBoardResultDto, loadFromCaceh: boolean): void;
+    protected OrderBoxes(): void;
     protected isValidResult(item: IInfoDto, context: IBoardContext): boolean;
     protected onlyUnique(value: any, index: any, self: any): boolean;
     protected onComplete(context: IBoardContext, jqXHR: JQueryXHR): void;
@@ -127,6 +128,7 @@ export interface Box {
     BoxOrder?: number;
 }
 export interface IBoardResultDto {
+    BoxOrder?: number[];
     Widgets?: IWidgetDto[];
     Htmls?: IHtmlDto[];
     Buttons?: IButtonDto[];
