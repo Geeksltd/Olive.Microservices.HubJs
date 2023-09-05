@@ -47,17 +47,15 @@ export default class HubUrl extends Url {
             if (url.startsWith("/")) innerUrl = url.trimStart("/");
             else innerUrl = url;
 
-            innerUrl = innerUrl.prependIsolatedRoute();
-
             // Explicitly specified on the link?
-            if (innerUrl.startsWith("[".prependIsolatedRoute()) && innerUrl.contains("]")) {
-                serviceName = innerUrl.substring("[".prependIsolatedRoute().length, innerUrl.indexOf("]"));
-                innerUrl = innerUrl.substring(serviceName.prependIsolatedRoute().length + 2).prependIsolatedRoute();
+            if (innerUrl.startsWith("[") && innerUrl.contains("]")) {
+                serviceName = innerUrl.substring("[".length, innerUrl.indexOf("]"));
+                innerUrl = innerUrl.substring(serviceName.length + 2);
                 serviceContainer.attr("of", serviceName);
             }
 
             //All urls starting with "under" are from HUB service.
-            if (innerUrl.startsWith("under".prependIsolatedRoute())) serviceName = "hub";
+            if (innerUrl.startsWith("under")) serviceName = "hub";
 
             var baseUrl = Service.fromName(serviceName).BaseUrl;
 

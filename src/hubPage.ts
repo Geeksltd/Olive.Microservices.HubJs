@@ -140,12 +140,11 @@ export default class HubPage extends OlivePage {
     }
     getPathName() {
         var path = window.location.pathname.toLowerCase().startsWith("/") ? window.location.pathname.toLowerCase().substring(1) : window.location.pathname.toLowerCase();
-        path = path.trimIsolatedRoute();
         var pos = path.indexOf("/");
 
         return {
             pathname: window.location.pathname.toLowerCase(),
-            pathnameWithBrackets: ("/[" + path.substring(0, pos) + "]" + path.substring(pos)).prependIsolatedRoute()
+            pathnameWithBrackets: "/[" + path.substring(0, pos) + "]" + path.substring(pos)
         };
     }
     initialize() {
@@ -226,15 +225,5 @@ export default class HubPage extends OlivePage {
         // Any custom initiation goes here.
 
         new ExtendJQueryFunction();
-
-        $("a[data-redirect=ajax]").each(function(){
-            var $this = $(this);
-            var href = $this.attr("href");
-            if(href.startsWith('/')){
-                href=href.prependIsolatedRoute();
-                $this.attr('href',href);
-            }
-        });
-
     }
 }

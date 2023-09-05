@@ -181,7 +181,7 @@ export default class Hub implements IService {
 
     public go(url: string, iframe: boolean, trigger: any) {
         if (iframe) {
-            url = this.url.effectiveUrlProvider(url, null).trimIsolatedRoute();
+            url = this.url.effectiveUrlProvider(url, null);
             if ($(trigger).closest("[data-module-inner]").length > 0) {
                 $("iframe.view-frame").attr("src", url);
                 $("iframe.view-frame").show();

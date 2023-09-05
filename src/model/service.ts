@@ -13,18 +13,18 @@ export default class Service {
     public GetAddressBarValueFor(fullFeatureUrl: string): string {
         let relativePath = fullFeatureUrl.trimStart(this.BaseUrl);
 
-        if (relativePath.startsWith("/under".prependIsolatedRoute()) || relativePath.startsWith("/hub".prependIsolatedRoute())) {
+        if (relativePath.startsWith("/under") || relativePath.startsWith("/hub")) {
             return relativePath.trim();
         }
 
-        return this.AddressBarPrefix.trimEnd("/") + "/" + relativePath.trimIsolatedRoute().trimStart("/");
+        return this.AddressBarPrefix.trimEnd("/") + "/" + relativePath.trimStart("/");
     }
 
     constructor(args: Service) {
         if (args) {
             this.BaseUrl = args.BaseUrl;
             this.Name = args.Name;
-            this.AddressBarPrefix = this.Name.toLowerCase().withPrefix("/").prependIsolatedRoute();
+            this.AddressBarPrefix = this.Name.toLowerCase().withPrefix("/");
         }
 
         if (!this.BaseUrl)

@@ -87,7 +87,7 @@ export default class BreadcrumbMenu implements IService{
 
     generateBreadcrumb(link: JQuery) {
 
-        $(".breadcrumb").append(`<li class="breadcrumb-item"><a href="${window.location.origin.appendIsolatedRoute()}/under/" data-redirect="ajax">Home</a></li>`);
+        $(".breadcrumb").append(`<li class="breadcrumb-item"><a href="${window.location.origin}/under/" data-redirect="ajax">Home</a></li>`);
         //check to see if click event is from mid-page or left page
         if (link.parents("li").length == 0) {
             link = $(`#${link.attr("id")} > a`);
@@ -111,7 +111,7 @@ export default class BreadcrumbMenu implements IService{
                     let li = $(`<li class="breadcrumb-item"><a href="${path}" data-redirect="ajax" data-itemid="${nodeId}">${text}</a></li>`)
                         .appendTo($(".breadcrumb"));
 
-                    if (!path.startsWith("/under/".prependIsolatedRoute()))
+                    if (!path.startsWith("/under/"))
                         li.find("a").removeAttr("data-redirect");
                 }
             }
