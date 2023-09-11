@@ -52,13 +52,21 @@ export default class ExpandCollapse {
     }
 
     applyIcon() {
-        var collapsedIcon = this.key == ".side-bar" ? "right" : "left";
-        var expandedIcon = collapsedIcon == "left" ? "right" : "left";
+        var customCollapsedIcon = this.button.attr("data-icon-collapsed");
+        var customExpandedIcon = this.button.attr("data-icon-expanded");
+
+        var collapsedIcon = customCollapsedIcon
+            ? customCollapsedIcon
+            : (this.key == ".side-bar" ? "fa-chevron-right" : "fa-chevron-left");
+
+        var expandedIcon = customExpandedIcon
+            ? customExpandedIcon
+            : (this.key == ".side-bar" ? "fa-chevron-left" : "fa-chevron-right");
 
         var toRemove = this.isCollapsed() ? expandedIcon : collapsedIcon;
-        var toAdd = toRemove == "left" ? "right" : "left";
+        var toAdd = this.isCollapsed() ? collapsedIcon : expandedIcon;
 
-        this.button.find("i").removeClass("fa-chevron-" + toRemove).addClass("fa-chevron-" + toAdd);
+        this.button.find("i").removeClass(toRemove).addClass(toAdd);
         this.syncHubFrame();
     }
     syncHubTopMenu() {
