@@ -252,7 +252,13 @@ export default class FeaturesMenu {
         };
     }
     onLinkClicked(link: JQuery) {
-        $("service main").html("<center class='w-100'>loading...</center>")
+        let loading =  document.getElementById('loading');
+        if (typeof(loading) != 'undefined' && loading != null)
+        {
+            $("service main").html(loading.innerHTML);    
+        } else{
+            $("service main").html("<center class='w-100'>loading...</center>");
+        }
         //Hide iframe after each Ajax call.
         $("#iFrameHolder").hide().attr("style", "height: 0;");
 

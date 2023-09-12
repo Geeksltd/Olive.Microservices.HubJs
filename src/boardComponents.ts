@@ -158,9 +158,20 @@ export default class BoardComponents implements IService {
             context.resultCount++;
             content.append(this.createInfo(items[i], context));
         }
+
+        let loadingTag =  document.getElementById('loading');
+        let loadingHtml =  "";
+        if (typeof(loadingTag) != 'undefined' && loadingTag != null)
+        {
+            loadingHtml = loadingTag.innerHTML;
+        } else{
+            loadingHtml = '<br/><br/><center>loading...</center></div>';
+        }
+        
         for (let i = 0; i < widgets.length; i++) {
             context.resultCount++;
-            content.append('<div data-url="' + widgets[i].Url + '"><br/><br/><center>loading...</center></div>');
+            
+            content.append('<div data-url="' + widgets[i].Url + '">' + loadingHtml);
             this.createWidgets(widgets[i], context);
         }
         for (let i = 0; i < html.length; i++) {
