@@ -25,6 +25,7 @@ export default class BoardComponents implements IService {
     protected relocateBoardComponentsHeaderActions(): void;
     protected removeBoardGap(): void;
     protected createManageItems(sender: IAjaxObject, context: IBoardContext, items: IMenuDto[]): JQuery;
+    private sortBoardLinks;
     protected addColour(color: string): string;
     protected createInfo(item: IInfoDto, context: IBoardContext): JQuery;
     protected createWidgets(item: IWidgetDto, context: IBoardContext): void;

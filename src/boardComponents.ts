@@ -159,18 +159,17 @@ export default class BoardComponents implements IService {
             content.append(this.createInfo(items[i], context));
         }
 
-        let loadingTag =  document.getElementById('loading');
-        let loadingHtml =  "";
-        if (typeof(loadingTag) != 'undefined' && loadingTag != null)
-        {
+        let loadingTag = document.getElementById('loading');
+        let loadingHtml = "";
+        if (typeof (loadingTag) != 'undefined' && loadingTag != null) {
             loadingHtml = loadingTag.innerHTML;
-        } else{
+        } else {
             loadingHtml = '<br/><br/><center>loading...</center></div>';
         }
-        
+
         for (let i = 0; i < widgets.length; i++) {
             context.resultCount++;
-            
+
             content.append('<div data-url="' + widgets[i].Url + '">' + loadingHtml);
             this.createWidgets(widgets[i], context);
         }
@@ -328,8 +327,22 @@ export default class BoardComponents implements IService {
             headerLinks.append(link);
             this.handelLinksClick(link)
         }
+
+        this.sortBoardLinks(headerLinks);
+
         return result;
     }
+
+    private sortBoardLinks(parent) {
+        var items = parent.children().sort(function (a, b) {
+            var vA = $(a).text();
+            var vB = $(b).text();
+            return (vA < vB) ? -1 : (vA > vB) ? 1 : 0;
+        });
+
+        parent.append(items);
+    }
+
     protected addColour(color: string) {
         if (color != undefined && color != null && color != "")
             return "background-color:" + color + ";"
@@ -375,9 +388,9 @@ export default class BoardComponents implements IService {
         //     attr = "target=\"_blank\"";
         // if (item.Text == null || item.Text == undefined ) 
         //     item.Text == "";
-            ///data-redirect="ajax" ajax-target="board-body" target="_blank"
+        ///data-redirect="ajax" ajax-target="board-body" target="_blank"
         return $("<div class=\"menu-item\">")
-                .append($("<a href='" + item.Url + "' data-redirect=\"ajax\" ajax-target=\"board-body\" target=\"_blank\">")
+            .append($("<a href='" + item.Url + "' data-redirect=\"ajax\" ajax-target=\"board-body\" target=\"_blank\">")
                 .append((item.Icon === null || item.Icon === undefined) ?
                     $("<div class='icon'>") : this.showIcon(item)
                         .append(item.Name)
@@ -392,7 +405,7 @@ export default class BoardComponents implements IService {
         // else if (item.Action == ActionEnum.NewWindow)
         //     attr = "target=\"_blank\"";
         return $("<div class=\"menu-item\">")
-                .append($("<a href='" + item.Url + "' data-redirect=\"ajax\" ajax-target=\"board-body\" target=\"_blank\">")
+            .append($("<a href='" + item.Url + "' data-redirect=\"ajax\" ajax-target=\"board-body\" target=\"_blank\">")
                 .append((item.Icon === null || item.Icon === undefined) ?
                     $("<div class='icon'>") : this.showIcon(item)
                         .append(item.Name)
@@ -523,16 +536,16 @@ export default class BoardComponents implements IService {
                 }, {}); // empty object is the initial value for result object
             };
 
-            var personGroupedByType = resultfiltered.map((v) => ( {title:v.BoxTitle, order:v.BoxOrder}))
-                                        .concat(result.Widgets?.map((v) => ( {title:v.BoxTitle, order:v.BoxOrder})) || [])
-                                        .concat(result.Htmls?.map((v) => ( {title:v.BoxTitle, order:v.BoxOrder})) || [])
-                                        .filter((b, index, self) =>index === self.findIndex((v) => v.title === b.title));
+            var personGroupedByType = resultfiltered.map((v) => ({ title: v.BoxTitle, order: v.BoxOrder }))
+                .concat(result.Widgets?.map((v) => ({ title: v.BoxTitle, order: v.BoxOrder })) || [])
+                .concat(result.Htmls?.map((v) => ({ title: v.BoxTitle, order: v.BoxOrder })) || [])
+                .filter((b, index, self) => index === self.findIndex((v) => v.title === b.title));
 
-            const boardBoxes = personGroupedByType.sort((a,b) =>{
+            const boardBoxes = personGroupedByType.sort((a, b) => {
                 const orderA = a.order !== null && a.order !== undefined ? a.order : 100;
                 const orderB = b.order !== null && b.order !== undefined ? b.order : 100;
-                return orderA-orderB;
-            } ).map((v)=> v.title);
+                return orderA - orderB;
+            }).map((v) => v.title);
 
             var that = this;
             if (boardBoxes !== undefined && boardBoxes.length > 0) {
