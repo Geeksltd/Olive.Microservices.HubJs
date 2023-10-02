@@ -115,7 +115,7 @@ export default class FeaturesMenu {
                 }
 
                 if (!url.startsWith("/[") || !url.contains("]")) {
-                    console.log("The url does not contain the service info part. Urls should start with [ServiceName]/.",url);
+                    console.log("The url does not contain the service info part. Urls should start with [ServiceName]/.", url);
                     return;
                 }
 
@@ -234,7 +234,8 @@ export default class FeaturesMenu {
 
     onSubMenuClicked(link: JQuery) {
         var wrapper = link.closest(".feature-menu-item");
-        $("#" + wrapper.attr("data-nodeid")).attr("expand", "false").find("a").first().click();
+        var item = $("#" + wrapper.attr("data-nodeid") + "[expand='true']") ?? $("#" + wrapper.attr("data-nodeid"));
+        item.attr("expand", "false").find("a").first().click();
         //$(".feature-top-menu .active").removeClass("active");
         //$.each(wrapper.parents("li"), (i: number, p: any) => {
         //    $(p).addClass("active");
@@ -252,11 +253,10 @@ export default class FeaturesMenu {
         };
     }
     onLinkClicked(link: JQuery) {
-        let loading =  document.getElementById('loading');
-        if (typeof(loading) != 'undefined' && loading != null)
-        {
-            $("service main").html(loading.innerHTML);    
-        } else{
+        let loading = document.getElementById('loading');
+        if (typeof (loading) != 'undefined' && loading != null) {
+            $("service main").html(loading.innerHTML);
+        } else {
             $("service main").html("<center class='w-100'>loading...</center>");
         }
         //Hide iframe after each Ajax call.
