@@ -234,7 +234,9 @@ export default class FeaturesMenu {
 
     onSubMenuClicked(link: JQuery) {
         var wrapper = link.closest(".feature-menu-item");
-        var item = $("#" + wrapper.attr("data-nodeid") + "[expand='true']") ?? $("#" + wrapper.attr("data-nodeid"));
+        var item = $("#" + wrapper.attr("data-nodeid") + "[expand='true']");
+        if (!item || !item.length)
+            item = $("#" + wrapper.attr("data-nodeid"));
         item.attr("expand", "false").find("a").first().click();
         //$(".feature-top-menu .active").removeClass("active");
         //$.each(wrapper.parents("li"), (i: number, p: any) => {
