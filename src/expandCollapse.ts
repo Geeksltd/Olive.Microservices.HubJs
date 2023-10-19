@@ -9,8 +9,15 @@ export default class ExpandCollapse {
     featuresMenuFactory: FeaturesMenuFactory
 
     constructor(button: JQuery, panelKey: string) {
+        console.log(`ExpandCollapse => Start ${panelKey}`);
+        if (!button)
+            console.log("ExpandCollapse => button undefined");
+
         this.button = button.click(() => this.toggle());
         this.panel = $(this.key = panelKey);
+
+        if (!this.panel)
+            console.log("ExpandCollapse => panel undefined");
     }
 
     public static enableExpandCollapse(buttonSelector: string, panelSelector: string) {
@@ -30,11 +37,15 @@ export default class ExpandCollapse {
     }
 
     toggle() {
+        console.log("ExpandCollapse => toggle");
+
         this.cookies.set(this.key, this.isCollapsed() ? "" : "collapsed", { expires: 7 });
         this.apply();
     }
 
     apply() {
+        console.log("ExpandCollapse => apply");
+
         if (this.isCollapsed()) {
             this.panel.addClass("collapsed");
             this.button.addClass("collapse");
@@ -52,6 +63,8 @@ export default class ExpandCollapse {
     }
 
     applyIcon() {
+        console.log("ExpandCollapse => applyIcon");
+
         var customCollapsedIcon = this.button.attr("data-icon-collapsed");
         var customExpandedIcon = this.button.attr("data-icon-expanded");
 
@@ -70,6 +83,8 @@ export default class ExpandCollapse {
         this.syncHubFrame();
     }
     syncHubTopMenu() {
+        console.log("ExpandCollapse => syncHubTopMenu");
+
         window.page.services.getService("featuresMenuFactory").getMenu().onResize();
         if (window.page.board)
             window.page.board.onResize();
@@ -79,6 +94,8 @@ export default class ExpandCollapse {
         // window.parent.postMessage(JSON.stringify(paramW), "*");
     }
     syncHubFrame() {
+        console.log("ExpandCollapse => syncHubFrame");
+
         let arg = Math.round($("service").height());
         let paramW = { command: "setViewFrameHeight", arg: arg };
         window.parent.postMessage(JSON.stringify(paramW), "*");

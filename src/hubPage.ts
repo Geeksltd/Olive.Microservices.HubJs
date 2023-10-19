@@ -82,13 +82,16 @@ export default class HubPage extends OlivePage {
         // myChart.setOption({});
         this.getService<Hub>(HubServices.Hub).initialize();
         this.getService<HubEcharts>(HubServices.HubEcharts).initialize();
+         
+        ExpandCollapse.enableExpandCollapse("#sidebarCollapse", ".side-bar");
+        ExpandCollapse.enableExpandCollapse("#taskBarCollapse", ".task-bar");
+
         setTimeout(() => BadgeNumber.enableBadgeNumber($("a[data-badgeurl]")), 4 * 1000);
 
         //every 5 min badge numbers should be updated
         window.setInterval(() => { BadgeNumber.enableBadgeNumber($("a[data-badgeurl]")); }, 5 * 60 * 1000);
 
-        ExpandCollapse.enableExpandCollapse("#sidebarCollapse", ".side-bar");
-        ExpandCollapse.enableExpandCollapse("#taskBarCollapse", ".task-bar");
+
 
         $("#iFrameHolder").hide();
         $("iframe.view-frame").attr("src", "").attr("style", "");
