@@ -1,101 +1,102 @@
-﻿import { FeaturesMenuFactory } from "./featuresMenu/featuresMenu";
-declare var requirejs: any;
+﻿declare var requirejs: any;
 
 export default class ExpandCollapse {
     button: JQuery;
+    backdrop: JQuery;
     panel: JQuery;
+    page: JQuery;
+    side: string;
     key: string;
     cookies: any;
-    featuresMenuFactory: FeaturesMenuFactory
 
-    constructor(button: JQuery, panelKey: string) {
-        console.log(`ExpandCollapse => Start ${panelKey}`);
-        if (!button)
-            console.log("ExpandCollapse => button undefined");
-
+    constructor(side: string) {
+        const button = $(".side-bar-handle." + side);
+        const backdrop = $(".side-bar-backdrop." + side);
         this.button = button.click(() => this.toggle());
-        this.panel = $(this.key = panelKey);
-
-        if (!this.panel)
-            console.log("ExpandCollapse => panel undefined");
+        this.backdrop = backdrop.click(() => this.toggle());
+        this.panel = $(this.key = ".side-bar." + side);
+        this.page = $(".page");
+        this.side = side;
     }
 
-    public static enableExpandCollapse(buttonSelector: string, panelSelector: string) {
-        new ExpandCollapse($(buttonSelector), panelSelector).initialize();
+    public static enableExpandCollapse(side: string) {
+        new ExpandCollapse(side).initialize();
     }
 
-    isCollapsed() {
-        if (this.cookies.get(this.key) === 'collapsed') return true;
+    public static autoCloseOnMobile() {
+        $(document).on("ajaxComplete", function () {
+            if (ExpandCollapse.isMobile()) {
+                $(".page").removeClass("expanded-left").removeClass("expanded-right")
+            }
+        });
+    }
+
+    public static isMobile() {
+        return window.innerWidth < 992;
+    }
+
+    isExpanded() {
+        if (this.panel.length && this.cookies.get(this.key) === 'expanded') return true;
         else return false;
     }
 
     initialize(): void {
         requirejs(["js-cookie"], x => {
             this.cookies = x;
-            this.apply();
+            if (ExpandCollapse.isMobile()) {
+                this.page.removeClass("expanded-left");
+                this.cookies.set(".side-bar.left", "", { expires: 7 });
+
+                this.page.removeClass("expanded-right");
+                this.cookies.set(".side-bar.right", "", { expires: 7 });
+            } else {
+                this.apply();
+            }
+            this.page.attr("data-js-init", "true");
         });
     }
 
     toggle() {
-        console.log("ExpandCollapse => toggle");
-
-        this.cookies.set(this.key, this.isCollapsed() ? "" : "collapsed", { expires: 7 });
+        this.cookies.set(this.key, this.isExpanded() ? "" : "expanded", { expires: 7 });
         this.apply();
     }
 
     apply() {
-        console.log("ExpandCollapse => apply");
-
-        if (this.isCollapsed()) {
-            this.panel.addClass("collapsed");
-            this.button.addClass("collapse");
+        if (this.isExpanded()) {
+            this.page.addClass("expanded-" + this.side);
         }
         else {
-            this.button.removeClass("collapse");
-            this.panel.removeClass("collapsed");
+            this.page.removeClass("expanded-" + this.side);
 
             var iframe = this.panel.find("iframe[data-src]");
             if (iframe.length) iframe.attr("src", iframe.attr("data-src")).removeAttr("data-src");
         }
 
         this.applyIcon();
-        this.syncHubTopMenu();
     }
 
     applyIcon() {
-        console.log("ExpandCollapse => applyIcon");
+        var iconDom = this.button.find("i");
+        if (!iconDom.length) return;
 
         var customCollapsedIcon = this.button.attr("data-icon-collapsed");
         var customExpandedIcon = this.button.attr("data-icon-expanded");
 
         var collapsedIcon = customCollapsedIcon
             ? customCollapsedIcon
-            : (this.key == ".side-bar" ? "fa-chevron-right" : "fa-chevron-left");
+            : (this.key == ".side-bar" ? "fa fa-chevron-right" : "fa fa-chevron-left");
 
         var expandedIcon = customExpandedIcon
             ? customExpandedIcon
-            : (this.key == ".side-bar" ? "fa-chevron-left" : "fa-chevron-right");
+            : (this.key == ".side-bar" ? "fa fa-chevron-left" : "fa fa-chevron-right");
 
-        var toRemove = this.isCollapsed() ? expandedIcon : collapsedIcon;
-        var toAdd = this.isCollapsed() ? collapsedIcon : expandedIcon;
+        var toRemove = this.isExpanded() ? collapsedIcon : expandedIcon;
+        var toAdd = this.isExpanded() ? expandedIcon : collapsedIcon;
 
-        this.button.find("i").removeClass(toRemove).addClass(toAdd);
+        iconDom.removeClass(toRemove).addClass(toAdd);
         this.syncHubFrame();
     }
-    syncHubTopMenu() {
-        console.log("ExpandCollapse => syncHubTopMenu");
-
-        window.page.services.getService("featuresMenuFactory").getMenu().onResize();
-        if (window.page.board)
-            window.page.board.onResize();
-
-        // let arg = {};
-        // let paramW = { command: "sideBarRightToggleEvent", arg: arg };
-        // window.parent.postMessage(JSON.stringify(paramW), "*");
-    }
     syncHubFrame() {
-        console.log("ExpandCollapse => syncHubFrame");
-
         let arg = Math.round($("service").height());
         let paramW = { command: "setViewFrameHeight", arg: arg };
         window.parent.postMessage(JSON.stringify(paramW), "*");
