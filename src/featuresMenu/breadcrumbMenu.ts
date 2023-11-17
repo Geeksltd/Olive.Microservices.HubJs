@@ -1,6 +1,6 @@
 ﻿import AjaxRedirect from "olive/mvc/ajaxRedirect";
 
-export default class BreadcrumbMenu implements IService{
+export default class BreadcrumbMenu implements IService {
 
     constructor(private ajaxRedirect: AjaxRedirect) { }
 
@@ -10,12 +10,9 @@ export default class BreadcrumbMenu implements IService{
     }
 
     public bindItemListClick() {
-        
+
         //select feature items
         this.bindFeatureMenuItemsClicks($("div.item > a:not([href=''])"));
-
-        //select top menus
-        this.bindFeatureMenuItemsClicks($(".feature-top-menu .feature-menu-item > a:not([href=''])"));
     }
 
     bindFeatureMenuItemsClicks(selector: JQuery) {
@@ -48,38 +45,38 @@ export default class BreadcrumbMenu implements IService{
         else
             $("#" + $(link).attr("data-itemid") + " a[href='" + $(link).attr("href") + "']").attr("no-collapse", "no-collapse").click();
         return false;
-        let parent = $(".breadcrumb").find(link).parent();
-        parent.nextAll().remove();
+        // let parent = $(".breadcrumb").find(link).parent();
+        // parent.nextAll().remove();
 
-        var leftMenu = $(".feature-menu-item").find(`a[href="${link[0]["pathname"]}"]`);
+        // var leftMenu = $(".feature-menu-item").find(`a[href="${link[0]["pathname"]}"]`);
 
-        leftMenu.parent().addClass("active");
+        // leftMenu.parent().addClass("active");
 
-        if (parent.siblings().length <= 1) {
-            $(".features-sub-menu").empty();
-        }
-        else {
-            $("li[data-nodeid=\"" + link.attr("data-itemid") + "\"] li").removeClass("active");
-        }
+        // if (parent.siblings().length <= 1) {
+        //     $(".features-sub-menu").empty();
+        // }
+        // else {
+        //     $("li[data-nodeid=\"" + link.attr("data-itemid") + "\"] li").removeClass("active");
+        // }
 
-        if (parent.siblings().length > 0) {
-            let text = link.text();
-            $(".breadcrumb").append(`<li class="breadcrumb-item active" aria-current="page">${text}</li>`);
-        }
+        // if (parent.siblings().length > 0) {
+        //     let text = link.text();
+        //     $(".breadcrumb").append(`<li class="breadcrumb-item active" aria-current="page">${text}</li>`);
+        // }
 
-        parent.remove();
+        // parent.remove();
 
-        if ($(".breadcrumb li").length == 1) {
-            $(".feature-menu-item").attr("expand", "false")
-        }
+        // if ($(".breadcrumb li").length == 1) {
+        //     $(".feature-menu-item").attr("expand", "false")
+        // }
     }
 
     initBreadcrumb() {
 
-        let link = $($(".feature-menu-item .active").children("a")[0]);
+        let link = $(".feature-menu-item.active > a");
 
         if (link.length == 0) {
-            link = $($("[expand='true']")[0]).children("a");
+            link = $("[expand='true'] > a");
         }
 
         this.generateBreadcrumb(link);
