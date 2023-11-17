@@ -82,16 +82,15 @@ export default class HubPage extends OlivePage {
         // myChart.setOption({});
         this.getService<Hub>(HubServices.Hub).initialize();
         this.getService<HubEcharts>(HubServices.HubEcharts).initialize();
-         
-        ExpandCollapse.enableExpandCollapse("#sidebarCollapse", ".side-bar");
-        ExpandCollapse.enableExpandCollapse("#taskBarCollapse", ".task-bar");
+
+        ExpandCollapse.enableExpandCollapse("left");
+        ExpandCollapse.enableExpandCollapse("right");
+        ExpandCollapse.autoCloseOnMobile();
 
         setTimeout(() => BadgeNumber.enableBadgeNumber($("a[data-badgeurl]")), 4 * 1000);
 
         //every 5 min badge numbers should be updated
         window.setInterval(() => { BadgeNumber.enableBadgeNumber($("a[data-badgeurl]")); }, 5 * 60 * 1000);
-
-
 
         $("#iFrameHolder").hide();
         $("iframe.view-frame").attr("src", "").attr("style", "");
@@ -208,8 +207,8 @@ export default class HubPage extends OlivePage {
         }
         if (currentMenu.length > 0 && HubPage.IsFirstPageLoad == true) {
             if (currentMenu.parent().attr("is-side-menu-child") == "true")
-                currentMenu.parent().parent().parent().addClass("active").attr("expand", "true");
-            currentMenu.addClass("active");
+                currentMenu.parents(".feature-menu-item").attr("expand", "true");
+            currentMenu.closest(".feature-menu-item").addClass("active");
 
             HubPage.IsFirstPageLoad = false;
 
