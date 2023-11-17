@@ -51,22 +51,34 @@ export default class HubUrl extends Url {
             if (innerUrl.startsWith("[") && innerUrl.contains("]")) {
                 serviceName = innerUrl.substring("[".length, innerUrl.indexOf("]"));
                 innerUrl = innerUrl.substring(serviceName.length + 2);
+
+                let page = "";
+                const urlParts = innerUrl.split('/').filter(a => !!a);
+                if (urlParts.length) {
+                    page = urlParts[0];
+                }
                 serviceContainer.attr("of", serviceName);
+                serviceContainer.attr("page", page);
             }
 
             //All urls starting with "under" are from HUB service.
-            if (innerUrl.startsWith("under")) serviceName = "hub";
+            if (innerUrl.startsWith("under")) {
+                serviceName = "hub";
+                serviceContainer.attr("of", "Hub");
+                serviceContainer.attr("page", "");
+            }
 
             var baseUrl = Service.fromName(serviceName).BaseUrl;
 
             if (!baseUrl.startsWith("http"))
                 baseUrl = baseUrl.withPrefix("http://");
-            
+
             return this.makeAbsolute(baseUrl, innerUrl);
         }
 
         if (url.contains("/under/")) {
             serviceContainer.attr("of", "Hub");
+            serviceContainer.attr("page", "");
             $(".task-bar").addClass("d-lg-flex");
         }
 
