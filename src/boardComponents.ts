@@ -128,7 +128,7 @@ export default class BoardComponents implements IService {
         // }
 
         this.masonryGrid = new MasonryGrid({
-            parentSelector: '.board-components-result',
+            parentSelector: '.board-components-result > .list-items',
             itemsSelector: ".item",
             minColumnWidth: 300
         });
