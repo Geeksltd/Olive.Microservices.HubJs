@@ -2,6 +2,7 @@
 import Url from 'olive/components/url';
 import AjaxRedirect from 'olive/mvc/ajaxRedirect';
 import { getMainDomain } from './hub';
+import MasonryGrid from './masonryGrid';
 
 export default class BoardComponents implements IService {
     private urlList: string[];
@@ -13,6 +14,7 @@ export default class BoardComponents implements IService {
     private timer: any = null
     private myStorage: any
     private boardPath: string;
+    masonryGrid: MasonryGrid;
     constructor(private input: JQuery, modalHelper: ModalHelper, ajaxRedirect: AjaxRedirect, boardPath: string) {
         if (input == null || input.length == 0) return;
         this.boardPath = boardPath;
@@ -119,25 +121,22 @@ export default class BoardComponents implements IService {
             if (!$(e.target).closest("a").is($(".manage-button,.add-button")))
                 $(".board-addable-items-container,.board-manage-items-container").fadeOut();
         })
-        $(window).on('resize', function () {
-            this.onResize()
+
+        // for (let index = 0; index < 20; index++) {
+        //     var random = Math.random() * 500;
+        //     $('.board-components-result').append("<div class='item card card-body mb-3' style='height:" + random + "px'>ITEM #" + index + "</div>")
+        // }
+
+        this.masonryGrid = new MasonryGrid({
+            parentSelector: '.board-components-result',
+            itemsSelector: ".item",
+            minColumnWidth: 300
         });
 
         this.relocateBoardComponentsHeaderActions();
         this.removeBoardGap();
     }
 
-    public onResize() {
-        var width = 0;
-        if ($(".sidebarCollapse.collapse").length == 0)
-            width += 230;
-        if ($("#taskBarCollapse.collapse").length == 0)
-            width += 300;
-        if ($.fn.masonryGrid)
-            $(".board-components-result .list-items").masonryGrid({
-                'columns': parseInt((($(document).outerWidth() - width) / 300).toString())
-            });
-    }
     protected createBoardItems(sender: IAjaxObject, context: IBoardContext, items: IInfoDto[], addableButtons: IButtonDto[], widgets: IWidgetDto[], html: IHtmlDto[], boxTitle: string, boxOrder: number) {
         if (items.length == 0 && widgets.length == 0 && html.length == 0) return null;
         var content = $("<table>");
@@ -579,8 +578,6 @@ export default class BoardComponents implements IService {
                     }
                 }
             }
-            if (!loadFromCaceh)
-                this.onResize();
 
             if (resultfiltered.length > 0 || (result.Widgets && result.Widgets.length > 0) || (result.Htmls && result.Htmls.length > 0)) {
                 console.log("resultfiltered has item");
@@ -624,7 +621,6 @@ export default class BoardComponents implements IService {
         context.ajaxCallCount++;
 
         if (context.ajaxList.filter((p) => p.state === 0).length === 0) {
-            //this.waiting.hide();
             if (context.resultCount === 0) {
                 const ulNothing = $("<div class=\"item\">");
                 ulNothing.append("<a>").append("<span>").html("Nothing found");
@@ -632,20 +628,16 @@ export default class BoardComponents implements IService {
             }
         }
         this.modalHelper.enableLink($(".board-components-result [target='$modal'][href]"));
-        //window.page.services.getService("modalHelper").enableLink()
         if (context.ajaxCallCount == context.ajaxList.length) {
-            var header = this.filterInput.parent();
             this.bindAddableItemsButtonClick(context);
-            if (window.page.board)
-                window.page.board.onResize();
 
             if ($(".board-addable-items-container").children().length > 0) {
                 $(".add-button").show();
             }
-            if ($(".board-manage-items-container").children().length > 0) {
-                //$(".manage-button").fadeIn();
-            }
         }
+
+        if (this.masonryGrid)
+            this.masonryGrid.drawGrid()
     }
 
     protected onError(sender: IAjaxObject, boardHolder: JQuery, jqXHR: JQueryXHR) {

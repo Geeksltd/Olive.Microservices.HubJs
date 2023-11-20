@@ -25,7 +25,6 @@ import Hub, { getMainDomain } from './hub';
 import HubUrl from './overrides/hubUrl';
 import HubModal from './hubModal';
 import BoardComponents from './boardComponents';
-import ExtendJQueryFunction from './extendJQueryFunction';
 import HubEcharts from './hubEcharts'
 import echarts from 'echarts'
 type EChartsOption = echarts.EChartsOption;
@@ -161,18 +160,18 @@ export default class HubPage extends OlivePage {
             const allBoards = window["boards"] && window["boards"].length ? window["boards"] : [];
             const currentBoard = allBoards.filter(b => currentPath.pathname.startsWith("/hub/" + b + "/") || currentPath.pathname.startsWith("/" + b + "/"));
             if (currentBoard && currentBoard.length) {
-                var masonryGrids = $(".board-components-result").find(".masonry-grid-origin");
-                if (masonryGrids == undefined || masonryGrids == null || masonryGrids.length == 0) {
-                    var w100 = $(".hub-service").find(".w-100");
-                    if (w100 != undefined && w100 != null) {
-                        while (w100[0].children.length > 1) {
-                            w100[0].lastChild.remove();
-                        }
-                    }
-                    this.board = new BoardComponents($(".board-components"),
-                        this.getService<ModalHelper>(Services.ModalHelper),
-                        this.getService<AjaxRedirect>(Services.AjaxRedirect), (currentPath.pathname.startsWith("https://hub." + getMainDomain()) ? currentPath.pathname : "https://hub." + getMainDomain() + currentPath.pathname));
-                }
+
+                var initialized = $(".board-components").attr("data-initialized") === 'true';
+                if (initialized) return;
+
+                $(".board-components").attr("data-initialized", "true");
+
+                this.board = new BoardComponents($(".board-components"),
+                    this.getService<ModalHelper>(Services.ModalHelper),
+                    this.getService<AjaxRedirect>(Services.AjaxRedirect),
+                    (currentPath.pathname.startsWith("https://hub." + getMainDomain())
+                        ? currentPath.pathname
+                        : "https://hub." + getMainDomain() + currentPath.pathname));
             }
             else {
                 var hubserv = $(".board-components");
@@ -225,7 +224,5 @@ export default class HubPage extends OlivePage {
         }
         // This function is called upon every Ajax update as well as the initial page load.
         // Any custom initiation goes here.
-
-        new ExtendJQueryFunction();
     }
 }

@@ -1,5 +1,6 @@
 import { ModalHelper } from 'olive/components/modal';
 import AjaxRedirect from 'olive/mvc/ajaxRedirect';
+import MasonryGrid from './masonryGrid';
 export default class BoardComponents implements IService {
     private input;
     private urlList;
@@ -11,11 +12,11 @@ export default class BoardComponents implements IService {
     private timer;
     private myStorage;
     private boardPath;
+    masonryGrid: MasonryGrid;
     constructor(input: JQuery, modalHelper: ModalHelper, ajaxRedirect: AjaxRedirect, boardPath: string);
     protected getResultPanel(): JQuery;
     protected getAddableItemsPanel(): JQuery;
     protected createBoardComponent(urls: string[]): Promise<void>;
-    onResize(): void;
     protected createBoardItems(sender: IAjaxObject, context: IBoardContext, items: IInfoDto[], addableButtons: IButtonDto[], widgets: IWidgetDto[], html: IHtmlDto[], boxTitle: string, boxOrder: number): JQuery;
     private getItemBox;
     private handelLinksClick;
