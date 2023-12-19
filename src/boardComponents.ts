@@ -122,10 +122,12 @@ export default class BoardComponents implements IService {
                 $(".board-addable-items-container,.board-manage-items-container").fadeOut();
         })
 
+        // const listItems = $("<div class='list-items'>");
         // for (let index = 0; index < 20; index++) {
-        //     var random = Math.random() * 500;
-        //     $('.board-components-result').append("<div class='item card card-body mb-3' style='height:" + random + "px'>ITEM #" + index + "</div>")
+        //     var random = Math.random() * 500 + 100;
+        //     listItems.append("<div class='item'><div class='card mb-3' style='height:" + random + "px'><div class='card-body'>ITEM #" + index + "</div></div></div>")
         // }
+        // $('.board-components-result').append(listItems);
 
         this.masonryGrid = new MasonryGrid({
             parentSelector: '.board-components-result > .list-items',

@@ -19,24 +19,31 @@ export default class MasonryGrid {
     }
 
     private initialize() {
-        this.parent = document.querySelector<HTMLElement>(this.options.parentSelector);
-        this.items = this.parent.querySelectorAll(this.options.parentSelector + ' > ' + this.options.itemsSelector);
+        try {
+            this.parent = document.querySelector<HTMLElement>(this.options.parentSelector);
+            this.items = this.parent.querySelectorAll(this.options.parentSelector + ' > ' + this.options.itemsSelector);
 
-        if (!this.parent || !this.items || !this.items.length) return;
+            if (!this.parent || !this.items || !this.items.length) return;
 
-        const that = this;
+            const that = this;
 
-        this.resizeObserver = new ResizeObserver(entries => {
-            clearTimeout(that.resizeId);
-            that.resizeId = setTimeout(function () {
-                that.drawGrid();
-                that.resizeId = undefined;
-                setTimeout(function () { that.parent.style.setProperty('opacity', '1') }, 100);
-            }, 500);
-        });
+            this.resizeObserver = new ResizeObserver(entries => {
+                clearTimeout(that.resizeId);
+                that.resizeId = setTimeout(function () {
+                    that.drawGrid();
+                    that.resizeId = undefined;
+                    setTimeout(function () { that.parent.style.setProperty('opacity', '1') }, 100);
+                }, 500);
+            });
 
-        this.resizeObserver.observe(this.parent);
-        this.items.forEach(item => this.resizeObserver.observe(item));
+            this.resizeObserver.observe(this.parent);
+            this.items.forEach(item => this.resizeObserver.observe(item));
+        } catch (error) {
+            console.error(error);
+            setTimeout(() => {
+                this.initialize();
+            }, 100);
+        }
     }
 
     drawGrid() {
