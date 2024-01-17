@@ -18,7 +18,9 @@ jobs:
     
     - run: yarn install --frozen-lockfile
 
-    - run: ./src/bundling/minify-js.bat
+    - name: bundling
+      working-directory: ./src/bundling
+      run: minify-js.bat
 
     - run: yarn pack --filename=package.tgz
 
