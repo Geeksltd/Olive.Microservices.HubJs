@@ -52,7 +52,7 @@ export default class FeaturesMenu {
                 let link = $(e.currentTarget);
                 let url = link.attr("href");
 
-                if (url.indexOf("$no-nav") !== -1) {
+                if (url.indexOf("_nav=no") !== -1) {
                     window.location.href = url;
                     return;
                 }
@@ -198,7 +198,7 @@ export default class FeaturesMenu {
         }
 
         const url = link.attr('href')
-        if (url.indexOf('$no-nav') !== -1) {
+        if (url.indexOf('_nav=no') !== -1) {
             $("service main").remove();
             window.location.href = url;
             return false;
