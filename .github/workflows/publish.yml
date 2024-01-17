@@ -21,7 +21,6 @@ jobs:
     - name: bundling
       working-directory: ./src/bundling
       run: |
-        cd src/bundling
         ./minify-js.bat
 
     - run: yarn pack --filename=package.tgz
