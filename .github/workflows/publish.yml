@@ -16,6 +16,8 @@ jobs:
     
     - run: npm install typescript@4.2.3 -g
     
+    - run: yarn install --frozen-lockfile
+
     - run: ./src/bundling/minify-js.bat
 
     - run: yarn pack --filename=package.tgz
