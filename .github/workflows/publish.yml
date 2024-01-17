@@ -20,7 +20,7 @@ jobs:
 
     - name: bundling
       run: |
-        cd ./src/bundling
+        cd src/bundling
         minify-js.bat
 
     - run: yarn pack --filename=package.tgz
