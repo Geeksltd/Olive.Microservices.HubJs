@@ -1,5 +1,5 @@
 
-import echarts from 'echarts'
+import * as echarts from 'echarts'
 import Service from "./model/service";
 
 export default class HubEcharts implements IService {

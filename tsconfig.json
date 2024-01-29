@@ -32,7 +32,6 @@
     "declaration": true,
     "declarationDir": "dist/types/hub",
     "sourceMap": true,
-    "noImplicitUseStrict": true,
     "noImplicitAny": false,
     "noEmitOnError": true,
     "removeComments": false

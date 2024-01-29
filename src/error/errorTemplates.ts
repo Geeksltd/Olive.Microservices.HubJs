@@ -1,5 +1,4 @@
-﻿namespace errorTemplates {
-    export const SERVICE = `
+﻿export const SERVICE_ERROR_TEMPLATE = `
 <main>
   <div class="error" >
 <h2>Oops!</h2>
@@ -27,4 +26,4 @@
   <a class="btn btn-secondary" href="#" onclick="$('.ajax-error-content').addClass('d-none')">Hide the error</a>
 </div>
 `;
-}
+export { };

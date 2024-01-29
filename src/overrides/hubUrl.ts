@@ -22,7 +22,7 @@ export default class HubUrl extends Url {
         }
     }
     effectiveUrlProvider = (url: string, trigger?: JQuery): string => {
-
+        if (!url) url = "";
         //$("#iFrameHolder").hide(); //hide any opened iFrame content after ajax call.
         //$("iframe.view-frame").attr("src", "").attr("style", ""); // remove previous path
         let serviceName: string;

@@ -26,8 +26,7 @@ import HubUrl from './overrides/hubUrl';
 import HubModal from './hubModal';
 import BoardComponents from './boardComponents';
 import HubEcharts from './hubEcharts'
-import echarts from 'echarts'
-type EChartsOption = echarts.EChartsOption;
+import * as echarts from 'echarts';
 
 // import Chartist from '../lib/@types/chartist/index';
 
@@ -66,6 +65,7 @@ import 'flickity';
 import ServerInvoker from 'olive/mvc/serverInvoker';
 import HubResponseProcessor from './overrides/hubResponseProcessor';
 import { ServiceDescription } from 'olive/di/serviceDescription';
+import { MainTagHelper } from 'olive/components/mainTag';
 
 
 export default class HubPage extends OlivePage {
@@ -118,10 +118,10 @@ export default class HubPage extends OlivePage {
             .withDependencies(Services.Url, Services.ResponseProcessor, Services.Waiting);
 
         services.addSingleton(Services.StandardAction, (alert: Alert, form: Form, waiting: Waiting, ajaxRedirect: AjaxRedirect,
-            responseProcessor: ResponseProcessor, select: Select, modalHelper: ModalHelper, serviceLocator: IServiceLocator) =>
-            new HubStandardAction(alert, form, waiting, ajaxRedirect, responseProcessor, select, modalHelper, serviceLocator))
+            responseProcessor: ResponseProcessor, select: Select, modalHelper: ModalHelper, mainTagHelper: MainTagHelper, serviceLocator: IServiceLocator) =>
+            new HubStandardAction(alert, form, waiting, ajaxRedirect, responseProcessor, select, modalHelper, mainTagHelper, serviceLocator))
             .withDependencies(Services.Alert, Services.Form, Services.Waiting, Services.AjaxRedirect,
-                Services.ResponseProcessor, Services.Select, Services.ModalHelper, Services.ServiceLocator);
+                Services.ResponseProcessor, Services.Select, Services.ModalHelper, Services.MainTagHelper, Services.ServiceLocator);
 
         services.addSingleton(Services.Form, (url: Url, validate: Validate, waiting: Waiting, ajaxRedirect: AjaxRedirect) =>
             new HubForm(url, validate, waiting, ajaxRedirect))
@@ -183,8 +183,8 @@ export default class HubPage extends OlivePage {
 
 
         //if(this.board == null)
-        //    this.board = new BoardComponents($(".board-components"), 
-        //    this.getService<ModalHelper>(Services.ModalHelper), 
+        //    this.board = new BoardComponents($(".board-components"),
+        //    this.getService<ModalHelper>(Services.ModalHelper),
         //    this.getService<AjaxRedirect>(Services.AjaxRedirect));
 
         var currentService = $("service[of]").attr("of");

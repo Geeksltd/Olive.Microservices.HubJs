@@ -1,7 +1,6 @@
 ﻿import { ModalHelper } from 'olive/components/modal'
 import Url from 'olive/components/url';
 import AjaxRedirect from 'olive/mvc/ajaxRedirect';
-import { getMainDomain } from './hub';
 import MasonryGrid from './masonryGrid';
 
 export default class BoardComponents implements IService {
@@ -387,7 +386,7 @@ export default class BoardComponents implements IService {
         //     attr = "target=\"$modal\"";
         // else if (item.Action == ActionEnum.NewWindow)
         //     attr = "target=\"_blank\"";
-        // if (item.Text == null || item.Text == undefined ) 
+        // if (item.Text == null || item.Text == undefined )
         //     item.Text == "";
         ///data-redirect="ajax" ajax-target="board-body" target="_blank"
         return $("<div class=\"menu-item\">")

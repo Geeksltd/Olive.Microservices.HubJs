@@ -6,7 +6,8 @@ import { ModalHelper } from 'olive/components/modal';
 import ResponseProcessor from "olive/mvc/responseProcessor";
 import Waiting from "olive/components/waiting";
 import AjaxRedirect from 'olive/mvc/ajaxRedirect';
+import { MainTagHelper } from "olive/components/mainTag";
 export default class HubStandardAction extends StandardAction {
-    constructor(alert: Alert, form: Form, waiting: Waiting, ajaxRedirect: AjaxRedirect, responseProcessor: ResponseProcessor, select: Select, modalHelper: ModalHelper, serviceLocator: IServiceLocator);
+    constructor(alert: Alert, form: Form, waiting: Waiting, ajaxRedirect: AjaxRedirect, responseProcessor: ResponseProcessor, select: Select, modalHelper: ModalHelper, mainTagHelper: MainTagHelper, serviceLocator: IServiceLocator);
     protected redirect(action: any, trigger: any): void;
 }
