@@ -4,7 +4,6 @@ import ResponseProcessor from "olive/mvc/responseProcessor";
 
 export default class HubResponseProcessor extends ResponseProcessor {
     private fixUrlForOpenNewWindows(service: string, url: string) {
-        console.log("fixUrlForOpenNewWindows", service, url)
         if (!service || !url)
             return url;
         if (url.contains(":"))
@@ -37,15 +36,21 @@ export default class HubResponseProcessor extends ResponseProcessor {
     //         }
     //     }
     // }
-    private fixUrlsForOpenNewWindows(response: any) {
+    private fixUrlsForOpenNewWindows(response: any, trigger: JQuery) {
         var asElement = $(response);
-        if ($(element).closest(".hub-service").length > 0 || asElement.hasClass("hub-service") || $(asElement).attr("data-module") == "MYPriorityView")
+
+        if (asElement.closest(".hub-service").length > 0 || asElement.hasClass("hub-service") || asElement.attr("data-module") == "MYPriorityView")
             return asElement;
 
-        let serviceContainer = $(element).closest("service[of]");
-        if (!serviceContainer || !serviceContainer.length) {
+        let serviceContainer = undefined;
+        if (trigger && trigger.length && (trigger.is("main[name^='$']") || trigger.is("[target^='$']"))) {
+            if (trigger.is("main[name^='$']")) serviceContainer = trigger.closest("service[of]");
+            else serviceContainer = $("main[name='" + trigger.attr('target') + "']").closest("service[of]");
+        }
+        else {
             serviceContainer = $("service[of]");
         }
+
         if (serviceContainer.length > 0) {
             const service = serviceContainer.attr("of");
             var aTags = asElement.find("a:not([target^='$'])")
@@ -65,7 +70,7 @@ export default class HubResponseProcessor extends ResponseProcessor {
     }
     public processAjaxResponse(response: any, containerModule: JQuery, trigger: JQuery, args: any, ajaxTarget?: string, ajaxhref?: string) {
         let asElement = $(response);
-        asElement = this.fixUrlsForOpenNewWindows(response);
+        asElement = this.fixUrlsForOpenNewWindows(response, trigger);
         if (ajaxTarget) {
             var currentPath = document.URL;
             if (currentPath.contains("?$")) {

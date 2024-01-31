@@ -15,7 +15,10 @@ export default class HubAjaxRedirect extends AjaxRedirect {
         // we need to edit a query string parameter as _{main tag name without $}={url pathname}
         const mainTag = trigger.is("main[name^='$']") ? trigger : trigger.closest("main[name^='$']")
         if (mainTag && mainTag.length) {
-            url = this.url.updateQuery(this.url.current(), mainTag.attr("name").replace("$", "_"), url);
+            const service = Service.fromUrl(url);
+            var urlData = new URL(url);
+            const relativeUrl = `/[${service.Name.toLowerCase()}]${urlData.pathname}${urlData.search}`;
+            url = this.url.updateQuery(this.url.current(), mainTag.attr("name").replace("$", "_"), encodeURIComponent(relativeUrl));
             history.pushState({}, title, url);
             return;
         }
