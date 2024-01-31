@@ -3,46 +3,63 @@ import ResponseProcessor from "olive/mvc/responseProcessor";
 
 
 export default class HubResponseProcessor extends ResponseProcessor {
-    public fixUrlForOpenNewWindows(url: string) {
+    private fixUrlForOpenNewWindows(service: string, url: string) {
+        console.log("fixUrlForOpenNewWindows", service, url)
+        if (!service || !url)
+            return url;
         if (url.contains(":"))
             return url;
-        var service = $("service[of]").attr("of")
-        if (!service) return url;
-        if (service == "hub" || service == undefined || service == null) return url;
+        if (url.contains("[") && url.contains("]"))
+            return url;
+        if (service == "hub" || service == undefined || service == null)
+            return url;
+
         if (url.startsWith("/"))
             url = "/" + service + url;
         else
             url = "/" + service + "/" + url;
+
         return url;
     }
-    public fixElementForOpenNewWindows(element: JQuery) {
-        if ($(element).closest(".hub-service").length > 0) return;
-        if ($(element).closest("service[of]").length > 0) {
-            let url = element.attr("href");
-            if (!url.contains(":")) {
-                element.attr("ajax-href", url)
-                url = this.fixUrlForOpenNewWindows(url)
-                if (url.indexOf("undefined") < 0)
-                    element.attr("ajax-href", url)
-            }
-        }
-    }
-    public fixUrlsForOpenNewWindows(response: any) {
+    // private fixElementForOpenNewWindows(element: JQuery) {
+    //     if ($(element).closest(".hub-service").length > 0) return;
+    //     let serviceContainer = $(element).closest("service[of]");
+    //     if (!serviceContainer || !serviceContainer.length) {
+    //         serviceContainer = $("service[of]");
+    //     }
+    //     if (serviceContainer.length > 0) {
+    //         let url = element.attr("href");
+    //         if (!url.contains(":")) {
+    //             element.attr("ajax-href", url)
+    //             url = this.fixUrlForOpenNewWindows(serviceContainer.attr('of'), url)
+    //             if (url.indexOf("undefined") < 0)
+    //                 element.attr("ajax-href", url)
+    //         }
+    //     }
+    // }
+    private fixUrlsForOpenNewWindows(response: any) {
         var asElement = $(response);
         if ($(element).closest(".hub-service").length > 0 || asElement.hasClass("hub-service") || $(asElement).attr("data-module") == "MYPriorityView")
             return asElement;
 
-        var aTags = asElement.find("a:not([target='$modal'])")
-        for (var i = 0; i < aTags.length; i++) {
-            var element = aTags.get(i);
-            var url = $(element).attr("href");
-            if (url != undefined && url != null && !url.contains(":")) {
-                $(element).attr("ajax-href", url);
-                url = this.fixUrlForOpenNewWindows(url)
-                if (url.indexOf("undefined") < 0)
-                    $(element).attr("href", url);
-            }
+        let serviceContainer = $(element).closest("service[of]");
+        if (!serviceContainer || !serviceContainer.length) {
+            serviceContainer = $("service[of]");
+        }
+        if (serviceContainer.length > 0) {
+            const service = serviceContainer.attr("of");
+            var aTags = asElement.find("a:not([target^='$'])")
+            for (var i = 0; i < aTags.length; i++) {
+                var element = aTags.get(i);
+                var url = $(element).attr("href");
+                if (url != undefined && url != null && !url.contains(":")) {
+                    $(element).attr("ajax-href", url);
+                    url = this.fixUrlForOpenNewWindows(service, url)
+                    if (url.indexOf("undefined") < 0)
+                        $(element).attr("href", url);
+                }
 
+            }
         }
         return asElement;
     }

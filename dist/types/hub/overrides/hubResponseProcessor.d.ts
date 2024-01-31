@@ -1,7 +1,6 @@
 import ResponseProcessor from "olive/mvc/responseProcessor";
 export default class HubResponseProcessor extends ResponseProcessor {
-    fixUrlForOpenNewWindows(url: string): string;
-    fixElementForOpenNewWindows(element: JQuery): void;
-    fixUrlsForOpenNewWindows(response: any): JQuery;
+    private fixUrlForOpenNewWindows;
+    private fixUrlsForOpenNewWindows;
     processAjaxResponse(response: any, containerModule: JQuery, trigger: JQuery, args: any, ajaxTarget?: string, ajaxhref?: string): void;
 }
