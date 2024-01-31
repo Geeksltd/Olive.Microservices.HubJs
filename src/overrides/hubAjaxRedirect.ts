@@ -10,7 +10,15 @@ export default class HubAjaxRedirect extends AjaxRedirect {
         super(url, responseProcessor, waiting);
     }
 
-    protected onRedirected(title: string, url: string) {
+    protected onRedirected(trigger: JQuery, title: string, url: string) {
+        // if trigger is a main tag with name starting by $ character or it has a parent with this conditions
+        // we need to edit a query string parameter as _{main tag name without $}={url pathname}
+        const mainTag = trigger.is("main[name^='$']") ? trigger : trigger.closest("main[name^='$']")
+        if (mainTag && mainTag.length) {
+            url = this.url.updateQuery(this.url.current(), mainTag.attr("name").replace("$", "_"), url);
+            history.pushState({}, title, url);
+            return;
+        }
         Service.onNavigated(url, title);
     }
 

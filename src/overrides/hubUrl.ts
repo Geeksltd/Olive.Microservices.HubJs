@@ -2,7 +2,8 @@
 import Service from "app/model/service";
 
 export default class HubUrl extends Url {
-    goBack = function () {
+    goBack = function (target) {
+        
         if (this.current().indexOf(this.baseContentUrl + "/##") === 0)
             history.back();
 
@@ -10,9 +11,9 @@ export default class HubUrl extends Url {
             var returnUrl = this.getQuery("ReturnUrl");
             returnUrl = this.decodeGzipUrl(returnUrl);
             if (returnUrl) {
-                let isInServiceTag = $(event.target).closest("service").length > 0;
-                let serviceName = $("service").attr("of");
-                if (isInServiceTag && !window.location.href.startsWith("/" + serviceName)) {
+                let isInServiceTag = $(target).closest("service").length > 0;
+                let serviceName = isInServiceTag ? $(target).closest("service").attr("of") : undefined;
+                if (isInServiceTag && !window.location.pathname.startsWith("/" + serviceName)) {
                     window.location.href = "/" + serviceName + returnUrl.substring(1)
                 } else
                     window.location.href = returnUrl;
@@ -22,9 +23,12 @@ export default class HubUrl extends Url {
         }
     }
     effectiveUrlProvider = (url: string, trigger?: JQuery): string => {
+
         if (!url) url = "";
+
         //$("#iFrameHolder").hide(); //hide any opened iFrame content after ajax call.
         //$("iframe.view-frame").attr("src", "").attr("style", ""); // remove previous path
+
         let serviceName: string;
         let serviceContainer = trigger ? trigger.closest("service[of]") : $("service[of]").first();
 
@@ -32,6 +36,11 @@ export default class HubUrl extends Url {
 
         if (serviceContainer.length === 0)
             throw new Error("<service of='...' /> is not found on the page.");
+
+        const setServiceName = (sn: string, pn: string) => {
+            serviceContainer.attr("of", sn);
+            serviceContainer.attr("page", pn);
+        }
 
         //upload with parameters
         if (trigger && trigger.attr("parameters")) {
@@ -56,29 +65,29 @@ export default class HubUrl extends Url {
                 const urlParts = innerUrl.split('/').filter(a => !!a);
                 if (urlParts.length) {
                     page = urlParts[0];
+                    if (page.indexOf("?") !== -1) {
+                        page = page.split("?")[0];
+                    }
                 }
-                serviceContainer.attr("of", serviceName);
-                serviceContainer.attr("page", page);
+                setServiceName(serviceName, page);
             }
 
             //All urls starting with "under" are from HUB service.
             if (innerUrl.startsWith("under")) {
                 serviceName = "hub";
-                serviceContainer.attr("of", "Hub");
-                serviceContainer.attr("page", "");
+                setServiceName(serviceName, "");
             }
 
             var baseUrl = Service.fromName(serviceName).BaseUrl;
 
             if (!baseUrl.startsWith("http"))
                 baseUrl = baseUrl.withPrefix("http://");
-
+            
             return this.makeAbsolute(baseUrl, innerUrl);
         }
 
         if (url.contains("/under/")) {
-            serviceContainer.attr("of", "Hub");
-            serviceContainer.attr("page", "");
+            setServiceName("hub", "");
             $(".task-bar").addClass("d-lg-flex");
         }
 

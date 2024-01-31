@@ -11,14 +11,13 @@ import { MainTagHelper } from "olive/components/mainTag";
 export default class HubStandardAction extends StandardAction {
     constructor(alert: Alert, form: Form, waiting: Waiting, ajaxRedirect: AjaxRedirect,
         responseProcessor: ResponseProcessor, select: Select, modalHelper: ModalHelper,
-        mainTagHelper:MainTagHelper, serviceLocator: IServiceLocator) {
+        mainTagHelper: MainTagHelper, serviceLocator: IServiceLocator) {
         super(alert, form, waiting, ajaxRedirect,
             responseProcessor, select, modalHelper, mainTagHelper, serviceLocator);
     }
 
     protected redirect(action: any, trigger: any) {
-        if (action.Target && action.Target === '_parent' && action.WithAjax === true && window.isModal())
-        {
+        if (action.Target && action.Target === '_parent' && action.WithAjax === true && window.isModal()) {
             let serviceName;
             let serviceContainer = trigger ? trigger.closest("service[of]") : $("service[of]").first();
             if (serviceContainer.length === 0)
@@ -29,8 +28,8 @@ export default class HubStandardAction extends StandardAction {
             action.Redirect = "/" + serviceName + action.Redirect;
             window.open(action.Redirect, action.Target);
         }
-        else{
-            super.redirect(action,trigger);
+        else {
+            super.redirect(action, trigger);
         }
     }
 }
