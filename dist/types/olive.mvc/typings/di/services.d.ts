@@ -9,6 +9,8 @@ declare const Services: {
     MasterDetail: string;
     Modal: string;
     ModalHelper: string;
+    MainTag: string;
+    MainTagHelper: string;
     Paging: string;
     Sorting: string;
     Url: string;
@@ -53,5 +55,6 @@ declare const Services: {
     ServiceLocator: string;
     GlobalSearchFactory: string;
     TestingContext: string;
+    MultiSelectFactory: string;
 };
 export default Services;
