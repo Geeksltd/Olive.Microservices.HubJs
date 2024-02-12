@@ -30,7 +30,7 @@ export default class HubUrl extends Url {
         //$("iframe.view-frame").attr("src", "").attr("style", ""); // remove previous path
 
         let serviceName: string;
-        let serviceContainer = trigger ? trigger.closest("service[of]") : $("service[of]").first();
+        let serviceContainer = trigger ? trigger.closest("service") : $("service[of]").first();
 
         if (serviceContainer.length === 0) serviceContainer = $("service[of]").first();
 
@@ -47,7 +47,7 @@ export default class HubUrl extends Url {
             url = url + trigger.attr("parameters");
         }
 
-        serviceName = serviceContainer.attr("of").toLocaleLowerCase();
+        serviceName = (serviceContainer.attr("of")||"").toLocaleLowerCase();
 
         if (!this.isAbsolute(url)) {
 
