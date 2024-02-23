@@ -1,3 +1,5 @@
+/// <reference path="../olive.mvc/typings-lib/jquery/jquery.d.ts" />
+/// <reference path="../olive.mvc/typings-lib/moment/moment-node.d.ts" />
 import OlivePage from 'olive/olivePage';
 import { ServiceContainer } from 'olive/di/serviceContainer';
 import 'jquery';

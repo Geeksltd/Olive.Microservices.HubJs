@@ -5,7 +5,7 @@ import BadgeNumber from './badgeNumber';
 import ToggleCheckbox from './toggleCheckbox';
 import ExpandCollapse from './expandCollapse';
 import BreadcrumbMenu from './featuresMenu/breadcrumbMenu';
-import FullMenuFiltering from './featuresMenu/fullMenuFiltering';
+import FullMenuFiltering from './featuresMenu/FullMenuFiltering';
 import { ServiceContainer } from 'olive/di/serviceContainer';
 import Services from 'olive/di/services';
 import HubAjaxRedirect from './overrides/hubAjaxRedirect';
