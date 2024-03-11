@@ -3,7 +3,7 @@
   <div class="error" >
 <h2>Oops!</h2>
    <h3>
-      Keep calm and try again later!
+      [#STATUS#]
    </h3>
    <p>
       Something went wrong in the <b>[#SERVICE#]</b> service.
