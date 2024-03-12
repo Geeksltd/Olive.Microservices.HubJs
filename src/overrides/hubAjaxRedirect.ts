@@ -18,7 +18,7 @@ export default class HubAjaxRedirect extends AjaxRedirect {
             const service = Service.fromUrl(url);
             var urlData = new URL(url);
             const relativeUrl = `/[${service.Name.toLowerCase()}]${urlData.pathname}${urlData.search}`;
-            url = this.url.updateQuery(this.url.current(), mainTag.attr("name").replace("$", "_"), encodeURIComponent(relativeUrl));
+            url = this.url.updateQuery(this.url.current(), mainTag.attr("name").replace("$", "_"), this.url.encodeGzipUrl(relativeUrl));
             history.pushState({}, title, url);
             return;
         }
