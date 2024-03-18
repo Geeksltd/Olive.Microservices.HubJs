@@ -13,12 +13,7 @@ export default class HubResponseProcessor extends ResponseProcessor {
         if (service == "hub" || service == undefined || service == null)
             return url;
 
-        if (url.startsWith("/"))
-            url = "/" + service + url;
-        else
-            url = "/" + service + "/" + url;
-
-        return url;
+        return "/" + service + "/" + url.trimStart("/");
     }
     // private fixElementForOpenNewWindows(element: JQuery) {
     //     if ($(element).closest(".hub-service").length > 0) return;

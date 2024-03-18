@@ -4,6 +4,9 @@ import Url from "olive/components/url";
 import ResponseProcessor from "olive/mvc/responseProcessor";
 import Waiting from "olive/components/waiting";
 import ErrorViewsNavigator from "app/error/errorViewsNavigator";
+import OlivePage from "olive/olivePage";
+import { MainTagHelper } from "olive/components/mainTag";
+import Services from "olive/di/services";
 
 export default class HubAjaxRedirect extends AjaxRedirect {
     constructor(url: Url, responseProcessor: ResponseProcessor, waiting: Waiting) {
@@ -18,8 +21,8 @@ export default class HubAjaxRedirect extends AjaxRedirect {
             const service = Service.fromUrl(url);
             var urlData = new URL(url);
             const relativeUrl = `/[${service.Name.toLowerCase()}]${urlData.pathname}${urlData.search}`;
-            url = this.url.updateQuery(this.url.current(), mainTag.attr("name").replace("$", "_"), this.url.encodeGzipUrl(relativeUrl));
-            history.pushState({}, title, url);
+            (window.page as OlivePage).getService<MainTagHelper>(Services.MainTagHelper)
+                .changeUrl(relativeUrl, mainTag.attr("name").replace("$", ""));
             return;
         }
         Service.onNavigated(url, title);
@@ -34,7 +37,7 @@ export default class HubAjaxRedirect extends AjaxRedirect {
             if (service)
                 ErrorViewsNavigator.showServiceError(trigger, service, url, response);
             else
-                super.onRedirectionFailed(trigger,url, response);
+                super.onRedirectionFailed(trigger, url, response);
         }
     }
 
