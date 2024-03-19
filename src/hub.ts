@@ -194,7 +194,7 @@ export default class Hub implements IService {
             }
 
         }
-        else this.ajaxRedirect.go(url, trigger);
+        else this.ajaxRedirect.go(url, trigger, false, false, false);
     }
 
     initServiceWorker(): any {
