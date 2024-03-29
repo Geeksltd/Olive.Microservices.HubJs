@@ -103,18 +103,18 @@ export default class BreadcrumbMenu implements IService {
             let text = $(s).children("a").text();
             let nodeId = $(s).attr("id");
 
-            if ((items.length - 1) > i) {
-                {
+            // if ((items.length - 1) > i) {
+            //     {
                     let li = $(`<li class="breadcrumb-item"><a href="${path}" data-redirect="ajax" data-itemid="${nodeId}">${text}</a></li>`)
                         .appendTo($(".breadcrumb"));
 
                     if (!path.startsWith("/under/"))
                         li.find("a").removeAttr("data-redirect");
-                }
-            }
-            else {
-                $(".breadcrumb").append(`<li class="breadcrumb-item active" aria-current="page">${text}</li>`);
-            }
+            //     }
+            // }
+            // else {
+            //     $(".breadcrumb").append(`<li class="breadcrumb-item active" aria-current="page">${text}</li>`);
+            // }
         });
 
     }
