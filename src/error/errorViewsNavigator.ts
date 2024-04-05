@@ -33,7 +33,7 @@ export default class ErrorViewsNavigator {
 
         $("main").html(errorContent);
 
-        // let addressBar = url.trimHttpProtocol().replace(service.BaseUrl.trimHttpProtocol(), service.Name).withPrefix("/");
-        // window.history.pushState(null, service.Name, addressBar);
+        let addressBar = url.trimHttpProtocol().replace(service.BaseUrl.trimHttpProtocol(), service.Name).withPrefix("/");
+        window.history.pushState(null, service.Name, addressBar);
     }
 }
