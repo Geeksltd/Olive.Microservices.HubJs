@@ -256,7 +256,7 @@ export default class BoardComponents implements IService {
             $('<div class="col-md-9"><h2 class="mb-2">' + intro.Name + '</h2>\
             <div class="text-gray">' + intro.Description + '</div></div>'))
         $('.board-header').show()
-
+        $(".board-header [data-original-title]").tooltip();
         return result;
 
 
