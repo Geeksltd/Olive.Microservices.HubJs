@@ -7,9 +7,6 @@ import { SERVICE_ERROR_TEMPLATE } from './errorTemplates';
 export default class ErrorViewsNavigator {
     public static showServiceError(trigger: JQuery, service: Service, url: string, response: JQueryXHR) {
 
-        let addressBar = url.trimHttpProtocol().replace(service.BaseUrl.trimHttpProtocol(), service.Name).withPrefix("/");
-        window.history.pushState(null, service.Name, addressBar);
-
         let errorContent = SERVICE_ERROR_TEMPLATE
             .replace("[#URL#]", url)
             .replace("[#STATUS#]", response.status == 404 ? "404 - Resource not found" : "Keep calm and try again later!")
