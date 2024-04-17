@@ -21,7 +21,9 @@ export default class MasonryGrid {
     private initialize() {
         try {
             this.parent = document.querySelector<HTMLElement>(this.options.parentSelector);
-            this.items = this.parent.querySelectorAll(this.options.parentSelector + ' > ' + this.options.itemsSelector);
+            this.items = !this.parent
+                ? undefined
+                : this.parent.querySelectorAll(this.options.parentSelector + ' > ' + this.options.itemsSelector);
 
             if (!this.parent || !this.items || !this.items.length) return;
 
