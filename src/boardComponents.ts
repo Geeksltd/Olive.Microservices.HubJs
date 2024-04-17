@@ -121,6 +121,7 @@ export default class BoardComponents implements IService {
                 $(".board-addable-items-container,.board-manage-items-container").fadeOut();
         })
 
+        // TEST MASONARY GRID STRUCTURE
         // const listItems = $("<div class='list-items'>");
         // for (let index = 0; index < 20; index++) {
         //     var random = Math.random() * 500 + 100;
@@ -130,8 +131,7 @@ export default class BoardComponents implements IService {
 
         this.masonryGrid = new MasonryGrid({
             parentSelector: '.board-components-result > .list-items',
-            itemsSelector: ".item",
-            minColumnWidth: 300
+            itemsSelector: ".item"
         });
 
         this.relocateBoardComponentsHeaderActions();

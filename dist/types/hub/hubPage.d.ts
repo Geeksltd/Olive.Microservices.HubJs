@@ -2,6 +2,7 @@
 /// <reference path="../olive.mvc/typings-lib/moment/moment-node.d.ts" />
 import OlivePage from 'olive/olivePage';
 import { ServiceContainer } from 'olive/di/serviceContainer';
+import BoardComponents from './boardComponents';
 import 'jquery';
 import 'jquery-ui-all';
 import 'jquery-validate';
@@ -34,7 +35,7 @@ import 'bootstrap-select';
 import 'flickity';
 export default class HubPage extends OlivePage {
     static IsFirstPageLoad: boolean;
-    private board;
+    board: BoardComponents;
     constructor();
     configureServices(services: ServiceContainer): void;
     revive(): void;

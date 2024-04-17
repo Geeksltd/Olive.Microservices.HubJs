@@ -13,5 +13,6 @@ export default class MasonryGrid {
     resizeId: number | undefined;
     constructor(options: any);
     private initialize;
+    setMinColumnWidth(w: number): void;
     drawGrid(): void;
 }
