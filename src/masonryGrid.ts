@@ -27,9 +27,6 @@ export default class MasonryGrid {
 
             if (!this.parent || !this.items || !this.items.length) return;
 
-            const dataAttr = this.parent.getAttribute("data-min-column-width")
-            this.options.minColumnWidth = dataAttr ? parseInt(dataAttr) : 300;
-
             const o = function (entries) {
                 this.drawGrid();
             }.bind(this);

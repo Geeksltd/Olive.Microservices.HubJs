@@ -129,9 +129,13 @@ export default class BoardComponents implements IService {
         // }
         // $('.board-components-result').append(listItems);
 
+        const dataAttr = $('.board-components-result').attr("data-min-column-width");
+        const minColumnWidth = dataAttr ? parseInt(dataAttr) : 300;
+
         this.masonryGrid = new MasonryGrid({
             parentSelector: '.board-components-result > .list-items',
-            itemsSelector: ".item"
+            itemsSelector: ".item",
+            minColumnWidth: minColumnWidth
         });
 
         this.relocateBoardComponentsHeaderActions();
