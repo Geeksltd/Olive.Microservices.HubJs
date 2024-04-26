@@ -12,6 +12,7 @@ export default class MasonryGrid {
     items: NodeListOf<Element>;
     resizeObserver: ResizeObserver;
     resizeId: number | undefined;
+    lastSchematic: Array<Array<number>> = [[]];
 
     constructor(options) {
         this.options = options;
@@ -60,36 +61,63 @@ export default class MasonryGrid {
 
             const newItems = this.parent.querySelectorAll(this.options.parentSelector + ' > ' + this.options.itemsSelector);
 
+            const newSchematic = this.generateSchematic(columnCount);
+            if (this.lastSchematic) {
+                if (this.areEqualSchematics(this.lastSchematic, newSchematic))
+                    return;
+                else
+                    this.lastSchematic = newSchematic;
+            } else {
+                this.lastSchematic = newSchematic;
+            }
+
             this.items.forEach(item => {
                 if (item.parentElement != this.parent)
                     this.parent.appendChild(item);
             });
 
-            // this.items = this.parent.querySelectorAll(this.options.parentSelector + ' > ' + this.options.itemsSelector);
-
             this.parent.querySelectorAll(".column").forEach(element => {
                 element.remove();
             });
 
-            for (let i = 1; i <= columnCount; i++) {
+            for (let i = 0; i < columnCount; i++) {
                 this.parent.insertAdjacentHTML("beforeend", "<div class='column'></div>");
             }
 
-            var result = [];
-            for (let i = 1; i <= columnCount; i++) {
-                result.push({ index: i - 1, height: 0 });
+            for (let c = 0; c < this.lastSchematic.length; c++) {
+                const column = this.parent.querySelectorAll(".column")[c]
+                for (let i = 0; i < this.lastSchematic[c].length; i++) {
+                    column.appendChild(this.items[this.lastSchematic[c][i]]);
+                }
             }
-
-            this.items.forEach(item => {
-                result.sort((a, b) => a.height - b.height);
-                const index = result[0].index;
-                const div = this.parent.querySelectorAll(".column")[index]
-                div.appendChild(item);
-                result[0].height += item.clientHeight;
-            });
 
             newItems.forEach(item => this.resizeObserver.observe(item));
             this.resizeId = undefined;
         }.bind(this), 500);
+    }
+
+    areEqualSchematics(a, b) {
+        return JSON.stringify(a) === JSON.stringify(b);
+    }
+
+    generateSchematic(columnCount) {
+
+        var result = [];
+        var schematic = [];
+
+        for (let i = 0; i < columnCount; i++) {
+            result.push({ index: i, height: 0 });
+            schematic.push([]);
+        }
+
+        for (let i = 0; i < this.items.length; i++) {
+            const item = this.items[i];
+            result.sort((a, b) => a.height - b.height);
+            const index = result[0].index;
+            result[0].height += item.clientHeight;
+            schematic[index].push(i);
+        }
+
+        return schematic;
     }
 }

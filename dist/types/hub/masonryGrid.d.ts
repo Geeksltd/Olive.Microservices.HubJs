@@ -11,8 +11,11 @@ export default class MasonryGrid {
     items: NodeListOf<Element>;
     resizeObserver: ResizeObserver;
     resizeId: number | undefined;
+    lastSchematic: Array<Array<number>>;
     constructor(options: any);
     private initialize;
     setMinColumnWidth(w: number): void;
     drawGrid(): void;
+    areEqualSchematics(a: any, b: any): boolean;
+    generateSchematic(columnCount: any): any[];
 }
