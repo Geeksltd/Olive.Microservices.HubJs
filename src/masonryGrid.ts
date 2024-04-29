@@ -57,7 +57,7 @@ export default class MasonryGrid {
 
         this.resizeId = setTimeout(function () {
             const parentWidth = this.parent.clientWidth;
-            const columnCount = Math.max(parentWidth / this.options.minColumnWidth, 1);
+            const columnCount = Math.max(Math.floor(parentWidth / this.options.minColumnWidth), 1);
 
             const newItems = this.parent.querySelectorAll(this.options.parentSelector + ' > ' + this.options.itemsSelector);
 
