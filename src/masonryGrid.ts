@@ -56,20 +56,19 @@ export default class MasonryGrid {
         if (!this.parent || !this.items || !this.items.length) return;
 
         this.resizeId = setTimeout(function () {
+            this.resizeId = undefined;
+            
             const parentWidth = this.parent.clientWidth;
             const columnCount = Math.max(Math.floor(parentWidth / this.options.minColumnWidth), 1);
 
             const newItems = this.parent.querySelectorAll(this.options.parentSelector + ' > ' + this.options.itemsSelector);
 
             const newSchematic = this.generateSchematic(columnCount);
-            if (this.lastSchematic) {
-                if (this.areEqualSchematics(this.lastSchematic, newSchematic))
-                    return;
-                else
-                    this.lastSchematic = newSchematic;
-            } else {
-                this.lastSchematic = newSchematic;
-            }
+            
+            if (this.lastSchematic && this.areEqualSchematics(this.lastSchematic, newSchematic))
+                return;
+
+            this.lastSchematic = newSchematic;
 
             this.items.forEach(item => {
                 if (item.parentElement != this.parent)
@@ -92,7 +91,6 @@ export default class MasonryGrid {
             }
 
             newItems.forEach(item => this.resizeObserver.observe(item));
-            this.resizeId = undefined;
         }.bind(this), 500);
     }
 

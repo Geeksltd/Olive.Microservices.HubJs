@@ -40,7 +40,7 @@ export default class HubAjaxRedirect extends AjaxRedirect {
 
     protected onRedirectionFailed(trigger: JQuery, url: string, response: JQueryXHR) {
         if (response.status == 401) {
-            document.location.href = url;
+            this.url.goToUrlAfterLogin(this.url.current());
         }
         else {
             let service = Service.fromUrl(url);
