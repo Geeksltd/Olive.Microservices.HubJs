@@ -72,7 +72,7 @@ export default class HubAjaxRedirect extends AjaxRedirect {
         ajaxTarget?: string,
         ajaxhref?: string
     ): boolean {
-        if (!$(trigger).closest(".modal-body"))
+        if (!$(trigger).closest(".modal-body").length)
             $("iframe.view-frame").attr("src", "").attr("style", "");
         return super.go(url, trigger, isBack, keepScroll, addToHistory, onComplete, ajaxTarget, ajaxhref);
     }
