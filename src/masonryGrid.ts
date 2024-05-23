@@ -26,7 +26,7 @@ export default class MasonryGrid {
                 ? undefined
                 : this.parent.querySelectorAll(this.options.parentSelector + ' > ' + this.options.itemsSelector);
 
-            if (!this.parent || !this.items || !this.items.length) return;
+            if (!this.parent || !this.items || !this.items.length) throw "invalid board dom structure";
 
             const o = function (entries) {
                 this.drawGrid();
@@ -36,7 +36,7 @@ export default class MasonryGrid {
             this.resizeObserver.observe(this.parent);
             this.items.forEach(item => this.resizeObserver.observe(item));
         } catch (error) {
-            console.error(error);
+            console.log(error);
             setTimeout(() => {
                 this.initialize();
             }, 100);
@@ -57,14 +57,14 @@ export default class MasonryGrid {
 
         this.resizeId = setTimeout(function () {
             this.resizeId = undefined;
-            
+
             const parentWidth = this.parent.clientWidth;
             const columnCount = Math.max(Math.floor(parentWidth / this.options.minColumnWidth), 1);
 
             const newItems = this.parent.querySelectorAll(this.options.parentSelector + ' > ' + this.options.itemsSelector);
 
             const newSchematic = this.generateSchematic(columnCount);
-            
+
             if (this.lastSchematic && this.areEqualSchematics(this.lastSchematic, newSchematic))
                 return;
 
