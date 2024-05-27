@@ -4,12 +4,13 @@ export interface MasonaryOptions {
     minColumnWidth: number
     parentSelector: string
     itemsSelector: string
+    redrawInterval: number
 }
 
 export default class MasonryGrid {
     options: MasonaryOptions;
     parent: HTMLElement;
-    items: NodeListOf<Element>;
+    items: Element[];
     resizeObserver: ResizeObserver;
     resizeId: number | undefined;
     lastSchematic: Array<Array<number>> = [[]];
@@ -24,7 +25,7 @@ export default class MasonryGrid {
             this.parent = document.querySelector<HTMLElement>(this.options.parentSelector);
             this.items = !this.parent
                 ? undefined
-                : this.parent.querySelectorAll(this.options.parentSelector + ' > ' + this.options.itemsSelector);
+                : Array.from(this.parent.querySelectorAll(this.options.parentSelector + ' > ' + this.options.itemsSelector));
 
             if (!this.parent || !this.items || !this.items.length) throw "invalid board dom structure";
 
@@ -35,6 +36,8 @@ export default class MasonryGrid {
 
             this.resizeObserver.observe(this.parent);
             this.items.forEach(item => this.resizeObserver.observe(item));
+
+            this.drawGrid();
         } catch (error) {
             console.log(error);
             setTimeout(() => {
@@ -63,12 +66,15 @@ export default class MasonryGrid {
 
             const newItems = this.parent.querySelectorAll(this.options.parentSelector + ' > ' + this.options.itemsSelector);
 
-            const newSchematic = this.generateSchematic(columnCount);
-
-            if (this.lastSchematic && this.areEqualSchematics(this.lastSchematic, newSchematic))
-                return;
-
-            this.lastSchematic = newSchematic;
+            if (!newItems.length) {
+                const newSchematic = this.generateSchematic(columnCount);
+                if (this.lastSchematic && this.areEqualSchematics(this.lastSchematic, newSchematic))
+                    return;
+                this.lastSchematic = newSchematic;
+            } else {
+                this.items = Array.from(this.parent.querySelectorAll(this.options.parentSelector + ' > ' + this.options.itemsSelector));
+                this.lastSchematic = this.generateSchematic(columnCount);
+            }
 
             this.items.forEach(item => {
                 if (item.parentElement != this.parent)
@@ -91,7 +97,7 @@ export default class MasonryGrid {
             }
 
             newItems.forEach(item => this.resizeObserver.observe(item));
-        }.bind(this), 500);
+        }.bind(this), this.options.redrawInterval ?? 100);
     }
 
     areEqualSchematics(a, b) {

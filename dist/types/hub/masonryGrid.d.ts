@@ -4,11 +4,12 @@ export interface MasonaryOptions {
     minColumnWidth: number;
     parentSelector: string;
     itemsSelector: string;
+    redrawInterval: number;
 }
 export default class MasonryGrid {
     options: MasonaryOptions;
     parent: HTMLElement;
-    items: NodeListOf<Element>;
+    items: Element[];
     resizeObserver: ResizeObserver;
     resizeId: number | undefined;
     lastSchematic: Array<Array<number>>;
