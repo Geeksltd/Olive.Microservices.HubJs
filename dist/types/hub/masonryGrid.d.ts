@@ -17,6 +17,8 @@ export default class MasonryGrid {
     private initialize;
     setMinColumnWidth(w: number): void;
     drawGrid(): void;
+    generateColumns(columnCount: any): void;
+    removeColumns(): void;
     areEqualSchematics(a: any, b: any): boolean;
     generateSchematic(columnCount: any): any[];
 }
