@@ -74,9 +74,7 @@ export default class MasonryGrid {
                 this.removeColumns();
             } else {
                 this.removeColumns();
-                newItems.forEach(item => {
-                    this.items.push(item);
-                });
+                this.items = Array.from(this.parent.querySelectorAll(this.options.parentSelector + ' > ' + this.options.itemsSelector));
                 this.lastSchematic = this.generateSchematic(columnCount);
             }
 
@@ -124,6 +122,7 @@ export default class MasonryGrid {
             schematic.push([]);
         }
         this.items.sort((a, b) => parseInt(b.getAttribute("box-order")) - parseInt(a.getAttribute("box-order")));
+
         for (let i = 0; i < this.items.length; i++) {
             const item = this.items[i];
             result.sort((a, b) => a.height - b.height);

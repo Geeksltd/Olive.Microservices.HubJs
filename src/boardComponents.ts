@@ -125,8 +125,9 @@ export default class BoardComponents implements IService {
         // const listItems = $("<div class='list-items'>");
         // for (let index = 0; index < 20; index++) {
         //     var random = Math.random() * 500 + 100;
-        //     listItems.append("<div class='item'><div class='card mb-3' style='height:" + random + "px'><div class='card-body'>ITEM #" + index + "</div></div></div>")
+        //     listItems.append("<div class='item' box-order='" + index + "'><div class='card mb-3' style='height:" + random + "px'><div class='card-body'>ITEM #" + index + "</div></div></div>")
         // }
+        // console.log("fake boxes created")
         // $('.board-components-result').append(listItems);
 
         const dataAttr = $('.board-components-result').attr("data-min-column-width");
