@@ -145,7 +145,8 @@ export default class HubPage extends OlivePage {
 
         return {
             pathname: window.location.pathname.toLowerCase(),
-            pathnameWithBrackets: "/[" + path.substring(0, pos) + "]" + path.substring(pos)
+            pathnameWithBrackets: "/[" + path.substring(0, pos) + "]" + path.substring(pos),
+            pathnameWithoutHub: window.location.pathname.toLowerCase().replace('/hub/', '/').replace('/[hub]/', '/'),
         };
     }
     initialize() {
@@ -203,6 +204,13 @@ export default class HubPage extends OlivePage {
         var currentMenu = $("a[href='" + pathname.pathname + "']:not(.feature-button)");
         if (currentMenu.length == 0) {
             currentMenu = $("a[href='" + pathname.pathnameWithBrackets + "']:not(.feature-button)");
+        }
+        if (currentMenu.length == 0) {
+            currentMenu = $("a[href='" + pathname.pathnameWithoutHub + "']:not(.feature-button)");
+        }
+        if (currentMenu.length == 0) {
+            currentMenu = $(".features-side-menu a[href!='']").first();
+            console.log('default menu item:', currentMenu)
         }
         if (currentMenu.length > 0 && HubPage.IsFirstPageLoad == true) {
             if (currentMenu.parent().attr("is-side-menu-child") == "true")

@@ -42,6 +42,7 @@ export default class HubPage extends OlivePage {
     getPathName(): {
         pathname: string;
         pathnameWithBrackets: string;
+        pathnameWithoutHub: string;
     };
     initialize(): void;
 }
