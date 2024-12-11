@@ -208,9 +208,9 @@ export default class HubPage extends OlivePage {
         if (currentMenu.length == 0) {
             currentMenu = $("a[href='" + pathname.pathnameWithoutHub + "']:not(.feature-button)");
         }
-        if (currentMenu.length == 0) {
-            currentMenu = $(".features-side-menu a[href!='']").first();
-            console.log('default menu item:', currentMenu)
+        if (currentMenu.length == 0 && HubPage.IsFirstPageLoad == true) {
+            HubPage.IsFirstPageLoad = false;
+            return;
         }
         if (currentMenu.length > 0 && HubPage.IsFirstPageLoad == true) {
             if (currentMenu.parent().attr("is-side-menu-child") == "true")
