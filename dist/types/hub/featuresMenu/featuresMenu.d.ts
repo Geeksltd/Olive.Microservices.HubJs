@@ -27,6 +27,5 @@ export default class FeaturesMenu {
         pathnameWithBrackets: string;
     };
     onLinkClicked(link: JQuery): boolean;
-    generatePageBreadcrumb(data: any): void;
     getObjects(obj: any, key: any, val: any): any[];
 }

@@ -224,47 +224,47 @@ export default class FeaturesMenu {
         wrapper.addClass("active");
     }
 
-    generatePageBreadcrumb(data) {
-        $(".breadcrumb").html("");
-        $(".breadcrumb").append(`<li class="breadcrumb-item"><a href="${window.location.origin}/under/" data-redirect="ajax">Home</a></li>`);
-        //check to see if click event is from mid-page or left page
+    // generatePageBreadcrumb(data) {
+    //     $(".breadcrumb").html("");
+    //     $(".breadcrumb").append(`<li class="breadcrumb-item"><a href="${window.location.origin}/under/" data-redirect="ajax">Home</a></li>`);
+    //     //check to see if click event is from mid-page or left page
 
-        $.each(data, (i: number, d) => {
-            let path = d.Url;
-            let text = d.Name;
+    //     $.each(data, (i: number, d) => {
+    //         let path = d.Url;
+    //         let text = d.Name;
 
-            if ((data.length - 1) > i) {
-                {
-                    let li = $(`<li class="breadcrumb-item"><a href="${path}" data-redirect="ajax" data-itemid="">${text}</a></li>`)
-                        .appendTo($(".breadcrumb"));
+    //         if ((data.length - 1) > i) {
+    //             {
+    //                 let li = $(`<li class="breadcrumb-item"><a href="${path}" data-redirect="ajax" data-itemid="">${text}</a></li>`)
+    //                     .appendTo($(".breadcrumb"));
 
-                    if (!path.startsWith("/under/"))
-                        li.find("a").removeAttr("data-redirect");
+    //                 if (!path.startsWith("/under/"))
+    //                     li.find("a").removeAttr("data-redirect");
 
-                    var featuresMenu = $(".features-side-menu [href='" + path + "']");
-                    if (featuresMenu.length == 0)
-                        featuresMenu = $(".features-side-menu [href='" + path.split("?")[0] + "']");
-                    if (featuresMenu.length == 0) {
-                        path = path;
-                        var ms = path.startsWith("/") ? path.substring(1).split("/")[0] : path.split("/")[0];
-                        path = "/[" + ms + "]" + path.split(ms)[1];
-                        featuresMenu = $(".features-side-menu [href='" + path.split("?")[0] + "']");
-                    }
-                    if (featuresMenu.length > 0) {
-                        if (featuresMenu.parent().attr("is-side-menu-child") == "true")
-                            featuresMenu.parent().addClass("active");
-                        else
-                            featuresMenu.parent().attr("expand", "true");
-                    }
+    //                 var featuresMenu = $(".features-side-menu [href='" + path + "']");
+    //                 if (featuresMenu.length == 0)
+    //                     featuresMenu = $(".features-side-menu [href='" + path.split("?")[0] + "']");
+    //                 if (featuresMenu.length == 0) {
+    //                     path = path;
+    //                     var ms = path.startsWith("/") ? path.substring(1).split("/")[0] : path.split("/")[0];
+    //                     path = "/[" + ms + "]" + path.split(ms)[1];
+    //                     featuresMenu = $(".features-side-menu [href='" + path.split("?")[0] + "']");
+    //                 }
+    //                 if (featuresMenu.length > 0) {
+    //                     if (featuresMenu.parent().attr("is-side-menu-child") == "true")
+    //                         featuresMenu.parent().addClass("active");
+    //                     else
+    //                         featuresMenu.parent().attr("expand", "true");
+    //                 }
 
-                }
-            }
-            else {
-                $(".breadcrumb").append(`<li class="breadcrumb-item active" aria-current="page">${text}</li>`);
-            }
-        });
+    //             }
+    //         }
+    //         else {
+    //             $(".breadcrumb").append(`<li class="breadcrumb-item active" aria-current="page">${text}</li>`);
+    //         }
+    //     });
 
-    }
+    // }
 
     getObjects(obj, key, val) {
         var objects = [];
