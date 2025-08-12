@@ -24,18 +24,13 @@ export default class HubAjaxRedirect extends AjaxRedirect {
         // if trigger is a main tag with name starting by $ character or it has a parent with this conditions
         // we need to edit a query string parameter as _{main tag name without $}={url pathname}
         const mainTag = this.finalTargetAsMainTag(trigger);
-        if (!mainTag) return false;
+        if (!this.isInternalMainTag(mainTag)) return false;
         const service = Service.fromUrl(url);
         var urlData = new URL(url);
         const relativeUrl = `/[${service.Name.toLowerCase()}]${urlData.pathname}${urlData.search}`;
         (window.page as OlivePage).getService<MainTagHelper>(Services.MainTagHelper)
             .changeUrl(relativeUrl, mainTag.attr("name").replace("$", ""), title);
         return true;
-    }
-
-    protected finalTargetAsMainTag(trigger: JQuery): JQuery | undefined {
-        const mainTag = trigger.is("main[name^='$']") ? trigger : trigger.closest("main[name^='$']");
-        return !!mainTag && !!mainTag.length ? mainTag : undefined;
     }
 
     protected onRedirectionFailed(trigger: JQuery, url: string, response: JQueryXHR) {
@@ -46,7 +41,7 @@ export default class HubAjaxRedirect extends AjaxRedirect {
             let service = Service.fromUrl(url);
             if (service) {
                 const mainTag = this.finalTargetAsMainTag(trigger);
-                if (!mainTag) {
+                if (!this.isInternalMainTag(mainTag)) {
                     let addressBar = url.trimHttpProtocol().replace(service.BaseUrl.trimHttpProtocol(), service.Name).withPrefix("/");
                     window.history.pushState(null, "Error > " + service.Name, addressBar);
                 } else {
