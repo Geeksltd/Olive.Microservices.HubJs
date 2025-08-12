@@ -17,6 +17,7 @@ export default class ExpandCollapse {
         this.panel = $(this.key = ".side-bar." + side);
         this.page = $(".page");
         this.side = side;
+        window[side + "SideBar"] = this;
     }
 
     public static enableExpandCollapse(side: string) {
