@@ -1,4 +1,3 @@
-/// <reference path="../olive.mvc/typings-lib/jquery/jquery.d.ts" />
 import 'jquery';
 export interface MasonaryOptions {
     minColumnWidth: number;
