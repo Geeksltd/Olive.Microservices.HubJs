@@ -10,10 +10,8 @@ export default class ExpandCollapse {
     cookies: any;
 
     constructor(side: string) {
-        const button = $(".side-bar-handle." + side);
-        const backdrop = $(".side-bar-backdrop." + side);
-        this.button = button.click(() => this.toggle());
-        this.backdrop = backdrop.click(() => this.toggle());
+        this.button = $(".side-bar-handle." + side);
+        this.backdrop = $(".side-bar-backdrop." + side);
         this.panel = $(this.key = ".side-bar." + side);
         this.page = $(".page");
         this.side = side;
@@ -44,6 +42,11 @@ export default class ExpandCollapse {
     initialize(): void {
         requirejs(["js-cookie"], x => {
             this.cookies = x;
+
+            // Bind click handlers after cookies is initialized to prevent race condition
+            this.button.click(() => this.toggle());
+            this.backdrop.click(() => this.toggle());
+
             if (ExpandCollapse.isMobile()) {
                 this.page.removeClass("expanded-left");
                 this.cookies.set(".side-bar.left", "", { expires: 7 });

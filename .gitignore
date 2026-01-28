@@ -9,3 +9,4 @@ src/**/*.js
 src/**/*.js.map
 !src/bundling/*.js
 yarn.lock
+CLAUDE.md
