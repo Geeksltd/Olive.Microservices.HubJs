@@ -163,24 +163,26 @@ export default class MasonryGrid {
 
             const newItems = this.parent.querySelectorAll(this.options.parentSelector + ' > ' + this.options.itemsSelector);
 
-            // Clear min-heights before schematic calculation to use actual loaded heights
-            if (this.preRendered) {
-                this.items.forEach(item => {
-                    (item as HTMLElement).style.minHeight = '';
-                });
-                this.preRendered = false;
-            }
-
             if (!newItems.length) {
                 const newSchematic = this.generateSchematic(columnCount);
                 if (this.lastSchematic && this.areEqualSchematics(this.lastSchematic, newSchematic))
-                    return;
+                    return; // Keep min-heights intact - no redraw needed
                 this.lastSchematic = newSchematic;
                 this.removeColumns();
             } else {
                 this.removeColumns();
                 this.items = Array.from(this.parent.querySelectorAll(this.options.parentSelector + ' > ' + this.options.itemsSelector));
                 this.lastSchematic = this.generateSchematic(columnCount);
+            }
+
+            // Clear min-heights only when doing actual redraw
+            if (this.preRendered) {
+                this.items.forEach(item => {
+                    (item as HTMLElement).style.minHeight = '';
+                });
+                this.preRendered = false;
+                // Force reflow to ensure correct heights before saving
+                void this.parent.offsetHeight;
             }
 
             this.generateColumns(columnCount);
