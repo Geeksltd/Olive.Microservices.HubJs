@@ -1,4 +1,4 @@
-﻿import { ModalHelper } from 'olive/components/modal'
+import { ModalHelper } from 'olive/components/modal'
 import Url from 'olive/components/url';
 import AjaxRedirect from 'olive/mvc/ajaxRedirect';
 import MasonryGrid from './masonryGrid';
@@ -136,8 +136,7 @@ export default class BoardComponents implements IService {
         this.masonryGrid = new MasonryGrid({
             parentSelector: '.board-components-result > .list-items',
             itemsSelector: ".item",
-            minColumnWidth: minColumnWidth,
-            cacheKey: this.getProjectId()
+            minColumnWidth: minColumnWidth
         });
 
         this.relocateBoardComponentsHeaderActions();
@@ -156,10 +155,6 @@ export default class BoardComponents implements IService {
         const searchItem = $("<div class='item' data-type='" + boxTitle + "'>");
         const h3 = $('<h3 >').html(boxTitle + (boxTitle.endsWith("s") ? "" : "s")).append(this.createHeaderAction(boxTitle, addableButtons))
         searchItem.attr('box-order', boxOrder);
-
-        // Generate unique widget ID for height caching
-        const widgetUrls = widgets.map(w => w.Url).join('|');
-        searchItem.attr('data-widget-id', `${boxTitle}|${widgetUrls}`);
         searchItem.append($("<div class='header' " + " style=\"" + this.addColour(colour) + "\">").append(h3))
 
         //table.append($("<tr>").append($("<th " + "' style=\"" + this.addColour(items[0]) + "\" " + ">")
@@ -382,12 +377,6 @@ export default class BoardComponents implements IService {
             xhrFields: { withCredentials: true },
             success: (response) => {
                 callback(response);
-                // After content renders, finalize heights for caching
-                requestAnimationFrame(() => {
-                    if (this.masonryGrid) {
-                        this.masonryGrid.finalizeHeights();
-                    }
-                });
             },
             error: (response, x) => {
                 console.log(response);

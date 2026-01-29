@@ -3,31 +3,51 @@ export interface MasonaryOptions {
     minColumnWidth: number;
     parentSelector: string;
     itemsSelector: string;
-    cacheKey?: string;
+    redrawInterval: number;
+    storageKey?: string;
+}
+export interface WidgetState {
+    index: number;
+    id: string;
+    order: number;
+    height: number;
+}
+export interface ColumnState {
+    index: number;
+    height: number;
+    widgets: WidgetState[];
+}
+export interface BoardState {
+    timestamp: number;
+    windowWidth: number;
+    windowHeight: number;
+    parentWidth: number;
+    parentHeight: number;
+    minColumnWidth: number;
+    columnCount: number;
+    columns: ColumnState[];
+    schematic: number[][];
 }
 export default class MasonryGrid {
     options: MasonaryOptions;
     parent: HTMLElement;
     items: Element[];
     resizeObserver: ResizeObserver;
-    mutationObserver: MutationObserver;
-    rafId: number | undefined;
+    resizeId: number | undefined;
     lastSchematic: Array<Array<number>>;
-    lastWidth: number;
-    lastColumnCount: number;
-    private heightCache;
-    private readonly CACHE_STORAGE_KEY;
-    constructor(options: MasonaryOptions);
+    preRendered: boolean;
+    constructor(options: any);
     private initialize;
-    private loadHeightCache;
-    private saveHeightCache;
-    private getCacheStorageKey;
-    private getWidgetHash;
-    private applyCachedHeights;
-    finalizeHeights(): void;
+    private getItemId;
+    private preRenderFromCache;
     setMinColumnWidth(w: number): void;
     drawGrid(): void;
-    private applyLayout;
-    areEqualSchematics(a: number[][], b: number[][]): boolean;
-    generateSchematic(columnCount: number): number[][];
+    generateColumns(columnCount: any): void;
+    removeColumns(): void;
+    areEqualSchematics(a: any, b: any): boolean;
+    generateSchematic(columnCount: any): any[];
+    private getStorageKey;
+    saveBoardState(): void;
+    getBoardState(): BoardState | null;
+    clearBoardState(): void;
 }
