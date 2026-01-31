@@ -6,27 +6,9 @@ export interface MasonaryOptions {
     redrawInterval: number;
     storageKey?: string;
 }
-export interface WidgetState {
-    index: number;
-    id: string;
-    order: number;
-    height: number;
-}
-export interface ColumnState {
-    index: number;
-    height: number;
-    widgets: WidgetState[];
-}
-export interface BoardState {
-    timestamp: number;
+export interface HeightCache {
     windowWidth: number;
-    windowHeight: number;
-    parentWidth: number;
-    parentHeight: number;
-    minColumnWidth: number;
-    columnCount: number;
-    columns: ColumnState[];
-    schematic: number[][];
+    heights: Record<string, number>;
 }
 export default class MasonryGrid {
     options: MasonaryOptions;
@@ -36,6 +18,8 @@ export default class MasonryGrid {
     resizeId: number | undefined;
     lastSchematic: Array<Array<number>>;
     preRendered: boolean;
+    private lastColumnCount;
+    private readonly DEFAULT_WIDGET_HEIGHT;
     constructor(options: any);
     private initialize;
     private getItemId;
@@ -46,8 +30,8 @@ export default class MasonryGrid {
     removeColumns(): void;
     areEqualSchematics(a: any, b: any): boolean;
     generateSchematic(columnCount: any): any[];
-    private getStorageKey;
-    saveBoardState(): void;
-    getBoardState(): BoardState | null;
-    clearBoardState(): void;
+    private generateSchematicWithHeights;
+    private getHeightCacheKey;
+    getHeightCache(): HeightCache | null;
+    private saveHeightCache;
 }

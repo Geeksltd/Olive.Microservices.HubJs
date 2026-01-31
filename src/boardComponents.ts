@@ -98,45 +98,50 @@ export default class BoardComponents implements IService {
             boardType: this.boardType,
         };
 
+        // Phase 1: Check cache status and render cached data
+        let allCached = true;
         for (const ajaxObject of context.ajaxList) {
-            var cache: IBoardResultDto = this.getItem(ajaxObject.url)
+            const cache: IBoardResultDto = this.getItem(ajaxObject.url);
             if (cache) {
-                this.onSuccess(ajaxObject, context, cache, true)
-                this.onComplete(context, null)
+                this.onSuccess(ajaxObject, context, cache, true);
+            } else {
+                allCached = false;
             }
-            ajaxObject.ajx = $
-                .ajax({
+        }
+
+        // Phase 2: If all cached, create MasonryGrid immediately (instant layout)
+        if (allCached) {
+            this.initMasonryGrid();
+        } else {
+            // Show loading while waiting for non-cached items
+            this.showLoading(context.resultPanel);
+        }
+
+        // Phase 3: Fire ALL AJAX calls in parallel
+        const ajaxPromises = context.ajaxList.map(ajaxObject => {
+            return new Promise<void>((resolve) => {
+                ajaxObject.ajx = $.ajax({
                     dataType: "json",
                     url: ajaxObject.url,
                     xhrFields: { withCredentials: true },
                     async: true,
                     data: { id: context.boardItemId, type: context.boardType },
                     success: (result) => this.onSuccess(ajaxObject, context, result, false),
-                    complete: (jqXhr) => this.onComplete(context, jqXhr),
                     error: (jqXhr) => this.onError(ajaxObject, context.boardHolder, jqXhr),
+                    complete: () => resolve()
                 });
-        }
+            });
+        });
+
+        // Phase 4: When ALL AJAX calls complete
+        Promise.all(ajaxPromises).then(() => {
+            this.hideLoading(context.resultPanel);
+            this.onAllAjaxComplete(context);
+        });
+
         $(document).click(function (e) {
             if (!$(e.target).closest("a").is($(".manage-button,.add-button")))
                 $(".board-addable-items-container,.board-manage-items-container").fadeOut();
-        })
-
-        // TEST MASONARY GRID STRUCTURE
-        // const listItems = $("<div class='list-items'>");
-        // for (let index = 0; index < 20; index++) {
-        //     var random = Math.random() * 500 + 100;
-        //     listItems.append("<div class='item' box-order='" + index + "'><div class='card mb-3' style='height:" + random + "px'><div class='card-body'>ITEM #" + index + "</div></div></div>")
-        // }
-        // console.log("fake boxes created")
-        // $('.board-components-result').append(listItems);
-
-        const dataAttr = $('.board-components-result').attr("data-min-column-width");
-        const minColumnWidth = dataAttr ? parseInt(dataAttr) : 300;
-
-        this.masonryGrid = new MasonryGrid({
-            parentSelector: '.board-components-result > .list-items',
-            itemsSelector: ".item",
-            minColumnWidth: minColumnWidth
         });
 
         this.relocateBoardComponentsHeaderActions();
@@ -623,27 +628,51 @@ export default class BoardComponents implements IService {
     protected onlyUnique(value, index, self) {
         return self.indexOf(value) === index;
     }
-    protected onComplete(context: IBoardContext, jqXHR: JQueryXHR) {
-        context.ajaxCallCount++;
+    protected onAllAjaxComplete(context: IBoardContext) {
+        // Called exactly once when ALL parallel AJAX requests have completed
 
-        if (context.ajaxList.filter((p) => p.state === 0).length === 0) {
-            if (context.resultCount === 0) {
-                const ulNothing = $("<div class=\"item\">");
-                ulNothing.append("<a>").append("<span>").html("Nothing found");
-                context.resultPanel.append(ulNothing);
-            }
+        if (context.resultCount === 0) {
+            const ulNothing = $("<div class=\"item\">");
+            ulNothing.append("<a>").append("<span>").html("Nothing found");
+            context.resultPanel.append(ulNothing);
         }
+
+        this.bindAddableItemsButtonClick(context);
+
+        if ($(".board-addable-items-container").children().length > 0) {
+            $(".add-button").show();
+        }
+
         this.modalHelper.enableLink($(".board-components-result [target='$modal'][href]"));
-        if (context.ajaxCallCount == context.ajaxList.length) {
-            this.bindAddableItemsButtonClick(context);
 
-            if ($(".board-addable-items-container").children().length > 0) {
-                $(".add-button").show();
-            }
+        // Initialize MasonryGrid if not already created (handles non-cached case)
+        this.initMasonryGrid();
+    }
+
+    protected initMasonryGrid() {
+        if (this.masonryGrid) return; // Already initialized
+
+        const dataAttr = $('.board-components-result').attr("data-min-column-width");
+        const minColumnWidth = dataAttr ? parseInt(dataAttr) : 300;
+
+        this.masonryGrid = new MasonryGrid({
+            parentSelector: '.board-components-result > .list-items',
+            itemsSelector: ".item",
+            minColumnWidth: minColumnWidth
+        });
+    }
+
+    protected showLoading(container: JQuery) {
+        let loadingHtml = '<div class="board-loading"><br/><br/><center>loading...</center></div>';
+        const loadingTag = document.getElementById('loading');
+        if (loadingTag) {
+            loadingHtml = '<div class="board-loading">' + loadingTag.innerHTML + '</div>';
         }
+        container.append(loadingHtml);
+    }
 
-        if (this.masonryGrid)
-            this.masonryGrid.drawGrid()
+    protected hideLoading(container: JQuery) {
+        container.find('.board-loading').remove();
     }
 
     protected onError(sender: IAjaxObject, boardHolder: JQuery, jqXHR: JQueryXHR) {

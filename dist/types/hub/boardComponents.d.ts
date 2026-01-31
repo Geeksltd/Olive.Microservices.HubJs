@@ -46,7 +46,10 @@ export default class BoardComponents implements IService {
     protected OrderBoxes(): void;
     protected isValidResult(item: IInfoDto, context: IBoardContext): boolean;
     protected onlyUnique(value: any, index: any, self: any): boolean;
-    protected onComplete(context: IBoardContext, jqXHR: JQueryXHR): void;
+    protected onAllAjaxComplete(context: IBoardContext): void;
+    protected initMasonryGrid(): void;
+    protected showLoading(container: JQuery): void;
+    protected hideLoading(container: JQuery): void;
     protected onError(sender: IAjaxObject, boardHolder: JQuery, jqXHR: JQueryXHR): void;
 }
 export interface IBoardContext {

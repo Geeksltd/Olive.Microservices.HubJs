@@ -8,29 +8,9 @@ export interface MasonaryOptions {
     storageKey?: string
 }
 
-export interface WidgetState {
-    index: number
-    id: string
-    order: number
-    height: number
-}
-
-export interface ColumnState {
-    index: number
-    height: number
-    widgets: WidgetState[]
-}
-
-export interface BoardState {
-    timestamp: number
+export interface HeightCache {
     windowWidth: number
-    windowHeight: number
-    parentWidth: number
-    parentHeight: number
-    minColumnWidth: number
-    columnCount: number
-    columns: ColumnState[]
-    schematic: number[][]
+    heights: Record<string, number>  // widgetId -> height
 }
 
 export default class MasonryGrid {
@@ -41,6 +21,8 @@ export default class MasonryGrid {
     resizeId: number | undefined;
     lastSchematic: Array<Array<number>> = [[]];
     preRendered: boolean = false;
+    private lastColumnCount: number = 0;
+    private readonly DEFAULT_WIDGET_HEIGHT = 200;
 
     constructor(options) {
         this.options = options;
@@ -56,18 +38,35 @@ export default class MasonryGrid {
 
             if (!this.parent || !this.items || !this.items.length) throw "invalid board dom structure";
 
-            const o = function (entries) {
-                this.drawGrid();
-            }.bind(this);
-            this.resizeObserver = new ResizeObserver(o);
-
-            this.resizeObserver.observe(this.parent);
-            this.items.forEach(item => this.resizeObserver.observe(item));
-
-            // Try to pre-render from cache if window width matches
+            // Try to pre-render from cache first
             if (this.preRenderFromCache()) {
                 this.preRendered = true;
+
+                // Only observe parent for window resize - don't observe items
+                // This prevents any layout changes from item content loading
+                const parentResizeObserver = new ResizeObserver((entries) => {
+                    const newColumnCount = Math.max(
+                        Math.floor(this.parent.clientWidth / this.options.minColumnWidth), 1
+                    );
+                    // Only redraw if column count changes (window resize)
+                    if (newColumnCount !== this.lastColumnCount) {
+                        this.preRendered = false;
+                        this.drawGrid();
+                    }
+                });
+                this.resizeObserver = parentResizeObserver;
+                this.resizeObserver.observe(this.parent);
+
+                // Save heights after content loads (delayed)
+                setTimeout(() => this.saveHeightCache(), 3000);
             } else {
+                // No cache - use normal dynamic layout
+                const o = function (entries) {
+                    this.drawGrid();
+                }.bind(this);
+                this.resizeObserver = new ResizeObserver(o);
+                this.resizeObserver.observe(this.parent);
+                this.items.forEach(item => this.resizeObserver.observe(item));
                 this.drawGrid();
             }
         } catch (error) {
@@ -83,77 +82,62 @@ export default class MasonryGrid {
     }
 
     private preRenderFromCache(): boolean {
-        const cachedState = this.getBoardState();
-        if (!cachedState) return false;
+        const heightCache = this.getHeightCache();
 
-        // Check if window width matches cached width
-        if (window.innerWidth !== cachedState.windowWidth) return false;
+        // Skip if window width changed (layout would be different)
+        if (!heightCache || window.innerWidth !== heightCache.windowWidth) {
+            return false;
+        }
 
-        // Verify we have valid cached data
-        if (!cachedState.columns || !cachedState.schematic) return false;
+        // Sort items by box-order
+        this.items.sort((a, b) =>
+            parseInt(b.getAttribute("box-order") || "0") -
+            parseInt(a.getAttribute("box-order") || "0")
+        );
 
-        // Build a map of cached widget IDs to their heights
-        const cachedWidgetHeights = new Map<string, number>();
-        cachedState.columns.forEach(col => {
-            col.widgets.forEach(widget => {
-                if (widget.id) {
-                    cachedWidgetHeights.set(widget.id, widget.height);
-                }
-            });
-        });
-
-        // Sort items by box-order like in generateSchematic
-        this.items.sort((a, b) => parseInt(b.getAttribute("box-order")) - parseInt(a.getAttribute("box-order")));
-
-        // Verify all current items exist in cache (by ID)
-        const currentIds: string[] = [];
+        // Build height map for schematic generation
+        const itemHeights: number[] = [];
         for (const item of this.items) {
             const id = this.getItemId(item);
-            if (!id || !cachedWidgetHeights.has(id)) {
-                // Widget not found in cache - cannot pre-render
-                return false;
-            }
-            currentIds.push(id);
+            const cachedHeight = id ? heightCache.heights[id] : undefined;
+            const height = (cachedHeight && cachedHeight > 0) ? cachedHeight : this.DEFAULT_WIDGET_HEIGHT;
+
+            (item as HTMLElement).style.minHeight = `${height}px`;
+            itemHeights.push(height);
         }
 
-        // Verify same count (handles case where cache has more widgets than current)
-        if (currentIds.length !== cachedWidgetHeights.size) return false;
+        // Generate layout using cached heights (not clientHeight)
+        const columnCount = Math.max(
+            Math.floor(this.parent.clientWidth / this.options.minColumnWidth), 1
+        );
+        this.lastColumnCount = columnCount;
+        this.generateColumns(columnCount);
+        this.lastSchematic = this.generateSchematicWithHeights(columnCount, itemHeights);
 
-        // Generate columns
-        this.generateColumns(cachedState.columnCount);
-
-        // Distribute items to columns based on cached schematic and set min-height by ID
-        for (let c = 0; c < cachedState.schematic.length; c++) {
+        for (let c = 0; c < this.lastSchematic.length; c++) {
             const column = this.parent.querySelectorAll(".column")[c];
-            for (let i = 0; i < cachedState.schematic[c].length; i++) {
-                const itemIndex = cachedState.schematic[c][i];
-                const item = this.items[itemIndex] as HTMLElement;
-                const itemId = this.getItemId(item);
-                const cachedHeight = itemId ? cachedWidgetHeights.get(itemId) : undefined;
-
-                if (cachedHeight && cachedHeight > 0) {
-                    item.style.minHeight = `${cachedHeight}px`;
-                }
-
-                column.appendChild(item);
+            for (const itemIndex of this.lastSchematic[c]) {
+                column.appendChild(this.items[itemIndex]);
             }
         }
 
-        this.lastSchematic = cachedState.schematic;
         return true;
     }
 
     setMinColumnWidth(w: number) {
         this.options.minColumnWidth = w;
+        this.preRendered = false;
         this.drawGrid();
     }
 
     drawGrid() {
-        if (this.resizeId) {
-            clearTimeout(this.resizeId);
-        }
-
+        if (this.resizeId) clearTimeout(this.resizeId);
         if (!this.parent || !this.items || !this.items.length) return;
+
+        // If pre-rendered, don't do anything - layout is stable
+        if (this.preRendered) {
+            return;
+        }
 
         this.resizeId = setTimeout(function () {
             this.resizeId = undefined;
@@ -161,42 +145,40 @@ export default class MasonryGrid {
             const parentWidth = this.parent.clientWidth;
             const columnCount = Math.max(Math.floor(parentWidth / this.options.minColumnWidth), 1);
 
-            const newItems = this.parent.querySelectorAll(this.options.parentSelector + ' > ' + this.options.itemsSelector);
+            // Refresh items list
+            this.items = Array.from(this.parent.querySelectorAll(
+                this.options.parentSelector + ' > ' + this.options.itemsSelector +
+                ', ' + this.options.parentSelector + ' > .column > ' + this.options.itemsSelector
+            ));
 
-            if (!newItems.length) {
-                const newSchematic = this.generateSchematic(columnCount);
-                if (this.lastSchematic && this.areEqualSchematics(this.lastSchematic, newSchematic))
-                    return; // Keep min-heights intact - no redraw needed
-                this.lastSchematic = newSchematic;
-                this.removeColumns();
-            } else {
-                this.removeColumns();
-                this.items = Array.from(this.parent.querySelectorAll(this.options.parentSelector + ' > ' + this.options.itemsSelector));
-                this.lastSchematic = this.generateSchematic(columnCount);
+            if (!this.items.length) return;
+
+            const newSchematic = this.generateSchematic(columnCount);
+
+            // Skip DOM manipulation if layout would be the same
+            if (this.lastColumnCount === columnCount &&
+                this.lastSchematic &&
+                this.areEqualSchematics(this.lastSchematic, newSchematic)) {
+                this.saveHeightCache();
+                return;
             }
 
-            // Clear min-heights only when doing actual redraw
-            if (this.preRendered) {
-                this.items.forEach(item => {
-                    (item as HTMLElement).style.minHeight = '';
-                });
-                this.preRendered = false;
-                // Force reflow to ensure correct heights before saving
-                void this.parent.offsetHeight;
-            }
-
+            this.lastSchematic = newSchematic;
+            this.lastColumnCount = columnCount;
+            this.removeColumns();
             this.generateColumns(columnCount);
 
             for (let c = 0; c < this.lastSchematic.length; c++) {
-                const column = this.parent.querySelectorAll(".column")[c]
-                for (let i = 0; i < this.lastSchematic[c].length; i++) {
-                    column.appendChild(this.items[this.lastSchematic[c][i]]);
+                const column = this.parent.querySelectorAll(".column")[c];
+                for (const itemIndex of this.lastSchematic[c]) {
+                    column.appendChild(this.items[itemIndex]);
                 }
             }
 
-            newItems.forEach(item => this.resizeObserver.observe(item));
+            this.items.forEach(item => this.resizeObserver.observe(item));
 
-            this.saveBoardState();
+            // Save actual heights for next visit
+            this.saveHeightCache();
         }.bind(this), this.options.redrawInterval ?? 100);
     }
 
@@ -222,7 +204,10 @@ export default class MasonryGrid {
     }
 
     generateSchematic(columnCount) {
+        return this.generateSchematicWithHeights(columnCount, null);
+    }
 
+    private generateSchematicWithHeights(columnCount: number, itemHeights: number[] | null) {
         var result = [];
         var schematic = [];
 
@@ -230,87 +215,51 @@ export default class MasonryGrid {
             result.push({ index: i, height: 0 });
             schematic.push([]);
         }
-        this.items.sort((a, b) => parseInt(b.getAttribute("box-order")) - parseInt(a.getAttribute("box-order")));
+        this.items.sort((a, b) => parseInt(b.getAttribute("box-order") || "0") - parseInt(a.getAttribute("box-order") || "0"));
 
         for (let i = 0; i < this.items.length; i++) {
             const item = this.items[i];
             result.sort((a, b) => a.height - b.height);
             const index = result[0].index;
-            result[0].height += item.clientHeight;
+            // Use provided heights if available, otherwise use clientHeight
+            const height = itemHeights ? itemHeights[i] : item.clientHeight;
+            result[0].height += height;
             schematic[index].push(i);
         }
 
         return schematic;
     }
 
-    private getStorageKey(): string {
-        if (this.options.storageKey) return this.options.storageKey;
+    private getHeightCacheKey(): string {
         const path = window.location.pathname.replace(/[^a-zA-Z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
-        return `masonry-board-state-${path || 'root'}`;
+        return this.options.storageKey || `masonry-heights-${path || 'root'}`;
     }
 
-    saveBoardState(): void {
-        if (!this.parent || !this.items || !this.lastSchematic) return;
+    getHeightCache(): HeightCache | null {
+        try {
+            const stored = localStorage.getItem(this.getHeightCacheKey());
+            return stored ? JSON.parse(stored) : null;
+        } catch (e) { return null; }
+    }
 
-        const columns = this.parent.querySelectorAll(".column");
-        const columnStates: ColumnState[] = [];
+    private saveHeightCache(): void {
+        // Refresh items list to get current items in columns
+        this.items = Array.from(this.parent.querySelectorAll(
+            this.options.parentSelector + ' > ' + this.options.itemsSelector +
+            ', ' + this.options.parentSelector + ' > .column > ' + this.options.itemsSelector
+        ));
 
-        columns.forEach((column, colIndex) => {
-            const widgets: WidgetState[] = [];
-            const columnItems = column.querySelectorAll(this.options.itemsSelector);
-
-            columnItems.forEach((item, itemIndex) => {
-                const itemId = this.getItemId(item);
-                if (!itemId) return; // Skip items without valid ID
-                widgets.push({
-                    index: itemIndex,
-                    id: itemId,
-                    order: parseInt(item.getAttribute('box-order')) || 0,
-                    height: (item as HTMLElement).clientHeight
-                });
-            });
-
-            columnStates.push({
-                index: colIndex,
-                height: (column as HTMLElement).clientHeight,
-                widgets: widgets
-            });
+        const heights: Record<string, number> = {};
+        this.items.forEach(item => {
+            const id = this.getItemId(item);
+            if (id) heights[id] = (item as HTMLElement).clientHeight;
         });
 
-        const boardState: BoardState = {
-            timestamp: Date.now(),
-            windowWidth: window.innerWidth,
-            windowHeight: window.innerHeight,
-            parentWidth: this.parent.clientWidth,
-            parentHeight: this.parent.clientHeight,
-            minColumnWidth: this.options.minColumnWidth,
-            columnCount: columns.length,
-            columns: columnStates,
-            schematic: this.lastSchematic
-        };
-
         try {
-            localStorage.setItem(this.getStorageKey(), JSON.stringify(boardState));
-        } catch (e) {
-            console.warn('Failed to save board state to localStorage:', e);
-        }
-    }
-
-    getBoardState(): BoardState | null {
-        try {
-            const stored = localStorage.getItem(this.getStorageKey());
-            return stored ? JSON.parse(stored) : null;
-        } catch (e) {
-            console.warn('Failed to read board state from localStorage:', e);
-            return null;
-        }
-    }
-
-    clearBoardState(): void {
-        try {
-            localStorage.removeItem(this.getStorageKey());
-        } catch (e) {
-            console.warn('Failed to clear board state from localStorage:', e);
-        }
+            localStorage.setItem(this.getHeightCacheKey(), JSON.stringify({
+                windowWidth: window.innerWidth,
+                heights
+            }));
+        } catch (e) { /* ignore quota errors */ }
     }
 }
