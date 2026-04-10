@@ -19,6 +19,10 @@ export default class MasonryGrid {
     lastSchematic: Array<Array<number>>;
     preRendered: boolean;
     private lastColumnCount;
+    private isLayoutInProgress;
+    private pendingRedraw;
+    private layoutPassCount;
+    private readonly MAX_LAYOUT_PASSES;
     private readonly DEFAULT_WIDGET_HEIGHT;
     constructor(options: any);
     private initialize;

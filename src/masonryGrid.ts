@@ -22,6 +22,10 @@ export default class MasonryGrid {
     lastSchematic: Array<Array<number>> = [[]];
     preRendered: boolean = false;
     private lastColumnCount: number = 0;
+    private isLayoutInProgress: boolean = false;
+    private pendingRedraw: boolean = false;
+    private layoutPassCount: number = 0;
+    private readonly MAX_LAYOUT_PASSES = 3;
     private readonly DEFAULT_WIDGET_HEIGHT = 200;
 
     constructor(options) {
@@ -62,6 +66,11 @@ export default class MasonryGrid {
             } else {
                 // No cache - use normal dynamic layout
                 const o = function (entries) {
+                    if (this.isLayoutInProgress) {
+                        this.pendingRedraw = true;
+                        return;
+                    }
+                    this.layoutPassCount = 0;
                     this.drawGrid();
                 }.bind(this);
                 this.resizeObserver = new ResizeObserver(o);
@@ -163,6 +172,10 @@ export default class MasonryGrid {
                 return;
             }
 
+            this.isLayoutInProgress = true;
+            this.pendingRedraw = false;
+            this.layoutPassCount++;
+
             this.lastSchematic = newSchematic;
             this.lastColumnCount = columnCount;
             this.removeColumns();
@@ -175,10 +188,28 @@ export default class MasonryGrid {
                 }
             }
 
-            this.items.forEach(item => this.resizeObserver.observe(item));
-
             // Save actual heights for next visit
             this.saveHeightCache();
+
+            // Double RAF ensures we are past the ResizeObserver
+            // notifications triggered by our own DOM moves.
+            // (RAF fires before ResizeObserver in the rendering
+            // pipeline, so we need the second frame to be safe.)
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    this.isLayoutInProgress = false;
+                    // If resize events fired during layout, do a
+                    // stabilization pass so content-driven height
+                    // changes are not lost — capped to prevent
+                    // infinite oscillation.
+                    if (this.pendingRedraw && this.layoutPassCount < this.MAX_LAYOUT_PASSES) {
+                        this.pendingRedraw = false;
+                        this.drawGrid();
+                    } else {
+                        this.pendingRedraw = false;
+                    }
+                });
+            });
         }.bind(this), this.options.redrawInterval ?? 100);
     }
 
