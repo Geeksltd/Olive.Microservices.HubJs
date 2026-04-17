@@ -6,6 +6,7 @@ export interface MasonaryOptions {
     itemsSelector: string
     redrawInterval: number
     storageKey?: string
+    onReady?: () => void
 }
 
 export interface HeightCache {
@@ -25,12 +26,34 @@ export default class MasonryGrid {
     private isLayoutInProgress: boolean = false;
     private pendingRedraw: boolean = false;
     private layoutPassCount: number = 0;
+    private readyFired: boolean = false;
     private readonly MAX_LAYOUT_PASSES = 3;
     private readonly DEFAULT_WIDGET_HEIGHT = 200;
+    private static readonly LOADING_CLASS = 'masonry-loading';
+    private static readonly STYLE_ID = 'masonry-grid-fade-style';
 
     constructor(options) {
         this.options = options;
+        MasonryGrid.ensureStyle();
         this.initialize();
+    }
+
+    private static ensureStyle() {
+        if (typeof document === 'undefined') return;
+        if (document.getElementById(MasonryGrid.STYLE_ID)) return;
+        const style = document.createElement('style');
+        style.id = MasonryGrid.STYLE_ID;
+        style.textContent =
+            '.' + MasonryGrid.LOADING_CLASS + '{opacity:0;}' +
+            '.board-components-result>.list-items{transition:opacity 220ms ease-out;}';
+        document.head.appendChild(style);
+    }
+
+    private fireReady() {
+        if (this.readyFired) return;
+        this.readyFired = true;
+        if (this.parent) this.parent.classList.remove(MasonryGrid.LOADING_CLASS);
+        try { this.options.onReady?.(); } catch (e) { console.error(e); }
     }
 
     private initialize() {
@@ -63,8 +86,14 @@ export default class MasonryGrid {
 
                 // Save heights after content loads (delayed)
                 setTimeout(() => this.saveHeightCache(), 3000);
+
+                // Cached path is already visible; fire onReady on next frame
+                // so callers get the ready signal consistently.
+                requestAnimationFrame(() => this.fireReady());
             } else {
-                // No cache - use normal dynamic layout
+                // No cache - hide the grid until layout stabilizes, then fade in.
+                this.parent.classList.add(MasonryGrid.LOADING_CLASS);
+
                 const o = function (entries) {
                     if (this.isLayoutInProgress) {
                         this.pendingRedraw = true;
@@ -207,6 +236,7 @@ export default class MasonryGrid {
                         this.drawGrid();
                     } else {
                         this.pendingRedraw = false;
+                        this.fireReady();
                     }
                 });
             });

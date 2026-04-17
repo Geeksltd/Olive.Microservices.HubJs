@@ -133,9 +133,11 @@ export default class BoardComponents implements IService {
             });
         });
 
-        // Phase 4: When ALL AJAX calls complete
+        // Phase 4: When ALL AJAX calls complete.
+        // hideLoading() is deferred to MasonryGrid's onReady so the
+        // loader stays up until the grid is laid out, not just until
+        // AJAX resolves — prevents first-render card shuffling.
         Promise.all(ajaxPromises).then(() => {
-            this.hideLoading(context.resultPanel);
             this.onAllAjaxComplete(context);
         });
 
@@ -645,6 +647,13 @@ export default class BoardComponents implements IService {
 
         this.modalHelper.enableLink($(".board-components-result [target='$modal'][href]"));
 
+        // Empty result: no grid will be created, hide the loader directly
+        // so it does not remain stuck waiting for an onReady that never fires.
+        if (context.resultCount === 0) {
+            this.hideLoading($('.board-components-result'));
+            return;
+        }
+
         // Initialize MasonryGrid if not already created (handles non-cached case)
         this.initMasonryGrid();
     }
@@ -658,7 +667,8 @@ export default class BoardComponents implements IService {
         this.masonryGrid = new MasonryGrid({
             parentSelector: '.board-components-result > .list-items',
             itemsSelector: ".item",
-            minColumnWidth: minColumnWidth
+            minColumnWidth: minColumnWidth,
+            onReady: () => this.hideLoading($('.board-components-result'))
         });
     }
 

@@ -5,6 +5,7 @@ export interface MasonaryOptions {
     itemsSelector: string;
     redrawInterval: number;
     storageKey?: string;
+    onReady?: () => void;
 }
 export interface HeightCache {
     windowWidth: number;
@@ -22,9 +23,14 @@ export default class MasonryGrid {
     private isLayoutInProgress;
     private pendingRedraw;
     private layoutPassCount;
+    private readyFired;
     private readonly MAX_LAYOUT_PASSES;
     private readonly DEFAULT_WIDGET_HEIGHT;
+    private static readonly LOADING_CLASS;
+    private static readonly STYLE_ID;
     constructor(options: any);
+    private static ensureStyle;
+    private fireReady;
     private initialize;
     private getItemId;
     private preRenderFromCache;
