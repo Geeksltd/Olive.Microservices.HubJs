@@ -52,6 +52,7 @@ export default class BoardComponents implements IService {
     protected initMasonryGrid(): void;
     private static skeletonStyleInjected;
     private ensureSkeletonStyle;
+    private widgetLoadingHtml;
     protected showLoading(container: JQuery): void;
     protected hideLoading(container: JQuery): void;
     protected onError(sender: IAjaxObject, boardHolder: JQuery, jqXHR: JQueryXHR): void;

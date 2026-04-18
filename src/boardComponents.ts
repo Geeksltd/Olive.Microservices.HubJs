@@ -220,18 +220,12 @@ export default class BoardComponents implements IService {
             content.append(this.createInfo(items[i], context));
         }
 
-        let loadingTag = document.getElementById('loading');
-        let loadingHtml = "";
-        if (typeof (loadingTag) != 'undefined' && loadingTag != null) {
-            loadingHtml = loadingTag.innerHTML;
-        } else {
-            loadingHtml = '<br/><br/><center>loading...</center></div>';
-        }
+        if (widgets.length > 0) this.ensureSkeletonStyle();
+        const widgetLoading = this.widgetLoadingHtml();
 
         for (let i = 0; i < widgets.length; i++) {
             context.resultCount++;
-
-            content.append('<div data-url="' + widgets[i].Url + '">' + loadingHtml);
+            content.append('<div data-url="' + widgets[i].Url + '">' + widgetLoading + '</div>');
             this.createWidgets(widgets[i], context);
         }
         for (let i = 0; i < html.length; i++) {
@@ -822,8 +816,34 @@ export default class BoardComponents implements IService {
                 0% { background-position: 100% 0; }
                 100% { background-position: -100% 0; }
             }
+            /* In-card widget loader: 3 bouncing dots, neutral palette. */
+            .board-widget-loading {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+                min-height: 90px;
+                padding: 20px;
+            }
+            .board-widget-loading .dot {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: #b0b6bd;
+                animation: board-widget-bounce 1.2s ease-in-out infinite both;
+            }
+            .board-widget-loading .dot:nth-child(1) { animation-delay: -0.32s; }
+            .board-widget-loading .dot:nth-child(2) { animation-delay: -0.16s; }
+            @keyframes board-widget-bounce {
+                0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+                40%           { transform: scale(1);   opacity: 1; }
+            }
         `;
         document.head.appendChild(style);
+    }
+
+    private widgetLoadingHtml(): string {
+        return '<div class="board-widget-loading"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>';
     }
 
     protected showLoading(container: JQuery) {
