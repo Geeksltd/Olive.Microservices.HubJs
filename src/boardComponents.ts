@@ -80,6 +80,11 @@ export default class BoardComponents implements IService {
 
         addableItemsPanel.empty();
 
+        // Inject skeleton/widget-loader CSS into the board container up front so
+        // no <style> is added to the document during the reveal (which would
+        // make Chromium re-resolve all web fonts, blanking FA icons briefly).
+        BoardComponents.ensureSkeletonStyle(resultPanel[0]);
+
         // Hide the grid until MasonryGrid signals ready, so items don't flicker
         // into view in their pre-layout positions while AJAX is still in flight.
         // (Absolute positioning is added later only on the loading-skeleton path,
@@ -220,7 +225,7 @@ export default class BoardComponents implements IService {
             content.append(this.createInfo(items[i], context));
         }
 
-        if (widgets.length > 0) this.ensureSkeletonStyle();
+        if (widgets.length > 0) BoardComponents.ensureSkeletonStyle(context.resultPanel[0]);
         const widgetLoading = this.widgetLoadingHtml();
 
         for (let i = 0; i < widgets.length; i++) {
@@ -750,14 +755,18 @@ export default class BoardComponents implements IService {
         });
     }
 
-    private static skeletonStyleInjected = false;
+    private static readonly SKELETON_STYLE_CLASS = 'board-loading-skeleton-style';
 
-    private ensureSkeletonStyle() {
-        if (BoardComponents.skeletonStyleInjected) return;
-        BoardComponents.skeletonStyleInjected = true;
-        if (typeof document === 'undefined') return;
+    // Inject the skeleton + widget-loader CSS into a board-local container
+    // instead of <head>. Adding stylesheets to <head> at runtime makes Chromium
+    // re-resolve every web font on the page, which briefly blanks all
+    // FontAwesome glyphs (FA's font-display: block). Per-board injection keeps
+    // it scoped to the board's lifecycle.
+    static ensureSkeletonStyle(target: Element) {
+        if (typeof document === 'undefined' || !target) return;
+        if (target.querySelector('style.' + BoardComponents.SKELETON_STYLE_CLASS)) return;
         const style = document.createElement('style');
-        style.id = 'board-loading-skeleton-style';
+        style.className = BoardComponents.SKELETON_STYLE_CLASS;
         // Card shape mirrors the real .item: colored header bar on top,
         // then rows of [icon + name + description]. Multi-column flow gives
         // true masonry behavior so heights balance across columns.
@@ -839,7 +848,7 @@ export default class BoardComponents implements IService {
                 40%           { transform: scale(1);   opacity: 1; }
             }
         `;
-        document.head.appendChild(style);
+        target.appendChild(style);
     }
 
     private widgetLoadingHtml(): string {
@@ -847,7 +856,7 @@ export default class BoardComponents implements IService {
     }
 
     protected showLoading(container: JQuery) {
-        this.ensureSkeletonStyle();
+        BoardComponents.ensureSkeletonStyle(container[0]);
         // Container must be position:relative so the absolutely-positioned
         // .list-items overlays this skeleton area.
         container.css('position', 'relative');

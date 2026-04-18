@@ -30,23 +30,26 @@ export default class MasonryGrid {
     private readonly MAX_LAYOUT_PASSES = 3;
     private readonly DEFAULT_WIDGET_HEIGHT = 200;
     private static readonly LOADING_CLASS = 'masonry-loading';
-    private static readonly STYLE_ID = 'masonry-grid-fade-style';
+    private static readonly STYLE_CLASS = 'masonry-grid-fade-style';
 
     constructor(options: MasonryOptions) {
         this.options = options;
-        MasonryGrid.ensureStyle();
         this.initialize();
     }
 
-    private static ensureStyle() {
-        if (typeof document === 'undefined') return;
-        if (document.getElementById(MasonryGrid.STYLE_ID)) return;
+    // Inject the loader/transition CSS into a board-local container instead
+    // of <head>. Adding stylesheets to <head> at runtime makes Chromium
+    // re-resolve every web font on the page, which briefly blanks all
+    // FontAwesome glyphs (FA's font-display: block).
+    static ensureStyle(target: Element) {
+        if (typeof document === 'undefined' || !target) return;
+        if (target.querySelector('style.' + MasonryGrid.STYLE_CLASS)) return;
         const style = document.createElement('style');
-        style.id = MasonryGrid.STYLE_ID;
+        style.className = MasonryGrid.STYLE_CLASS;
         style.textContent =
             '.' + MasonryGrid.LOADING_CLASS + '{opacity:0;}' +
             '.board-components-result>.list-items{transition:opacity 220ms ease-out;}';
-        document.head.appendChild(style);
+        target.appendChild(style);
     }
 
     private fireReady() {
@@ -64,6 +67,11 @@ export default class MasonryGrid {
                 : undefined;
 
             if (!this.parent || !this.items?.length) throw "invalid board dom structure";
+
+            // Inject the masonry transition CSS inside the board DOM (parentElement
+            // = .board-components-result). Keeps the stylesheet out of <head> so
+            // Chromium doesn't re-resolve FA web fonts on each board mount.
+            MasonryGrid.ensureStyle(this.parent.parentElement || this.parent);
 
             if (this.preRenderFromCache()) {
                 this.preRendered = true;

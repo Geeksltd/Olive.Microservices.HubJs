@@ -50,8 +50,8 @@ export default class BoardComponents implements IService {
     protected onlyUnique(value: any, index: any, self: any): boolean;
     protected onAllAjaxComplete(context: IBoardContext): void;
     protected initMasonryGrid(): void;
-    private static skeletonStyleInjected;
-    private ensureSkeletonStyle;
+    private static readonly SKELETON_STYLE_CLASS;
+    static ensureSkeletonStyle(target: Element): void;
     private widgetLoadingHtml;
     protected showLoading(container: JQuery): void;
     protected hideLoading(container: JQuery): void;

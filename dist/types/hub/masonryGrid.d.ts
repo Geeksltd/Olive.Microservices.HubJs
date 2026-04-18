@@ -27,9 +27,9 @@ export default class MasonryGrid {
     private readonly MAX_LAYOUT_PASSES;
     private readonly DEFAULT_WIDGET_HEIGHT;
     private static readonly LOADING_CLASS;
-    private static readonly STYLE_ID;
+    private static readonly STYLE_CLASS;
     constructor(options: MasonryOptions);
-    private static ensureStyle;
+    static ensureStyle(target: Element): void;
     private fireReady;
     private initialize;
     private getItemId;
