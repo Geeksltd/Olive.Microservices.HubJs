@@ -3,6 +3,7 @@ import AjaxRedirect from 'olive/mvc/ajaxRedirect';
 import MasonryGrid from './masonryGrid';
 export default class BoardComponents implements IService {
     private input;
+    static isTestMode: boolean;
     private urlList;
     private boardItemId;
     private boardType;
@@ -38,6 +39,7 @@ export default class BoardComponents implements IService {
     private generateStaticColorFromName;
     private getTextColor;
     protected showIntroImage(intro: any): JQuery;
+    private buildFakeBoardResult;
     private getlocalStorage;
     private getProjectId;
     private getItem;
@@ -48,6 +50,8 @@ export default class BoardComponents implements IService {
     protected onlyUnique(value: any, index: any, self: any): boolean;
     protected onAllAjaxComplete(context: IBoardContext): void;
     protected initMasonryGrid(): void;
+    private static skeletonStyleInjected;
+    private ensureSkeletonStyle;
     protected showLoading(container: JQuery): void;
     protected hideLoading(container: JQuery): void;
     protected onError(sender: IAjaxObject, boardHolder: JQuery, jqXHR: JQueryXHR): void;

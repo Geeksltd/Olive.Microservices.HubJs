@@ -1,9 +1,9 @@
 import 'jquery';
-export interface MasonaryOptions {
+export interface MasonryOptions {
     minColumnWidth: number;
     parentSelector: string;
     itemsSelector: string;
-    redrawInterval: number;
+    redrawInterval?: number;
     storageKey?: string;
     onReady?: () => void;
 }
@@ -12,13 +12,13 @@ export interface HeightCache {
     heights: Record<string, number>;
 }
 export default class MasonryGrid {
-    options: MasonaryOptions;
+    options: MasonryOptions;
     parent: HTMLElement;
     items: Element[];
     resizeObserver: ResizeObserver;
-    resizeId: number | undefined;
-    lastSchematic: Array<Array<number>>;
     preRendered: boolean;
+    private resizeId;
+    private lastSchematic;
     private lastColumnCount;
     private isLayoutInProgress;
     private pendingRedraw;
@@ -28,19 +28,22 @@ export default class MasonryGrid {
     private readonly DEFAULT_WIDGET_HEIGHT;
     private static readonly LOADING_CLASS;
     private static readonly STYLE_ID;
-    constructor(options: any);
+    constructor(options: MasonryOptions);
     private static ensureStyle;
     private fireReady;
     private initialize;
     private getItemId;
+    private getColumnCount;
+    private getAllItemsSelector;
+    private sortItemsByBoxOrder;
+    private applySchematicToColumns;
     private preRenderFromCache;
     setMinColumnWidth(w: number): void;
     drawGrid(): void;
-    generateColumns(columnCount: any): void;
-    removeColumns(): void;
-    areEqualSchematics(a: any, b: any): boolean;
-    generateSchematic(columnCount: any): any[];
-    private generateSchematicWithHeights;
+    private generateColumns;
+    private removeColumns;
+    private areEqualSchematics;
+    private generateSchematic;
     private getHeightCacheKey;
     getHeightCache(): HeightCache | null;
     private saveHeightCache;

@@ -4,6 +4,16 @@ import AjaxRedirect from 'olive/mvc/ajaxRedirect';
 import MasonryGrid from './masonryGrid';
 
 export default class BoardComponents implements IService {
+    // When true, board AJAX is delayed 0-5s per call and 15 fake boxes are
+    // injected so the masonry layout can be exercised. Defaults to localhost
+    // detection; flip at runtime via `BoardComponents.isTestMode = true/false`.
+    static isTestMode: boolean = (() => {
+        return false;
+        // if (typeof window === 'undefined') return false;
+        // const host = window.location.hostname;
+        // return host === 'localhost' || host === '127.0.0.1';
+    })();
+
     private urlList: string[];
     private boardItemId: string = null;
     private boardType: string = null;
@@ -70,7 +80,11 @@ export default class BoardComponents implements IService {
 
         addableItemsPanel.empty();
 
-        const boardHolder = $("<div class='list-items'>");
+        // Hide the grid until MasonryGrid signals ready, so items don't flicker
+        // into view in their pre-layout positions while AJAX is still in flight.
+        // (Absolute positioning is added later only on the loading-skeleton path,
+        // so the cached path doesn't briefly collapse the parent height.)
+        const boardHolder = $("<div class='list-items'>").css('opacity', 0);
         const addabledItemsHolder = $("<div class='list-items'>");
         $("iframe.view-frame").hide();
         var urlToLoad = new Url().getQuery("url", location.href);
@@ -98,14 +112,20 @@ export default class BoardComponents implements IService {
             boardType: this.boardType,
         };
 
-        // Phase 1: Check cache status and render cached data
-        let allCached = true;
-        for (const ajaxObject of context.ajaxList) {
-            const cache: IBoardResultDto = this.getItem(ajaxObject.url);
-            if (cache) {
-                this.onSuccess(ajaxObject, context, cache, true);
-            } else {
-                allCached = false;
+        // In test mode, simulate a slow board with fake items for layout testing.
+        const isTestMode = BoardComponents.isTestMode;
+
+        // Phase 1: Check cache status and render cached data.
+        // Skip the cache in test mode so the slow-load simulation runs every refresh.
+        let allCached = !isTestMode;
+        if (!isTestMode) {
+            for (const ajaxObject of context.ajaxList) {
+                const cache: IBoardResultDto = this.getItem(ajaxObject.url);
+                if (cache) {
+                    this.onSuccess(ajaxObject, context, cache, true);
+                } else {
+                    allCached = false;
+                }
             }
         }
 
@@ -113,12 +133,17 @@ export default class BoardComponents implements IService {
         if (allCached) {
             this.initMasonryGrid();
         } else {
-            // Show loading while waiting for non-cached items
+            // Float the grid out of normal flow so the skeletons own the
+            // visible vertical space (no double-stacking with the invisible grid).
+            boardHolder.css({ position: 'absolute', top: 0, left: 0, right: 0 });
             this.showLoading(context.resultPanel);
         }
 
         // Phase 3: Fire ALL AJAX calls in parallel
+        // In test mode, delay each response 0-5s (mixed fast/slow) so loading + layout
+        // behavior can be observed.
         const ajaxPromises = context.ajaxList.map(ajaxObject => {
+            const delayMs = isTestMode ? Math.floor(Math.random() * 5000) : 0;
             return new Promise<void>((resolve) => {
                 ajaxObject.ajx = $.ajax({
                     dataType: "json",
@@ -126,12 +151,36 @@ export default class BoardComponents implements IService {
                     xhrFields: { withCredentials: true },
                     async: true,
                     data: { id: context.boardItemId, type: context.boardType },
-                    success: (result) => this.onSuccess(ajaxObject, context, result, false),
-                    error: (jqXhr) => this.onError(ajaxObject, context.boardHolder, jqXhr),
-                    complete: () => resolve()
+                    success: (result) => {
+                        setTimeout(() => {
+                            this.onSuccess(ajaxObject, context, result, false);
+                            resolve();
+                        }, delayMs);
+                    },
+                    error: (jqXhr) => {
+                        setTimeout(() => {
+                            this.onError(ajaxObject, context.boardHolder, jqXhr);
+                            resolve();
+                        }, delayMs);
+                    }
                 });
             });
         });
+
+        // Inject 15 fake boxes in test mode so the simulated board has
+        // enough cards to exercise the masonry layout. Passing
+        // loadFromCache=true bypasses the cache-equality short-circuit
+        // in onSuccess so the fakes always render on every refresh.
+        if (isTestMode) {
+            const fakeAjax: IAjaxObject = { url: '__fake_localhost__', state: AjaxState.pending };
+            const fakeDelayMs = Math.floor(Math.random() * 5000);
+            ajaxPromises.push(new Promise<void>((resolve) => {
+                setTimeout(() => {
+                    this.onSuccess(fakeAjax, context, this.buildFakeBoardResult(15), true);
+                    resolve();
+                }, fakeDelayMs);
+            }));
+        }
 
         // Phase 4: When ALL AJAX calls complete.
         // hideLoading() is deferred to MasonryGrid's onReady so the
@@ -507,6 +556,30 @@ export default class BoardComponents implements IService {
         }
     }
 
+    private buildFakeBoardResult(boxCount: number): IBoardResultDto {
+        const colors = ['#4a90e2', '#e94e77', '#7ed321', '#f5a623', '#9013fe', '#50e3c2', '#bd10e0', '#ff6f00'];
+        const sample = 'Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua';
+        const Infos: IInfoDto[] = [];
+        for (let b = 1; b <= boxCount; b++) {
+            const boxTitle = `Demo Box ${b}`;
+            const boxColour = colors[b % colors.length];
+            // Vary row count 2..7 so cards have different heights — exercises the masonry packer.
+            const rowCount = ((b * 7) % 6) + 2;
+            for (let r = 1; r <= rowCount; r++) {
+                Infos.push({
+                    BoxColour: boxColour,
+                    BoxTitle: boxTitle,
+                    BoxOrder: b,
+                    Url: '#',
+                    Name: `Item ${b}.${r}`,
+                    Description: sample.substr(0, 20 + ((b * r) % 80)),
+                    Action: ActionEnum.Redirect
+                });
+            }
+        }
+        return { Infos };
+    }
+
     private getlocalStorage() {
         if (!this.myStorage)
             this.myStorage = window.localStorage
@@ -668,17 +741,125 @@ export default class BoardComponents implements IService {
             parentSelector: '.board-components-result > .list-items',
             itemsSelector: ".item",
             minColumnWidth: minColumnWidth,
-            onReady: () => this.hideLoading($('.board-components-result'))
+            onReady: () => {
+                this.hideLoading($('.board-components-result'));
+                // Reveal the grid and restore normal flow; the .list-items
+                // transition rule injected by MasonryGrid fades it in smoothly.
+                $('.board-components-result > .list-items').css({
+                    opacity: '',
+                    position: '',
+                    top: '',
+                    left: '',
+                    right: ''
+                });
+            }
         });
     }
 
+    private static skeletonStyleInjected = false;
+
+    private ensureSkeletonStyle() {
+        if (BoardComponents.skeletonStyleInjected) return;
+        BoardComponents.skeletonStyleInjected = true;
+        if (typeof document === 'undefined') return;
+        const style = document.createElement('style');
+        style.id = 'board-loading-skeleton-style';
+        // Card shape mirrors the real .item: colored header bar on top,
+        // then rows of [icon + name + description]. Multi-column flow gives
+        // true masonry behavior so heights balance across columns.
+        style.textContent = `
+            .board-loading {
+                column-gap: 16px;
+                padding: 8px 0;
+            }
+            .board-loading .skel-card {
+                background: #fff;
+                border-radius: 6px;
+                overflow: hidden;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+                border: 1px solid #eee;
+                margin: 0 0 16px 0;
+                break-inside: avoid;
+                -webkit-column-break-inside: avoid;
+                page-break-inside: avoid;
+                display: inline-block;
+                width: 100%;
+            }
+            .board-loading .skel-card-header {
+                height: 38px;
+                background: linear-gradient(90deg, #d8dde2 0%, #e9edf0 50%, #d8dde2 100%);
+                background-size: 200% 100%;
+                animation: board-skel-shimmer 1.4s ease-in-out infinite;
+            }
+            .board-loading .skel-row {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 12px 14px;
+                border-top: 1px solid #f3f3f3;
+            }
+            .board-loading .skel-icon {
+                width: 28px;
+                height: 28px;
+                border-radius: 50%;
+                flex-shrink: 0;
+                background: linear-gradient(90deg, #ececec 0%, #f6f7f8 50%, #ececec 100%);
+                background-size: 200% 100%;
+                animation: board-skel-shimmer 1.4s ease-in-out infinite;
+            }
+            .board-loading .skel-row-text { flex: 1; }
+            .board-loading .skel-bar {
+                display: block;
+                height: 10px;
+                border-radius: 4px;
+                background: linear-gradient(90deg, #ececec 0%, #f6f7f8 50%, #ececec 100%);
+                background-size: 200% 100%;
+                animation: board-skel-shimmer 1.4s ease-in-out infinite;
+            }
+            .board-loading .skel-name { width: 60%; margin-bottom: 6px; }
+            .board-loading .skel-desc { width: 88%; }
+            @keyframes board-skel-shimmer {
+                0% { background-position: 100% 0; }
+                100% { background-position: -100% 0; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
     protected showLoading(container: JQuery) {
-        let loadingHtml = '<div class="board-loading"><br/><br/><center>loading...</center></div>';
-        const loadingTag = document.getElementById('loading');
-        if (loadingTag) {
-            loadingHtml = '<div class="board-loading">' + loadingTag.innerHTML + '</div>';
+        this.ensureSkeletonStyle();
+        // Container must be position:relative so the absolutely-positioned
+        // .list-items overlays this skeleton area.
+        container.css('position', 'relative');
+
+        const dataAttr = container.attr("data-min-column-width");
+        const minCol = dataAttr ? parseInt(dataAttr) : 300;
+        // Same column-count math MasonryGrid uses, so the skeleton matches the
+        // grid we're about to render.
+        const containerWidth = container[0].clientWidth || window.innerWidth;
+        const colCount = Math.max(Math.floor(containerWidth / minCol), 1);
+        const cardCount = colCount * 3; // ~3 cards per column for a full-looking grid
+
+        const wrap = $('<div class="board-loading">').css('column-count', colCount);
+
+        for (let i = 0; i < cardCount; i++) {
+            const rowCount = 2 + ((i * 3) % 5); // 2..6 rows for varied card heights
+            const card = $('<div class="skel-card">');
+            card.append('<div class="skel-card-header"></div>');
+            for (let j = 0; j < rowCount; j++) {
+                card.append(
+                    '<div class="skel-row">' +
+                        '<div class="skel-icon"></div>' +
+                        '<div class="skel-row-text">' +
+                            '<div class="skel-bar skel-name"></div>' +
+                            '<div class="skel-bar skel-desc"></div>' +
+                        '</div>' +
+                    '</div>'
+                );
+            }
+            wrap.append(card);
         }
-        container.append(loadingHtml);
+        container.append(wrap);
     }
 
     protected hideLoading(container: JQuery) {

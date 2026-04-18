@@ -1,27 +1,27 @@
 import 'jquery';
 
-export interface MasonaryOptions {
-    minColumnWidth: number
-    parentSelector: string
-    itemsSelector: string
-    redrawInterval: number
-    storageKey?: string
-    onReady?: () => void
+export interface MasonryOptions {
+    minColumnWidth: number;
+    parentSelector: string;
+    itemsSelector: string;
+    redrawInterval?: number;
+    storageKey?: string;
+    onReady?: () => void;
 }
 
 export interface HeightCache {
-    windowWidth: number
-    heights: Record<string, number>  // widgetId -> height
+    windowWidth: number;
+    heights: Record<string, number>; // widgetId -> height
 }
 
 export default class MasonryGrid {
-    options: MasonaryOptions;
+    options: MasonryOptions;
     parent: HTMLElement;
     items: Element[];
     resizeObserver: ResizeObserver;
-    resizeId: number | undefined;
-    lastSchematic: Array<Array<number>> = [[]];
     preRendered: boolean = false;
+    private resizeId: number | undefined;
+    private lastSchematic: number[][] = [[]];
     private lastColumnCount: number = 0;
     private isLayoutInProgress: boolean = false;
     private pendingRedraw: boolean = false;
@@ -32,7 +32,7 @@ export default class MasonryGrid {
     private static readonly LOADING_CLASS = 'masonry-loading';
     private static readonly STYLE_ID = 'masonry-grid-fade-style';
 
-    constructor(options) {
+    constructor(options: MasonryOptions) {
         this.options = options;
         MasonryGrid.ensureStyle();
         this.initialize();
@@ -59,32 +59,24 @@ export default class MasonryGrid {
     private initialize() {
         try {
             this.parent = document.querySelector<HTMLElement>(this.options.parentSelector);
-            this.items = !this.parent
-                ? undefined
-                : Array.from(this.parent.querySelectorAll(this.options.parentSelector + ' > ' + this.options.itemsSelector));
+            this.items = this.parent
+                ? Array.from(this.parent.querySelectorAll(this.options.parentSelector + ' > ' + this.options.itemsSelector))
+                : undefined;
 
-            if (!this.parent || !this.items || !this.items.length) throw "invalid board dom structure";
+            if (!this.parent || !this.items?.length) throw "invalid board dom structure";
 
-            // Try to pre-render from cache first
             if (this.preRenderFromCache()) {
                 this.preRendered = true;
-
-                // Only observe parent for window resize - don't observe items
-                // This prevents any layout changes from item content loading
-                const parentResizeObserver = new ResizeObserver((entries) => {
-                    const newColumnCount = Math.max(
-                        Math.floor(this.parent.clientWidth / this.options.minColumnWidth), 1
-                    );
-                    // Only redraw if column count changes (window resize)
-                    if (newColumnCount !== this.lastColumnCount) {
+                // Only watch parent resize so item-content load does not trigger re-layout.
+                this.resizeObserver = new ResizeObserver(() => {
+                    if (this.getColumnCount() !== this.lastColumnCount) {
                         this.preRendered = false;
                         this.drawGrid();
                     }
                 });
-                this.resizeObserver = parentResizeObserver;
                 this.resizeObserver.observe(this.parent);
 
-                // Save heights after content loads (delayed)
+                // Save heights after content has had time to render.
                 setTimeout(() => this.saveHeightCache(), 3000);
 
                 // Cached path is already visible; fire onReady on next frame
@@ -93,25 +85,21 @@ export default class MasonryGrid {
             } else {
                 // No cache - hide the grid until layout stabilizes, then fade in.
                 this.parent.classList.add(MasonryGrid.LOADING_CLASS);
-
-                const o = function (entries) {
+                this.resizeObserver = new ResizeObserver(() => {
                     if (this.isLayoutInProgress) {
                         this.pendingRedraw = true;
                         return;
                     }
                     this.layoutPassCount = 0;
                     this.drawGrid();
-                }.bind(this);
-                this.resizeObserver = new ResizeObserver(o);
+                });
                 this.resizeObserver.observe(this.parent);
                 this.items.forEach(item => this.resizeObserver.observe(item));
                 this.drawGrid();
             }
         } catch (error) {
             console.log(error);
-            setTimeout(() => {
-                this.initialize();
-            }, 100);
+            setTimeout(() => this.initialize(), 100);
         }
     }
 
@@ -119,46 +107,54 @@ export default class MasonryGrid {
         return item.getAttribute('id') || item.getAttribute('data-id') || item.getAttribute('data-type') || '';
     }
 
-    private preRenderFromCache(): boolean {
-        const heightCache = this.getHeightCache();
+    private getColumnCount(): number {
+        return Math.max(Math.floor(this.parent.clientWidth / this.options.minColumnWidth), 1);
+    }
 
-        // Skip if window width changed (layout would be different)
-        if (!heightCache || window.innerWidth !== heightCache.windowWidth) {
-            return false;
-        }
+    private getAllItemsSelector(): string {
+        const { parentSelector, itemsSelector } = this.options;
+        return `${parentSelector} > ${itemsSelector}, ${parentSelector} > .column > ${itemsSelector}`;
+    }
 
-        // Sort items by box-order
+    private sortItemsByBoxOrder() {
         this.items.sort((a, b) =>
             parseInt(b.getAttribute("box-order") || "0") -
             parseInt(a.getAttribute("box-order") || "0")
         );
+    }
 
-        // Build height map for schematic generation
-        const itemHeights: number[] = [];
-        for (const item of this.items) {
-            const id = this.getItemId(item);
-            const cachedHeight = id ? heightCache.heights[id] : undefined;
-            const height = (cachedHeight && cachedHeight > 0) ? cachedHeight : this.DEFAULT_WIDGET_HEIGHT;
-
-            (item as HTMLElement).style.minHeight = `${height}px`;
-            itemHeights.push(height);
-        }
-
-        // Generate layout using cached heights (not clientHeight)
-        const columnCount = Math.max(
-            Math.floor(this.parent.clientWidth / this.options.minColumnWidth), 1
-        );
-        this.lastColumnCount = columnCount;
-        this.generateColumns(columnCount);
-        this.lastSchematic = this.generateSchematicWithHeights(columnCount, itemHeights);
-
+    private applySchematicToColumns() {
+        const columns = this.parent.querySelectorAll(".column");
         for (let c = 0; c < this.lastSchematic.length; c++) {
-            const column = this.parent.querySelectorAll(".column")[c];
             for (const itemIndex of this.lastSchematic[c]) {
-                column.appendChild(this.items[itemIndex]);
+                columns[c].appendChild(this.items[itemIndex]);
             }
         }
+    }
 
+    private preRenderFromCache(): boolean {
+        const heightCache = this.getHeightCache();
+
+        // Skip if window width changed (layout would be different)
+        if (!heightCache || window.innerWidth !== heightCache.windowWidth) return false;
+
+        this.sortItemsByBoxOrder();
+
+        // Build height map for schematic generation
+        const itemHeights = this.items.map(item => {
+            const id = this.getItemId(item);
+            const cached = id ? heightCache.heights[id] : undefined;
+            const height = cached > 0 ? cached : this.DEFAULT_WIDGET_HEIGHT;
+            (item as HTMLElement).style.minHeight = `${height}px`;
+            return height;
+        });
+
+        // Generate layout using cached heights (not clientHeight)
+        const columnCount = this.getColumnCount();
+        this.lastColumnCount = columnCount;
+        this.generateColumns(columnCount);
+        this.lastSchematic = this.generateSchematic(columnCount, itemHeights);
+        this.applySchematicToColumns();
         return true;
     }
 
@@ -170,33 +166,24 @@ export default class MasonryGrid {
 
     drawGrid() {
         if (this.resizeId) clearTimeout(this.resizeId);
-        if (!this.parent || !this.items || !this.items.length) return;
+        if (!this.parent || !this.items?.length) return;
 
         // If pre-rendered, don't do anything - layout is stable
-        if (this.preRendered) {
-            return;
-        }
+        if (this.preRendered) return;
 
-        this.resizeId = setTimeout(function () {
+        this.resizeId = setTimeout(() => {
             this.resizeId = undefined;
 
-            const parentWidth = this.parent.clientWidth;
-            const columnCount = Math.max(Math.floor(parentWidth / this.options.minColumnWidth), 1);
+            const columnCount = this.getColumnCount();
 
             // Refresh items list
-            this.items = Array.from(this.parent.querySelectorAll(
-                this.options.parentSelector + ' > ' + this.options.itemsSelector +
-                ', ' + this.options.parentSelector + ' > .column > ' + this.options.itemsSelector
-            ));
-
+            this.items = Array.from(this.parent.querySelectorAll(this.getAllItemsSelector()));
             if (!this.items.length) return;
 
             const newSchematic = this.generateSchematic(columnCount);
 
             // Skip DOM manipulation if layout would be the same
-            if (this.lastColumnCount === columnCount &&
-                this.lastSchematic &&
-                this.areEqualSchematics(this.lastSchematic, newSchematic)) {
+            if (this.lastColumnCount === columnCount && this.areEqualSchematics(this.lastSchematic, newSchematic)) {
                 this.saveHeightCache();
                 return;
             }
@@ -209,15 +196,7 @@ export default class MasonryGrid {
             this.lastColumnCount = columnCount;
             this.removeColumns();
             this.generateColumns(columnCount);
-
-            for (let c = 0; c < this.lastSchematic.length; c++) {
-                const column = this.parent.querySelectorAll(".column")[c];
-                for (const itemIndex of this.lastSchematic[c]) {
-                    column.appendChild(this.items[itemIndex]);
-                }
-            }
-
-            // Save actual heights for next visit
+            this.applySchematicToColumns();
             this.saveHeightCache();
 
             // Double RAF ensures we are past the ResizeObserver
@@ -227,10 +206,9 @@ export default class MasonryGrid {
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
                     this.isLayoutInProgress = false;
-                    // If resize events fired during layout, do a
-                    // stabilization pass so content-driven height
-                    // changes are not lost — capped to prevent
-                    // infinite oscillation.
+                    // If resize events fired during layout, do a stabilization
+                    // pass so content-driven height changes are not lost —
+                    // capped to prevent infinite oscillation.
                     if (this.pendingRedraw && this.layoutPassCount < this.MAX_LAYOUT_PASSES) {
                         this.pendingRedraw = false;
                         this.drawGrid();
@@ -240,50 +218,42 @@ export default class MasonryGrid {
                     }
                 });
             });
-        }.bind(this), this.options.redrawInterval ?? 100);
+        }, this.options.redrawInterval ?? 100);
     }
 
-    generateColumns(columnCount) {
+    private generateColumns(columnCount: number) {
         for (let i = 0; i < columnCount; i++) {
             this.parent.insertAdjacentHTML("beforeend", "<div class='column'></div>");
         }
     }
 
-    removeColumns() {
+    private removeColumns() {
         this.items.forEach(item => {
-            if (item.parentElement != this.parent)
-                this.parent.appendChild(item);
+            if (item.parentElement !== this.parent) this.parent.appendChild(item);
         });
-
-        this.parent.querySelectorAll(".column").forEach(element => {
-            element.remove();
-        });
+        this.parent.querySelectorAll(".column").forEach(el => el.remove());
     }
 
-    areEqualSchematics(a, b) {
+    private areEqualSchematics(a: number[][], b: number[][]): boolean {
         return JSON.stringify(a) === JSON.stringify(b);
     }
 
-    generateSchematic(columnCount) {
-        return this.generateSchematicWithHeights(columnCount, null);
-    }
-
-    private generateSchematicWithHeights(columnCount: number, itemHeights: number[] | null) {
-        var result = [];
-        var schematic = [];
+    private generateSchematic(columnCount: number, itemHeights: number[] | null = null): number[][] {
+        const result: { index: number; height: number }[] = [];
+        const schematic: number[][] = [];
 
         for (let i = 0; i < columnCount; i++) {
             result.push({ index: i, height: 0 });
             schematic.push([]);
         }
-        this.items.sort((a, b) => parseInt(b.getAttribute("box-order") || "0") - parseInt(a.getAttribute("box-order") || "0"));
+
+        this.sortItemsByBoxOrder();
 
         for (let i = 0; i < this.items.length; i++) {
-            const item = this.items[i];
             result.sort((a, b) => a.height - b.height);
             const index = result[0].index;
-            // Use provided heights if available, otherwise use clientHeight
-            const height = itemHeights ? itemHeights[i] : item.clientHeight;
+            // Use provided heights if available, otherwise measure live.
+            const height = itemHeights ? itemHeights[i] : this.items[i].clientHeight;
             result[0].height += height;
             schematic[index].push(i);
         }
@@ -305,10 +275,7 @@ export default class MasonryGrid {
 
     private saveHeightCache(): void {
         // Refresh items list to get current items in columns
-        this.items = Array.from(this.parent.querySelectorAll(
-            this.options.parentSelector + ' > ' + this.options.itemsSelector +
-            ', ' + this.options.parentSelector + ' > .column > ' + this.options.itemsSelector
-        ));
+        this.items = Array.from(this.parent.querySelectorAll(this.getAllItemsSelector()));
 
         const heights: Record<string, number> = {};
         this.items.forEach(item => {
