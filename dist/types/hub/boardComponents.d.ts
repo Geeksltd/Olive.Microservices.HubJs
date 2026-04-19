@@ -49,7 +49,15 @@ export default class BoardComponents implements IService {
     protected isValidResult(item: IInfoDto, context: IBoardContext): boolean;
     protected onlyUnique(value: any, index: any, self: any): boolean;
     protected onAllAjaxComplete(context: IBoardContext): void;
-    protected revealBoard(context: IBoardContext): void;
+    protected revealBoard(context: IBoardContext, options?: {
+        skipFade?: boolean;
+    }): void;
+    private performReveal;
+    private stabilityObserver;
+    private stabilityTimer;
+    private stabilityMaxTimer;
+    private whenStable;
+    private cancelStability;
     private resizeHandler;
     private resizeTimer;
     private applyColumnCount;

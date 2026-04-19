@@ -137,7 +137,7 @@ export default class BoardComponents implements IService {
         // were cached but every cache was empty, skip reveal and let Phase 3's
         // AJAX either populate or hit the empty-state branch.
         if (allCached && context.resultCount > 0) {
-            this.revealBoard(context);
+            this.revealBoard(context, { skipFade: true });
         } else {
             // Float the grid out of normal flow so the skeletons own the
             // visible vertical space (no double-stacking with the invisible grid).
@@ -705,7 +705,7 @@ export default class BoardComponents implements IService {
         // path where hideLoading() already ran, but it's cheap and idempotent.
         this.hideLoading(context.resultPanel);
 
-        this.revealBoard(context);
+        this.revealBoard(context, { skipFade: true });
     }
 
     protected OrderBoxes() {
@@ -751,10 +751,10 @@ export default class BoardComponents implements IService {
         this.revealBoard(context);
     }
 
-    // Sort items by box-order desc (matches the server's intended column-major
-    // ordering), hide the skeleton, and clear the absolute-positioning overlay
-    // so .list-items returns to static flow and CSS multi-column lays it out.
-    protected revealBoard(context: IBoardContext) {
+    // Prepare → wait-for-stability → cross-fade reveal.
+    // options.skipFade: caller has already-visible items (cached path, late-arrival
+    // recovery) — skip the stability wait and the fade, just sort + apply columns.
+    protected revealBoard(context: IBoardContext, options?: { skipFade?: boolean }) {
         if (this.destroyed) return;
 
         const holder = context.boardHolder[0];
@@ -767,15 +767,85 @@ export default class BoardComponents implements IService {
             items.forEach(item => holder.appendChild(item));
         }
 
-        this.hideLoading(context.resultPanel);
-        context.boardHolder.css({ opacity: '', position: '', top: '', left: '', right: '' });
-        context.resultPanel.css('position', '');
-
-        // Compute column-count from the container width (floor(W / minCol))
-        // and apply it inline — more predictable than CSS column-width at edge
-        // widths. Debounced window resize keeps it responsive.
+        // Apply final column layout now — either it's already visible (skipFade)
+        // or it's still in the invisible overlay and needs settled columns before
+        // we measure height for the cross-fade.
         this.applyColumnCount(context);
         this.bindResize(context);
+
+        if (options?.skipFade) {
+            this.hideLoading(context.resultPanel);
+            context.boardHolder.css({ opacity: '', position: '', top: '', left: '', right: '' });
+            context.resultPanel.css('position', '');
+            return;
+        }
+
+        // Wait until items stop resizing (widgets load async content — images,
+        // fonts, embedded HTML — after their XHR resolves), then cross-fade.
+        this.whenStable(holder, 3000, () => {
+            if (this.destroyed) return;
+            this.performReveal(context);
+        });
+    }
+
+    private performReveal(context: IBoardContext) {
+        const holder = context.boardHolder[0];
+        const panel = context.resultPanel[0];
+        if (!holder || !panel) return;
+
+        // Lock the container to items' final height so skeleton removal and the
+        // overlay-to-flow swap don't change the outer height. The measurement
+        // reflects items as laid out by applyColumnCount in revealBoard.
+        const finalH = holder.offsetHeight;
+        panel.style.minHeight = finalH + 'px';
+
+        const skel = panel.querySelector('.board-loading') as HTMLElement | null;
+        if (skel) skel.style.opacity = '0';
+        context.boardHolder.css('opacity', '1');
+
+        setTimeout(() => {
+            if (this.destroyed) return;
+            this.hideLoading(context.resultPanel);
+            context.boardHolder.css({ opacity: '', position: '', top: '', left: '', right: '' });
+            context.resultPanel.css('position', '');
+            panel.style.minHeight = '';
+        }, 240);
+    }
+
+    private stabilityObserver: ResizeObserver | null = null;
+    private stabilityTimer: any = null;
+    private stabilityMaxTimer: any = null;
+
+    private whenStable(el: HTMLElement, maxWaitMs: number, cb: () => void) {
+        this.cancelStability();
+        const DEBOUNCE_MS = 150;
+        let lastH = el.offsetHeight;
+
+        const finish = () => {
+            this.cancelStability();
+            cb();
+        };
+
+        this.stabilityMaxTimer = setTimeout(finish, maxWaitMs);
+        this.stabilityTimer = setTimeout(finish, DEBOUNCE_MS);
+
+        if (typeof ResizeObserver !== 'undefined') {
+            this.stabilityObserver = new ResizeObserver(() => {
+                if (this.destroyed) return;
+                const h = el.offsetHeight;
+                if (h === lastH) return;
+                lastH = h;
+                if (this.stabilityTimer) clearTimeout(this.stabilityTimer);
+                this.stabilityTimer = setTimeout(finish, DEBOUNCE_MS);
+            });
+            try { this.stabilityObserver.observe(el); } catch (e) { /* ignore */ }
+        }
+    }
+
+    private cancelStability() {
+        if (this.stabilityTimer) { clearTimeout(this.stabilityTimer); this.stabilityTimer = null; }
+        if (this.stabilityMaxTimer) { clearTimeout(this.stabilityMaxTimer); this.stabilityMaxTimer = null; }
+        if (this.stabilityObserver) { try { this.stabilityObserver.disconnect(); } catch (e) { /* ignore */ } this.stabilityObserver = null; }
     }
 
     private resizeHandler: (() => void) | null = null;
@@ -814,6 +884,7 @@ export default class BoardComponents implements IService {
         if (this.safetyTimer) { clearTimeout(this.safetyTimer); this.safetyTimer = null; }
         if (this.resizeTimer) { clearTimeout(this.resizeTimer); this.resizeTimer = null; }
         if (this.resizeHandler) { window.removeEventListener('resize', this.resizeHandler); this.resizeHandler = null; }
+        this.cancelStability();
 
         if (this.context) {
             this.context.ajaxList?.forEach(a => {
@@ -865,6 +936,7 @@ export default class BoardComponents implements IService {
                 padding: 8px 0;
                 width: 100%;
                 box-sizing: border-box;
+                transition: opacity 220ms ease-in;
             }
             .board-components-result > .list-items > .item {
                 break-inside: avoid;
@@ -879,6 +951,7 @@ export default class BoardComponents implements IService {
                 padding: 8px 0;
                 width: 100%;
                 box-sizing: border-box;
+                transition: opacity 220ms ease-out;
             }
             .board-loading .skel-card {
                 break-inside: avoid;
