@@ -257,7 +257,7 @@ export default class BoardComponents implements IService {
         else if (html.length > 0) colour = html[0].BoxColour
 
         const searchItem = $("<div class='item'>").attr('data-type', boxTitle).attr('box-order', boxOrder);
-        const h3 = $('<h3>').text(boxTitle + (boxTitle.endsWith("s") ? "" : "s")).append(this.createHeaderAction(boxTitle, addableButtons));
+        const h3 = $('<h3>').html(boxTitle + (boxTitle.endsWith("s") ? "" : "s")).append(this.createHeaderAction(boxTitle, addableButtons));
         searchItem.append($("<div class='header'>").attr('style', this.addColour(colour)).append(h3));
 
         for (let i = 0; i < items.length; i++) {
@@ -361,8 +361,11 @@ export default class BoardComponents implements IService {
         $(".board-image").append($('<a>').attr('href', intro.Url).append(this.showIntroImage(intro)));
         $(".board-info").append(
             $('<div class="col-md-9">')
-                .append($('<h2 class="mb-2">').text(intro.Name))
-                // Description may contain controlled HTML — keep .html() to preserve rendering.
+                // Both Name and Description are server-controlled HTML
+                // (Name can contain anchor tags — see showIntroImage's
+                // `intro.Name.contains("href")` branch). Keep .html() so that
+                // markup renders.
+                .append($('<h2 class="mb-2">').html(intro.Name))
                 .append($('<div class="text-gray">').html(intro.Description))
         );
         $('.board-header').show();
@@ -422,7 +425,7 @@ export default class BoardComponents implements IService {
 
             const link = $('<a class="btn btn-primary" data-redirect="ajax" ajax-target="board-body" target="_blank">')
                 .attr('href', items[i].Url)
-                .text(item.Name);
+                .html(item.Name);
             headerLinks.append(link);
             this.handleLinksClick(link);
         }
@@ -455,7 +458,7 @@ export default class BoardComponents implements IService {
         anchor
             .append((item.Icon === null || item.Icon === undefined) ? $("<div class='icon'>") : this.showIcon(item))
             .append($('<div>')
-                .append($('<span class="board-component-name">').text(item.Name))
+                .append($('<span class="board-component-name">').html(item.Name))
                 // Description may contain controlled HTML — keep .html().
                 .append($('<span>').html(item.Description)));
 
