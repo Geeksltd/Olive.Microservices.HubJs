@@ -27,8 +27,14 @@ export default class MasonryGrid {
     private pendingRedraw: boolean = false;
     private layoutPassCount: number = 0;
     private readyFired: boolean = false;
+    private destroyed: boolean = false;
+    private cachedHeightByItem: Map<Element, number> | undefined;
     private readonly MAX_LAYOUT_PASSES = 3;
     private readonly DEFAULT_WIDGET_HEIGHT = 200;
+    // Threshold (px) for triggering a redraw on the cached path when an item's
+    // actual height diverges from its cached height. Larger than typical widget
+    // loader / font-metric jitter, smaller than a single content row (~52 px).
+    private static readonly HEIGHT_DIVERGENCE_THRESHOLD = 24;
     private static readonly LOADING_CLASS = 'masonry-loading';
     private static readonly STYLE_CLASS = 'masonry-grid-fade-style';
 
@@ -75,17 +81,36 @@ export default class MasonryGrid {
 
             if (this.preRenderFromCache()) {
                 this.preRendered = true;
-                // Only watch parent resize so item-content load does not trigger re-layout.
+                // Watch parent for column-count changes, AND items for content-driven
+                // height divergence past a threshold. The threshold prevents redraws
+                // on sub-pixel jitter (widget loader dots, font metrics) while still
+                // catching real growth — e.g. widget HTML replacing the 90 px loader.
                 this.resizeObserver = new ResizeObserver(() => {
+                    if (this.destroyed) return;
                     if (this.getColumnCount() !== this.lastColumnCount) {
+                        this.preRendered = false;
+                        this.drawGrid();
+                        return;
+                    }
+                    // If the AJAX response differed from cache, onSuccess may
+                    // have appended or replaced items that aren't tracked in
+                    // cachedHeightByItem — redraw so new items get packed.
+                    const liveCount = this.parent.querySelectorAll(this.getAllItemsSelector()).length;
+                    if (liveCount !== this.cachedHeightByItem?.size) {
+                        this.preRendered = false;
+                        this.drawGrid();
+                        return;
+                    }
+                    if (this.hasItemHeightDiverged()) {
                         this.preRendered = false;
                         this.drawGrid();
                     }
                 });
                 this.resizeObserver.observe(this.parent);
+                this.items.forEach(item => this.resizeObserver.observe(item));
 
                 // Save heights after content has had time to render.
-                setTimeout(() => this.saveHeightCache(), 3000);
+                setTimeout(() => { if (!this.destroyed) this.saveHeightCache(); }, 3000);
 
                 // Cached path is already visible; fire onReady on next frame
                 // so callers get the ready signal consistently.
@@ -94,6 +119,7 @@ export default class MasonryGrid {
                 // No cache - hide the grid until layout stabilizes, then fade in.
                 this.parent.classList.add(MasonryGrid.LOADING_CLASS);
                 this.resizeObserver = new ResizeObserver(() => {
+                    if (this.destroyed) return;
                     if (this.isLayoutInProgress) {
                         this.pendingRedraw = true;
                         return;
@@ -107,8 +133,39 @@ export default class MasonryGrid {
             }
         } catch (error) {
             console.log(error);
-            setTimeout(() => this.initialize(), 100);
+            if (!this.destroyed) setTimeout(() => { if (!this.destroyed) this.initialize(); }, 100);
         }
+    }
+
+    private hasItemHeightDiverged(): boolean {
+        if (!this.cachedHeightByItem) return false;
+        for (const [item, cached] of this.cachedHeightByItem) {
+            if (!item.isConnected) continue;
+            const actual = (item as HTMLElement).clientHeight;
+            if (Math.abs(actual - cached) > MasonryGrid.HEIGHT_DIVERGENCE_THRESHOLD) return true;
+        }
+        return false;
+    }
+
+    // Force a layout pass — used when late AJAX appends items after the initial
+    // render has already completed. Safe to call on either cached or uncached path.
+    redraw() {
+        if (this.destroyed) return;
+        this.preRendered = false;
+        this.layoutPassCount = 0;
+        this.drawGrid();
+    }
+
+    // Tear down observers, timers and DOM references. After destroy the instance
+    // is inert — resize / layout callbacks no-op. Callers should drop the reference.
+    destroy() {
+        this.destroyed = true;
+        if (this.resizeId) { clearTimeout(this.resizeId); this.resizeId = undefined; }
+        try { this.resizeObserver?.disconnect(); } catch (e) { /* ignore */ }
+        this.resizeObserver = undefined;
+        this.cachedHeightByItem = undefined;
+        this.parent = null;
+        this.items = undefined;
     }
 
     private getItemId(item: Element): string {
@@ -148,12 +205,15 @@ export default class MasonryGrid {
 
         this.sortItemsByBoxOrder();
 
-        // Build height map for schematic generation
+        // Build height map for schematic generation and remember the cached
+        // height per item so the ResizeObserver can compare against it later.
+        this.cachedHeightByItem = new Map();
         const itemHeights = this.items.map(item => {
             const id = this.getItemId(item);
             const cached = id ? heightCache.heights[id] : undefined;
             const height = cached > 0 ? cached : this.DEFAULT_WIDGET_HEIGHT;
             (item as HTMLElement).style.minHeight = `${height}px`;
+            this.cachedHeightByItem.set(item, height);
             return height;
         });
 
@@ -173,6 +233,7 @@ export default class MasonryGrid {
     }
 
     drawGrid() {
+        if (this.destroyed) return;
         if (this.resizeId) clearTimeout(this.resizeId);
         if (!this.parent || !this.items?.length) return;
 
@@ -181,18 +242,29 @@ export default class MasonryGrid {
 
         this.resizeId = setTimeout(() => {
             this.resizeId = undefined;
+            if (this.destroyed || !this.parent) return;
 
             const columnCount = this.getColumnCount();
 
-            // Refresh items list
+            // Refresh items list (covers late-appended cards) and observe any
+            // newly-picked-up items so height changes still trigger re-layout.
             this.items = Array.from(this.parent.querySelectorAll(this.getAllItemsSelector()));
-            if (!this.items.length) return;
+            if (!this.items.length) {
+                // Nothing to lay out — fire ready so the skeleton still hides.
+                this.fireReady();
+                return;
+            }
+            this.items.forEach(item => { try { this.resizeObserver?.observe(item); } catch (e) { /* ignore */ } });
 
             const newSchematic = this.generateSchematic(columnCount);
 
-            // Skip DOM manipulation if layout would be the same
+            // Skip DOM manipulation if layout would be the same. Fire ready
+            // here too: this path runs on stabilization passes where the first
+            // pass already placed items, and if we early-return without firing,
+            // the onReady callback (which hides the skeleton) never runs.
             if (this.lastColumnCount === columnCount && this.areEqualSchematics(this.lastSchematic, newSchematic)) {
                 this.saveHeightCache();
+                this.fireReady();
                 return;
             }
 
@@ -282,13 +354,22 @@ export default class MasonryGrid {
     }
 
     private saveHeightCache(): void {
+        if (this.destroyed || !this.parent) return;
         // Refresh items list to get current items in columns
         this.items = Array.from(this.parent.querySelectorAll(this.getAllItemsSelector()));
+
+        // Rebuild the in-memory height map so the divergence check compares
+        // against post-layout heights — otherwise we'd keep firing redraws
+        // against the original (pre-widget-load) cached heights.
+        if (!this.cachedHeightByItem) this.cachedHeightByItem = new Map();
+        else this.cachedHeightByItem.clear();
 
         const heights: Record<string, number> = {};
         this.items.forEach(item => {
             const id = this.getItemId(item);
-            if (id) heights[id] = (item as HTMLElement).clientHeight;
+            const h = (item as HTMLElement).clientHeight;
+            if (id) heights[id] = h;
+            this.cachedHeightByItem.set(item, h);
         });
 
         try {

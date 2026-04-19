@@ -14,6 +14,12 @@ export default class BoardComponents implements IService {
     private myStorage;
     private boardPath;
     masonryGrid: MasonryGrid;
+    private allCompleted;
+    private destroyed;
+    private context;
+    private safetyTimer;
+    private static readonly EMPTY_STATE_CLASS;
+    private static readonly DOC_CLICK_NAMESPACE;
     constructor(input: JQuery, modalHelper: ModalHelper, ajaxRedirect: AjaxRedirect, boardPath: string);
     protected getResultPanel(): JQuery;
     protected getAddableItemsPanel(): JQuery;
@@ -45,11 +51,13 @@ export default class BoardComponents implements IService {
     private getItem;
     private setItem;
     protected onSuccess(sender: IAjaxObject, context: IBoardContext, result: IBoardResultDto, loadFromCaceh: boolean): void;
+    private recoverFromLateArrival;
     protected OrderBoxes(): void;
     protected isValidResult(item: IInfoDto, context: IBoardContext): boolean;
     protected onlyUnique(value: any, index: any, self: any): boolean;
     protected onAllAjaxComplete(context: IBoardContext): void;
     protected initMasonryGrid(): void;
+    destroy(): void;
     private static readonly SKELETON_STYLE_CLASS;
     static ensureSkeletonStyle(target: Element): void;
     private widgetLoadingHtml;
@@ -68,6 +76,8 @@ export interface IBoardContext {
     beginSearchStarted: boolean;
     boardItemId: string;
     boardType: string;
+    widgetPromises: Promise<void>[];
+    widgetXhrs: JQueryXHR[];
 }
 export interface IAjaxObject {
     url: string;

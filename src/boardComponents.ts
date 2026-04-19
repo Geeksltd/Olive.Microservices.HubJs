@@ -24,6 +24,16 @@ export default class BoardComponents implements IService {
     private myStorage: any
     private boardPath: string;
     masonryGrid: MasonryGrid;
+    // Completion + teardown state. `allCompleted` gates late-AJAX recovery:
+    // once the 15s safety cap (or the full AJAX+widget settle) has fired,
+    // any subsequent onSuccess needs to re-enter the render pipeline itself
+    // because onAllAjaxComplete has already run.
+    private allCompleted: boolean = false;
+    private destroyed: boolean = false;
+    private context: IBoardContext;
+    private safetyTimer: any = null;
+    private static readonly EMPTY_STATE_CLASS = 'board-empty-state';
+    private static readonly DOC_CLICK_NAMESPACE = 'click.boardComponents';
     constructor(private input: JQuery, modalHelper: ModalHelper, ajaxRedirect: AjaxRedirect, boardPath: string) {
         if (input == null || input.length == 0) return;
         this.boardPath = boardPath;
@@ -31,6 +41,11 @@ export default class BoardComponents implements IService {
         this.filterInput = this.input.parent().find(".board-components-filter");
         this.ajaxRedirect = ajaxRedirect;
         this.modalHelper = modalHelper;
+        // If a prior BoardComponents instance was stashed on the input, tear it
+        // down first so its observers / XHRs / timers don't leak into this mount.
+        const prior = (input as any).data && input.data('boardComponents') as BoardComponents;
+        if (prior && prior !== this) { try { prior.destroy(); } catch (e) { /* ignore */ } }
+        if ((input as any).data) input.data('boardComponents', this);
         this.createBoardComponent(urls);
     }
 
@@ -115,7 +130,10 @@ export default class BoardComponents implements IService {
             beginSearchStarted: true,
             boardItemId: this.boardItemId,
             boardType: this.boardType,
+            widgetPromises: [],
+            widgetXhrs: [],
         };
+        this.context = context;
 
         // In test mode, simulate a slow board with fake items for layout testing.
         const isTestMode = BoardComponents.isTestMode;
@@ -134,8 +152,12 @@ export default class BoardComponents implements IService {
             }
         }
 
-        // Phase 2: If all cached, create MasonryGrid immediately (instant layout)
-        if (allCached) {
+        // Phase 2: If all cached AND cache produced items, create MasonryGrid
+        // immediately (instant layout). If all URLs were cached but every cache
+        // was empty, skip the grid — boardHolder was never appended to the DOM,
+        // so MasonryGrid would throw "invalid board dom structure" and retry
+        // forever. The fresh AJAX calls will still fire in Phase 3.
+        if (allCached && context.resultCount > 0) {
             this.initMasonryGrid();
         } else {
             // Float the grid out of normal flow so the skeletons own the
@@ -158,13 +180,19 @@ export default class BoardComponents implements IService {
                     data: { id: context.boardItemId, type: context.boardType },
                     success: (result) => {
                         setTimeout(() => {
+                            if (this.destroyed) { resolve(); return; }
                             this.onSuccess(ajaxObject, context, result, false);
                             resolve();
                         }, delayMs);
                     },
                     error: (jqXhr) => {
                         setTimeout(() => {
-                            this.onError(ajaxObject, context.boardHolder, jqXhr);
+                            if (this.destroyed) { resolve(); return; }
+                            // Suppress the visible error card for intentional aborts
+                            // (e.g. navigation away mid-load).
+                            if (jqXhr && jqXhr.statusText !== 'abort') {
+                                this.onError(ajaxObject, context.boardHolder, jqXhr);
+                            }
                             resolve();
                         }, delayMs);
                     }
@@ -191,14 +219,29 @@ export default class BoardComponents implements IService {
         // hideLoading() is deferred to MasonryGrid's onReady so the
         // loader stays up until the grid is laid out, not just until
         // AJAX resolves — prevents first-render card shuffling.
-        Promise.all(ajaxPromises).then(() => {
+        // Also wait for widget fetches (fired inside onSuccess) so the
+        // skeleton stays up on first load until every request has settled.
+        // Whichever resolves first — the AJAX+widget gate or the 15s safety
+        // cap — triggers onAllAjaxComplete exactly once. Late AJAX responses
+        // after that point are handled by recoverFromLateArrival() in onSuccess.
+        const completeOnce = () => {
+            if (this.allCompleted || this.destroyed) return;
+            this.allCompleted = true;
             this.onAllAjaxComplete(context);
+        };
+
+        Promise.all(ajaxPromises).then(() => {
+            Promise.all(context.widgetPromises).then(completeOnce);
         });
 
-        $(document).click(function (e) {
-            if (!$(e.target).closest("a").is($(".manage-button,.add-button")))
-                $(".board-addable-items-container,.board-manage-items-container").fadeOut();
-        });
+        this.safetyTimer = setTimeout(completeOnce, 15000);
+
+        // Namespaced so re-mounts replace rather than accumulate handlers.
+        $(document).off(BoardComponents.DOC_CLICK_NAMESPACE)
+            .on(BoardComponents.DOC_CLICK_NAMESPACE, function (e) {
+                if (!$(e.target).closest("a").is($(".manage-button,.add-button")))
+                    $(".board-addable-items-container,.board-manage-items-container").fadeOut();
+            });
 
         this.relocateBoardComponentsHeaderActions();
         this.removeBoardGap();
@@ -247,6 +290,7 @@ export default class BoardComponents implements IService {
     }
     private handelLinksClick(link: any) {
         var ajaxredirect = this.ajaxRedirect;
+        var self = this;
         $(link).click(function (e) {
             e.preventDefault()
             $(".board-links .btn").removeClass("active")
@@ -266,6 +310,10 @@ export default class BoardComponents implements IService {
                 var ajaxhref = link.attr("href");
             }
             if (urlToLoad) {
+                // Tear down before the result panel is removed: cancels pending
+                // XHRs, disconnects observers and clears the 15s safety timer
+                // so nothing fires against the dead DOM.
+                try { self.destroy(); } catch (err) { /* ignore */ }
                 $(".board-components-result, [data-module=BoardView]").fadeOut('false', function () { $(this).remove() })
                 if (!serviceName)
                     serviceName = $(this).attr("href").split('?')[0].split('/').pop()
@@ -423,22 +471,36 @@ export default class BoardComponents implements IService {
     }
     protected createWidgets(item: IWidgetDto, context: IBoardContext) {
         const callback = htmlContent => {
+            if (this.destroyed) return;
             $("div[data-url='" + item.Url + "']").html(htmlContent);
         }
-        $.ajax({
-            url: item.Url,
-            type: 'GET',
-            async: true,
-            xhrFields: { withCredentials: true },
-            success: (response) => {
-                callback(response);
-            },
-            error: (response, x) => {
-                console.log(response);
-                console.log(x);
-                callback("<br/><br/><br/><center>Failed to load <a target='_blank' href='" + this.input.attr("src") + "'>widget</a></center>");
-            }
+        // Track each widget fetch so the skeleton can wait for it. Always
+        // resolves (never rejects) — skeleton should hide on any settled state.
+        let xhr: JQueryXHR;
+        const widgetPromise = new Promise<void>((resolve) => {
+            xhr = $.ajax({
+                url: item.Url,
+                type: 'GET',
+                async: true,
+                xhrFields: { withCredentials: true },
+                success: (response) => {
+                    callback(response);
+                    resolve();
+                },
+                error: (response, x) => {
+                    if (this.destroyed || (response && response.statusText === 'abort')) {
+                        resolve();
+                        return;
+                    }
+                    console.log(response);
+                    console.log(x);
+                    callback("<br/><br/><br/><center>Failed to load <a target='_blank' href='" + this.input.attr("src") + "'>widget</a></center>");
+                    resolve();
+                }
+            });
         });
+        context.widgetXhrs.push(xhr);
+        context.widgetPromises.push(widgetPromise);
     }
     protected createAddableItem(item: IMenuDto, context: IBoardContext) {
         var attr = "";
@@ -599,6 +661,7 @@ export default class BoardComponents implements IService {
         this.myStorage.setItem(projectId + "_" + key, JSON.stringify(value))
     }
     protected onSuccess(sender: IAjaxObject, context: IBoardContext, result: IBoardResultDto, loadFromCaceh: boolean) {
+        if (this.destroyed) return;
         sender.result = result;
         var cache = this.getItem(sender.url)
         if (!loadFromCaceh && JSON.stringify(cache) === JSON.stringify(result)) return
@@ -665,7 +728,7 @@ export default class BoardComponents implements IService {
             }
 
             if (resultfiltered.length > 0 || (result.Widgets && result.Widgets.length > 0) || (result.Htmls && result.Htmls.length > 0)) {
-                console.log("resultfiltered has item");
+                // console.log("resultfiltered has item");
                 context.resultPanel.append(context.boardHolder);
             }
             if (result !== null && result !== undefined && result.Menus !== null && result.Menus !== undefined && typeof (result.Menus) === typeof ([]) && result.Menus.length > 0) {
@@ -685,10 +748,45 @@ export default class BoardComponents implements IService {
             if (result !== null && result !== undefined && result.BoxOrder !== null && result.BoxOrder !== undefined) {
                 this.OrderBoxes();
             }
+
+            // Fix A: late AJAX recovery. If the 15s safety cap already fired
+            // (or all earlier promises settled), onAllAjaxComplete has already
+            // run — which means it either appended "Nothing found" and skipped
+            // masonry, or the grid was built without these new items.
+            if (this.allCompleted && context.resultCount > 0) {
+                this.recoverFromLateArrival(context);
+            }
         }
         else {
             sender.state = AjaxState.failed;
             console.error("ajax success but failed to decode the response -> wellform expcted response is like this: [{Title:'',Description:'',Url:'',Url:''}] ");
+        }
+    }
+
+    private recoverFromLateArrival(context: IBoardContext) {
+        // Remove the "Nothing found" placeholder if it was shown.
+        context.resultPanel.find('.' + BoardComponents.EMPTY_STATE_CLASS).remove();
+
+        // Clear the absolute positioning that was applied while the skeleton
+        // was in charge of the visible vertical space. Once real cards are
+        // rendering they need to own that space back.
+        context.boardHolder.css({
+            opacity: '',
+            position: '',
+            top: '',
+            left: '',
+            right: ''
+        });
+        context.resultPanel.css('position', '');
+
+        // Drop any lingering skeleton — this can only happen on the empty-then-late
+        // path where hideLoading() already ran, but it's cheap and idempotent.
+        this.hideLoading(context.resultPanel);
+
+        if (this.masonryGrid) {
+            this.masonryGrid.redraw();
+        } else {
+            this.initMasonryGrid();
         }
     }
 
@@ -706,7 +804,7 @@ export default class BoardComponents implements IService {
         // Called exactly once when ALL parallel AJAX requests have completed
 
         if (context.resultCount === 0) {
-            const ulNothing = $("<div class=\"item\">");
+            const ulNothing = $("<div class=\"item " + BoardComponents.EMPTY_STATE_CLASS + "\">");
             ulNothing.append("<a>").append("<span>").html("Nothing found");
             context.resultPanel.append(ulNothing);
         }
@@ -721,8 +819,13 @@ export default class BoardComponents implements IService {
 
         // Empty result: no grid will be created, hide the loader directly
         // so it does not remain stuck waiting for an onReady that never fires.
+        // Also clear the absolute positioning on the (empty) boardHolder so if a
+        // late AJAX response arrives, it can render in normal flow immediately
+        // via recoverFromLateArrival().
         if (context.resultCount === 0) {
             this.hideLoading($('.board-components-result'));
+            context.boardHolder.css({ opacity: '', position: '', top: '', left: '', right: '' });
+            context.resultPanel.css('position', '');
             return;
         }
 
@@ -732,6 +835,7 @@ export default class BoardComponents implements IService {
 
     protected initMasonryGrid() {
         if (this.masonryGrid) return; // Already initialized
+        if (this.destroyed) return;
 
         const dataAttr = $('.board-components-result').attr("data-min-column-width");
         const minColumnWidth = dataAttr ? parseInt(dataAttr) : 300;
@@ -741,6 +845,7 @@ export default class BoardComponents implements IService {
             itemsSelector: ".item",
             minColumnWidth: minColumnWidth,
             onReady: () => {
+                if (this.destroyed) return;
                 this.hideLoading($('.board-components-result'));
                 // Reveal the grid and restore normal flow; the .list-items
                 // transition rule injected by MasonryGrid fades it in smoothly.
@@ -753,6 +858,40 @@ export default class BoardComponents implements IService {
                 });
             }
         });
+    }
+
+    // Teardown — safe to call multiple times. Cancels in-flight XHRs,
+    // disconnects the masonry observer, clears the safety timer, and unbinds
+    // the namespaced document click handler. Called from handelLinksClick
+    // before the board DOM fades out, and from the constructor when a prior
+    // instance is replaced on the same input element.
+    destroy() {
+        if (this.destroyed) return;
+        this.destroyed = true;
+
+        if (this.safetyTimer) { clearTimeout(this.safetyTimer); this.safetyTimer = null; }
+
+        if (this.context) {
+            this.context.ajaxList?.forEach(a => {
+                try { a.ajx?.abort(); } catch (e) { /* ignore */ }
+            });
+            this.context.widgetXhrs?.forEach(x => {
+                try { x?.abort(); } catch (e) { /* ignore */ }
+            });
+        }
+
+        try { this.masonryGrid?.destroy(); } catch (e) { /* ignore */ }
+        this.masonryGrid = undefined;
+
+        // Intentionally do NOT $(document).off the click namespace here — if a
+        // second board is mounted it will replace the handler via .off().on(),
+        // and a stale handler with no matching DOM is a no-op. Unbinding here
+        // would break the click-dismiss on any co-existing board instance.
+
+        if (this.input && (this.input as any).data) {
+            const stored = this.input.data('boardComponents');
+            if (stored === this) this.input.removeData('boardComponents');
+        }
     }
 
     private static readonly SKELETON_STYLE_CLASS = 'board-loading-skeleton-style';
@@ -772,24 +911,28 @@ export default class BoardComponents implements IService {
         // true masonry behavior so heights balance across columns.
         style.textContent = `
             .board-loading {
-                column-gap: 16px;
+                display: flex;
+                gap: 16px;
                 padding: 8px 0;
+                align-items: flex-start;
+            }
+            .board-loading .skel-column {
+                flex: 1 1 0;
+                min-width: 0;
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
             }
             .board-loading .skel-card {
                 background: #fff;
-                border-radius: 6px;
+                border-radius: 10px;
                 overflow: hidden;
                 box-shadow: 0 1px 3px rgba(0,0,0,0.06);
                 border: 1px solid #eee;
-                margin: 0 0 16px 0;
-                break-inside: avoid;
-                -webkit-column-break-inside: avoid;
-                page-break-inside: avoid;
-                display: inline-block;
                 width: 100%;
             }
             .board-loading .skel-card-header {
-                height: 38px;
+                height: 44px;
                 background: linear-gradient(90deg, #d8dde2 0%, #e9edf0 50%, #d8dde2 100%);
                 background-size: 200% 100%;
                 animation: board-skel-shimmer 1.4s ease-in-out infinite;
@@ -798,19 +941,26 @@ export default class BoardComponents implements IService {
                 display: flex;
                 align-items: center;
                 gap: 12px;
-                padding: 12px 14px;
+                padding: 11px 14px;
                 border-top: 1px solid #f3f3f3;
+                height: 52px;
+                box-sizing: border-box;
             }
             .board-loading .skel-icon {
-                width: 28px;
-                height: 28px;
-                border-radius: 50%;
+                width: 18px;
+                height: 18px;
+                border-radius: 3px;
                 flex-shrink: 0;
+                order: 2;
                 background: linear-gradient(90deg, #ececec 0%, #f6f7f8 50%, #ececec 100%);
                 background-size: 200% 100%;
                 animation: board-skel-shimmer 1.4s ease-in-out infinite;
             }
-            .board-loading .skel-row-text { flex: 1; }
+            .board-loading .skel-row-text {
+                flex: 1;
+                min-width: 0;
+                order: 1;
+            }
             .board-loading .skel-bar {
                 display: block;
                 height: 10px;
@@ -819,8 +969,8 @@ export default class BoardComponents implements IService {
                 background-size: 200% 100%;
                 animation: board-skel-shimmer 1.4s ease-in-out infinite;
             }
-            .board-loading .skel-name { width: 60%; margin-bottom: 6px; }
-            .board-loading .skel-desc { width: 88%; }
+            .board-loading .skel-name { width: 55%; margin-bottom: 7px; }
+            .board-loading .skel-desc { width: 78%; height: 8px; opacity: 0.7; }
             @keyframes board-skel-shimmer {
                 0% { background-position: 100% 0; }
                 100% { background-position: -100% 0; }
@@ -867,26 +1017,33 @@ export default class BoardComponents implements IService {
         // grid we're about to render.
         const containerWidth = container[0].clientWidth || window.innerWidth;
         const colCount = Math.max(Math.floor(containerWidth / minCol), 1);
-        const cardCount = colCount * 3; // ~3 cards per column for a full-looking grid
+        const cardsPerCol = 3;
+        // Row counts per card position — fixed pattern gives a masonry-ish
+        // silhouette without wild variance (real cards typically have 2–4 rows).
+        const rowPattern = [3, 2, 4, 3, 2, 4, 3, 4, 2];
 
-        const wrap = $('<div class="board-loading">').css('column-count', colCount);
+        const wrap = $('<div class="board-loading">');
 
-        for (let i = 0; i < cardCount; i++) {
-            const rowCount = 2 + ((i * 3) % 5); // 2..6 rows for varied card heights
-            const card = $('<div class="skel-card">');
-            card.append('<div class="skel-card-header"></div>');
-            for (let j = 0; j < rowCount; j++) {
-                card.append(
-                    '<div class="skel-row">' +
-                        '<div class="skel-icon"></div>' +
+        for (let c = 0; c < colCount; c++) {
+            const column = $('<div class="skel-column">');
+            for (let i = 0; i < cardsPerCol; i++) {
+                const rowCount = rowPattern[(c * cardsPerCol + i) % rowPattern.length];
+                const card = $('<div class="skel-card">');
+                card.append('<div class="skel-card-header"></div>');
+                for (let j = 0; j < rowCount; j++) {
+                    card.append(
+                        '<div class="skel-row">' +
                         '<div class="skel-row-text">' +
-                            '<div class="skel-bar skel-name"></div>' +
-                            '<div class="skel-bar skel-desc"></div>' +
+                        '<div class="skel-bar skel-name"></div>' +
+                        '<div class="skel-bar skel-desc"></div>' +
                         '</div>' +
-                    '</div>'
-                );
+                        '<div class="skel-icon"></div>' +
+                        '</div>'
+                    );
+                }
+                column.append(card);
             }
-            wrap.append(card);
+            wrap.append(column);
         }
         container.append(wrap);
     }
@@ -916,6 +1073,8 @@ export interface IBoardContext {
     beginSearchStarted: boolean;
     boardItemId: string;
     boardType: string;
+    widgetPromises: Promise<void>[];
+    widgetXhrs: JQueryXHR[];
 }
 export interface IAjaxObject {
     url: string;
@@ -1004,3 +1163,10 @@ export interface IBoardResultDto {
     Intros?: IIntroDto[];
 }
 //var boardComponents = new BoardComponents($(".board-components"));
+
+// Expose on window so AMD-boxed internals can be toggled from the browser
+// console (e.g. `BoardComponents.isTestMode = true`). The RequireJS closure
+// otherwise hides the class from the global scope.
+if (typeof window !== 'undefined') {
+    (window as any).BoardComponents = BoardComponents;
+}
