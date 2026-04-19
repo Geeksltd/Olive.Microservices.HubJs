@@ -132,18 +132,15 @@ export default class BoardComponents implements IService {
             }
         }
 
-        // Phase 2: If all cached AND cache produced items, reveal immediately
-        // (instant layout — CSS multi-column handles distribution). If all URLs
-        // were cached but every cache was empty, skip reveal and let Phase 3's
-        // AJAX either populate or hit the empty-state branch.
-        if (allCached && context.resultCount > 0) {
-            this.revealBoard(context, { skipFade: true });
-        } else {
-            // Float the grid out of normal flow so the skeletons own the
-            // visible vertical space (no double-stacking with the invisible grid).
-            boardHolder.css({ position: 'absolute', top: 0, left: 0, right: 0 });
-            this.showLoading(context.resultPanel);
-        }
+        // Phase 2: Always show the skeleton as the visible layer while items
+        // render invisibly in the overlay. Even on a warm cache the widgets
+        // inside cached items still fetch async — the skeleton has to stay up
+        // until every request (AJAX + widgets) completes, otherwise the reveal
+        // lands on dot-spinner placeholders and widget HTML arrives after with
+        // visible layout shifts. revealBoard is triggered only from Phase 4's
+        // completeOnce gate, which already awaits AJAX + widget promises.
+        boardHolder.css({ position: 'absolute', top: 0, left: 0, right: 0 });
+        this.showLoading(context.resultPanel);
 
         // Phase 3: Fire ALL AJAX calls in parallel
         const ajaxPromises = context.ajaxList.map(ajaxObject => {
@@ -802,11 +799,15 @@ export default class BoardComponents implements IService {
         const panel = context.resultPanel[0];
         if (!holder || !panel) return;
 
-        // Lock the container to items' final height so skeleton removal and the
-        // overlay-to-flow swap don't change the outer height. The measurement
-        // reflects items as laid out by applyColumnCount in revealBoard.
+        // Lock panel.height at skeleton height, then transition to items height.
+        // The void offsetHeight read forces a layout flush so the browser sees
+        // the two separate height values and animates between them — otherwise
+        // both assignments collapse into one frame with no transition.
+        const startH = panel.offsetHeight;
         const finalH = holder.offsetHeight;
-        panel.style.minHeight = finalH + 'px';
+        panel.style.height = startH + 'px';
+        void panel.offsetHeight;
+        panel.style.height = finalH + 'px';
 
         const skel = panel.querySelector('.board-loading') as HTMLElement | null;
         if (skel) skel.style.opacity = '0';
@@ -817,7 +818,7 @@ export default class BoardComponents implements IService {
             this.hideLoading(context.resultPanel);
             context.boardHolder.css({ opacity: '', position: '', top: '', left: '', right: '' });
             context.resultPanel.css('position', '');
-            panel.style.minHeight = '';
+            panel.style.height = '';
         }, 240);
     }
 
@@ -937,6 +938,7 @@ export default class BoardComponents implements IService {
             .board-components-result {
                 width: 100%;
                 box-sizing: border-box;
+                transition: height 220ms ease;
             }
             .board-components-result > .list-items {
                 column-width: 300px;
