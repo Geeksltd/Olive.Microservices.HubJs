@@ -28,8 +28,10 @@ export default class MasonryGrid {
     private layoutPassCount: number = 0;
     private readyFired: boolean = false;
     private destroyed: boolean = false;
+    private initRetries: number = 0;
     private cachedHeightByItem: Map<Element, number> | undefined;
     private readonly MAX_LAYOUT_PASSES = 3;
+    private readonly MAX_INIT_RETRIES = 10;
     private readonly DEFAULT_WIDGET_HEIGHT = 200;
     // Threshold (px) for triggering a redraw on the cached path when an item's
     // actual height diverges from its cached height. Larger than typical widget
@@ -133,7 +135,13 @@ export default class MasonryGrid {
             }
         } catch (error) {
             console.log(error);
-            if (!this.destroyed) setTimeout(() => { if (!this.destroyed) this.initialize(); }, 100);
+            if (this.destroyed) return;
+            this.initRetries++;
+            if (this.initRetries > this.MAX_INIT_RETRIES) {
+                console.error(`MasonryGrid: giving up after ${this.MAX_INIT_RETRIES} init retries — parent DOM never became valid.`);
+                return;
+            }
+            setTimeout(() => { if (!this.destroyed) this.initialize(); }, 100);
         }
     }
 

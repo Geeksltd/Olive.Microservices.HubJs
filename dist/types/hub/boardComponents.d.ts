@@ -26,7 +26,7 @@ export default class BoardComponents implements IService {
     protected createBoardComponent(urls: string[]): Promise<void>;
     protected createBoardItems(sender: IAjaxObject, context: IBoardContext, items: IInfoDto[], addableButtons: IButtonDto[], widgets: IWidgetDto[], html: IHtmlDto[], boxTitle: string, boxOrder: number): JQuery;
     private getItemBox;
-    private handelLinksClick;
+    private handleLinksClick;
     protected createHeaderAction(boxTitle: String, addableButtons: IButtonDto[]): JQuery;
     protected createAddableItems(sender: IAjaxObject, context: IBoardContext, items: IMenuDto[]): JQuery;
     protected createBoardIntro(sender: IAjaxObject, context: IBoardContext, intro: IIntroDto): JQuery;
@@ -36,12 +36,11 @@ export default class BoardComponents implements IService {
     private sortBoardLinks;
     protected addColour(color: string): string;
     protected createInfo(item: IInfoDto, context: IBoardContext): JQuery;
-    protected createWidgets(item: IWidgetDto, context: IBoardContext): void;
+    protected createWidgets(item: IWidgetDto, placeholder: JQuery, context: IBoardContext): void;
     protected createAddableItem(item: IMenuDto, context: IBoardContext): JQuery;
     protected createManageItem(item: IMenuDto, context: IBoardContext): JQuery;
     protected bindAddableItemsButtonClick(context: IBoardContext): void;
     protected showIcon(item: any): JQuery;
-    private generateRandomColor;
     private generateStaticColorFromName;
     private getTextColor;
     protected showIntroImage(intro: any): JQuery;
@@ -50,7 +49,7 @@ export default class BoardComponents implements IService {
     private getProjectId;
     private getItem;
     private setItem;
-    protected onSuccess(sender: IAjaxObject, context: IBoardContext, result: IBoardResultDto, loadFromCaceh: boolean): void;
+    protected onSuccess(sender: IAjaxObject, context: IBoardContext, result: IBoardResultDto, loadFromCache: boolean): void;
     private recoverFromLateArrival;
     protected OrderBoxes(): void;
     protected isValidResult(item: IInfoDto, context: IBoardContext): boolean;

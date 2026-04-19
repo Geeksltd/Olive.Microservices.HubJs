@@ -25,8 +25,10 @@ export default class MasonryGrid {
     private layoutPassCount;
     private readyFired;
     private destroyed;
+    private initRetries;
     private cachedHeightByItem;
     private readonly MAX_LAYOUT_PASSES;
+    private readonly MAX_INIT_RETRIES;
     private readonly DEFAULT_WIDGET_HEIGHT;
     private static readonly HEIGHT_DIVERGENCE_THRESHOLD;
     private static readonly LOADING_CLASS;
