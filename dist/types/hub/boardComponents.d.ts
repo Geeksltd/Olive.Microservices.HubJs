@@ -51,7 +51,7 @@ export default class BoardComponents implements IService {
     protected onAllAjaxComplete(context: IBoardContext): void;
     protected revealBoard(context: IBoardContext, options?: {
         skipFade?: boolean;
-    }): void;
+    }): Promise<void>;
     private performReveal;
     private stabilityObserver;
     private stabilityTimer;

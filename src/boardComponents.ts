@@ -754,7 +754,7 @@ export default class BoardComponents implements IService {
     // Prepare → wait-for-stability → cross-fade reveal.
     // options.skipFade: caller has already-visible items (cached path, late-arrival
     // recovery) — skip the stability wait and the fade, just sort + apply columns.
-    protected revealBoard(context: IBoardContext, options?: { skipFade?: boolean }) {
+    protected async revealBoard(context: IBoardContext, options?: { skipFade?: boolean }) {
         if (this.destroyed) return;
 
         const holder = context.boardHolder[0];
@@ -780,8 +780,17 @@ export default class BoardComponents implements IService {
             return;
         }
 
-        // Wait until items stop resizing (widgets load async content — images,
-        // fonts, embedded HTML — after their XHR resolves), then cross-fade.
+        // Wait for in-flight widget XHRs to land their HTML — revealBoard can be
+        // invoked via the 15 s safety cap while widgets are still pending, and
+        // whenStable alone can't distinguish "dots sitting stable" from "real
+        // content settled." Widget promises always resolve, never reject.
+        if (context.widgetPromises?.length) {
+            try { await Promise.all(context.widgetPromises); } catch (e) { /* ignore */ }
+            if (this.destroyed) return;
+        }
+
+        // Then debounce on heights to catch post-XHR layout churn (images /
+        // fonts / embedded async JS inside widget HTML), cross-fade when settled.
         this.whenStable(holder, 3000, () => {
             if (this.destroyed) return;
             this.performReveal(context);
