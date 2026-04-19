@@ -1,19 +1,14 @@
 import { ModalHelper } from 'olive/components/modal';
 import AjaxRedirect from 'olive/mvc/ajaxRedirect';
-import MasonryGrid from './masonryGrid';
 export default class BoardComponents implements IService {
     private input;
-    static isTestMode: boolean;
-    private urlList;
     private boardItemId;
     private boardType;
     private filterInput;
     private modalHelper;
     private ajaxRedirect;
-    private timer;
     private myStorage;
     private boardPath;
-    masonryGrid: MasonryGrid;
     private allCompleted;
     private destroyed;
     private context;
@@ -44,7 +39,6 @@ export default class BoardComponents implements IService {
     private generateStaticColorFromName;
     private getTextColor;
     protected showIntroImage(intro: any): JQuery;
-    private buildFakeBoardResult;
     private getlocalStorage;
     private getProjectId;
     private getItem;
@@ -55,7 +49,11 @@ export default class BoardComponents implements IService {
     protected isValidResult(item: IInfoDto, context: IBoardContext): boolean;
     protected onlyUnique(value: any, index: any, self: any): boolean;
     protected onAllAjaxComplete(context: IBoardContext): void;
-    protected initMasonryGrid(): void;
+    protected revealBoard(context: IBoardContext): void;
+    private resizeHandler;
+    private resizeTimer;
+    private applyColumnCount;
+    private bindResize;
     destroy(): void;
     private static readonly SKELETON_STYLE_CLASS;
     static ensureSkeletonStyle(target: Element): void;
