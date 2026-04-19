@@ -66,7 +66,12 @@ export default class BoardComponents implements IService {
     private static readonly SKELETON_STYLE_CLASS;
     static ensureSkeletonStyle(target: Element): void;
     private widgetLoadingHtml;
-    protected showLoading(container: JQuery): void;
+    protected showLoading(container: JQuery, specs?: ISkeletonCardSpec[]): void;
+    private buildSkelCard;
+    private static readonly SKEL_HEIGHT_CACHE_KEY;
+    private getSkelHeightCache;
+    private saveSkelHeightCache;
+    private deriveSkeletonSpecsFromCache;
     protected hideLoading(container: JQuery): void;
     protected onError(sender: IAjaxObject, boardHolder: JQuery, jqXHR: JQueryXHR): void;
 }
@@ -100,6 +105,13 @@ export declare enum ActionEnum {
     Redirect = 0,
     Popup = 1,
     NewWindow = 2
+}
+interface ISkeletonCardSpec {
+    rowCount: number;
+    widgetCount: number;
+    htmlCount: number;
+    height?: number;
+    boxTitle?: string;
 }
 export interface IInfoDto {
     BoxColour: string;
@@ -161,3 +173,4 @@ export interface IBoardResultDto {
     Menus?: IMenuDto[];
     Intros?: IIntroDto[];
 }
+export {};

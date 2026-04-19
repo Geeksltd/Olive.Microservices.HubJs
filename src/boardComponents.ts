@@ -140,7 +140,11 @@ export default class BoardComponents implements IService {
         // visible layout shifts. revealBoard is triggered only from Phase 4's
         // completeOnce gate, which already awaits AJAX + widget promises.
         boardHolder.css({ position: 'absolute', top: 0, left: 0, right: 0 });
-        this.showLoading(context.resultPanel);
+        // Derive skeleton card structure + heights from cached AJAX responses
+        // and the per-box height cache populated by previous reveals. Falls back
+        // to a generic pattern when nothing is cached.
+        const skelSpecs = this.deriveSkeletonSpecsFromCache(context.ajaxList);
+        this.showLoading(context.resultPanel, skelSpecs.length ? skelSpecs : undefined);
 
         // Phase 3: Fire ALL AJAX calls in parallel
         const ajaxPromises = context.ajaxList.map(ajaxObject => {
@@ -819,6 +823,9 @@ export default class BoardComponents implements IService {
             context.boardHolder.css({ opacity: '', position: '', top: '', left: '', right: '' });
             context.resultPanel.css('position', '');
             panel.style.height = '';
+            // Persist per-box heights so the next skeleton on this path sizes
+            // each card to match the real card exactly.
+            this.saveSkelHeightCache(context);
         }, 240);
     }
 
@@ -1014,6 +1021,22 @@ export default class BoardComponents implements IService {
             }
             .board-loading .skel-name { width: 55%; margin-bottom: 7px; }
             .board-loading .skel-desc { width: 78%; height: 8px; opacity: 0.7; }
+            .board-loading .skel-widget-block {
+                height: 60px;
+                margin: 10px 14px;
+                border-radius: 4px;
+                background: linear-gradient(90deg, #ececec 0%, #f6f7f8 50%, #ececec 100%);
+                background-size: 200% 100%;
+                animation: board-skel-shimmer 1.4s ease-in-out infinite;
+            }
+            .board-loading .skel-html-block {
+                height: 80px;
+                margin: 10px 14px;
+                border-radius: 4px;
+                background: linear-gradient(90deg, #ececec 0%, #f6f7f8 50%, #ececec 100%);
+                background-size: 200% 100%;
+                animation: board-skel-shimmer 1.4s ease-in-out infinite;
+            }
             @keyframes board-skel-shimmer {
                 0% { background-position: 100% 0; }
                 100% { background-position: -100% 0; }
@@ -1050,7 +1073,7 @@ export default class BoardComponents implements IService {
         return '<div class="board-widget-loading"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>';
     }
 
-    protected showLoading(container: JQuery) {
+    protected showLoading(container: JQuery, specs?: ISkeletonCardSpec[]) {
         BoardComponents.ensureSkeletonStyle(container[0]);
         // Container must be position:relative so the absolutely-positioned
         // .list-items overlays this skeleton area.
@@ -1058,35 +1081,101 @@ export default class BoardComponents implements IService {
 
         const dataAttr = container.attr("data-min-column-width");
         const minCol = dataAttr ? parseInt(dataAttr) : 300;
-        // Cards-per-column is a silhouette target, not a hard layout constraint —
-        // multi-column will redistribute the flat card list across however many
-        // columns fit. Total count scales with a conservative column estimate.
         const containerWidth = container[0].clientWidth || window.innerWidth;
         const estColCount = Math.max(Math.floor(containerWidth / minCol), 1);
-        const totalCards = estColCount * 3;
-        const rowPattern = [3, 2, 4, 3, 2, 4, 3, 4, 2];
 
         const wrap = $('<div class="board-loading">');
         wrap.css('column-count', estColCount);
 
-        for (let i = 0; i < totalCards; i++) {
-            const rowCount = rowPattern[i % rowPattern.length];
-            const card = $('<div class="skel-card">');
-            card.append('<div class="skel-card-header"></div>');
-            for (let j = 0; j < rowCount; j++) {
-                card.append(
-                    '<div class="skel-row">' +
-                    '<div class="skel-row-text">' +
-                    '<div class="skel-bar skel-name"></div>' +
-                    '<div class="skel-bar skel-desc"></div>' +
-                    '</div>' +
-                    '<div class="skel-icon"></div>' +
-                    '</div>'
-                );
+        if (specs && specs.length > 0) {
+            // Precise skeleton: one card per cached box, matching row / widget /
+            // html counts and (if available) the previously-measured card height.
+            for (const s of specs) wrap.append(this.buildSkelCard(s));
+        } else {
+            // No cache available — fall back to a generic masonry silhouette.
+            const rowPattern = [3, 2, 4, 3, 2, 4, 3, 4, 2];
+            const totalCards = estColCount * 3;
+            for (let i = 0; i < totalCards; i++) {
+                wrap.append(this.buildSkelCard({
+                    rowCount: rowPattern[i % rowPattern.length],
+                    widgetCount: 0,
+                    htmlCount: 0,
+                }));
             }
-            wrap.append(card);
         }
         container.append(wrap);
+    }
+
+    private buildSkelCard(spec: ISkeletonCardSpec): JQuery {
+        const card = $('<div class="skel-card">');
+        if (spec.height && spec.height > 0) card.css('height', spec.height + 'px');
+        card.append('<div class="skel-card-header"></div>');
+        for (let j = 0; j < spec.rowCount; j++) {
+            card.append(
+                '<div class="skel-row">' +
+                '<div class="skel-row-text">' +
+                '<div class="skel-bar skel-name"></div>' +
+                '<div class="skel-bar skel-desc"></div>' +
+                '</div>' +
+                '<div class="skel-icon"></div>' +
+                '</div>'
+            );
+        }
+        for (let j = 0; j < spec.widgetCount; j++) card.append('<div class="skel-widget-block"></div>');
+        for (let j = 0; j < spec.htmlCount; j++) card.append('<div class="skel-html-block"></div>');
+        return card;
+    }
+
+    private static readonly SKEL_HEIGHT_CACHE_KEY = 'boardSkelHeights';
+
+    private getSkelHeightCache(): Record<string, number> {
+        try {
+            const raw = this.getlocalStorage().getItem(BoardComponents.SKEL_HEIGHT_CACHE_KEY);
+            return raw ? JSON.parse(raw) : {};
+        } catch (e) { return {}; }
+    }
+
+    private saveSkelHeightCache(context: IBoardContext) {
+        try {
+            const holder = context.boardHolder[0];
+            if (!holder) return;
+            const cache = this.getSkelHeightCache();
+            const items = holder.querySelectorAll(':scope > .item') as NodeListOf<HTMLElement>;
+            items.forEach(el => {
+                const title = el.getAttribute('data-type');
+                if (title) cache[title] = el.offsetHeight;
+            });
+            this.getlocalStorage().setItem(BoardComponents.SKEL_HEIGHT_CACHE_KEY, JSON.stringify(cache));
+        } catch (e) { /* ignore */ }
+    }
+
+    private deriveSkeletonSpecsFromCache(ajaxList: IAjaxObject[]): ISkeletonCardSpec[] {
+        const specs: ISkeletonCardSpec[] = [];
+        const heights = this.getSkelHeightCache();
+        const seen = new Set<string>();
+        for (const ajaxObject of ajaxList) {
+            const cache: IBoardResultDto = this.getItem(ajaxObject.url);
+            if (!cache) continue;
+            const byTitle = new Map<string, ISkeletonCardSpec>();
+            const ensure = (t: string) => {
+                let s = byTitle.get(t);
+                if (!s) {
+                    s = { rowCount: 0, widgetCount: 0, htmlCount: 0, boxTitle: t };
+                    byTitle.set(t, s);
+                }
+                return s;
+            };
+            (cache.Infos   || []).forEach(x => { ensure(x.BoxTitle || '').rowCount++; });
+            (cache.Widgets || []).forEach(x => { ensure(x.BoxTitle || '').widgetCount++; });
+            (cache.Htmls   || []).forEach(x => { ensure(x.BoxTitle || '').htmlCount++; });
+            byTitle.forEach(s => {
+                if (seen.has(s.boxTitle!)) return;
+                seen.add(s.boxTitle!);
+                if (heights[s.boxTitle!] > 0) s.height = heights[s.boxTitle!];
+                specs.push(s);
+            });
+        }
+        return specs;
     }
 
     protected hideLoading(container: JQuery) {
@@ -1134,6 +1223,14 @@ export enum ActionEnum {
     Redirect,
     Popup,
     NewWindow,
+}
+
+interface ISkeletonCardSpec {
+    rowCount: number;
+    widgetCount: number;
+    htmlCount: number;
+    height?: number;
+    boxTitle?: string;
 }
 
 
