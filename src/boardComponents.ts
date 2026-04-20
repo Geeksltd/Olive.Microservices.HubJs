@@ -185,6 +185,7 @@ export default class BoardComponents implements IService {
         const completeOnce = () => {
             if (this.allCompleted || this.destroyed) return;
             this.allCompleted = true;
+            if (this.safetyTimer) { clearTimeout(this.safetyTimer); this.safetyTimer = null; }
             this.onAllAjaxComplete(context);
         };
 
@@ -803,15 +804,13 @@ export default class BoardComponents implements IService {
         const panel = context.resultPanel[0];
         if (!holder || !panel) return;
 
-        // Lock panel.height at skeleton height, then transition to items height.
-        // The void offsetHeight read forces a layout flush so the browser sees
-        // the two separate height values and animates between them — otherwise
-        // both assignments collapse into one frame with no transition.
-        const startH = panel.offsetHeight;
+        // Lock the container to items' final height via minHeight so the
+        // skeleton removal and overlay-to-flow swap don't collapse the outer
+        // height. minHeight lets real content grow naturally as widgets finish
+        // loading (no forced height animation, no page-height oscillation that
+        // interferes with the user's scroll).
         const finalH = holder.offsetHeight;
-        panel.style.height = startH + 'px';
-        void panel.offsetHeight;
-        panel.style.height = finalH + 'px';
+        panel.style.minHeight = finalH + 'px';
 
         const skel = panel.querySelector('.board-loading') as HTMLElement | null;
         if (skel) skel.style.opacity = '0';
@@ -822,7 +821,7 @@ export default class BoardComponents implements IService {
             this.hideLoading(context.resultPanel);
             context.boardHolder.css({ opacity: '', position: '', top: '', left: '', right: '' });
             context.resultPanel.css('position', '');
-            panel.style.height = '';
+            panel.style.minHeight = '';
             // Persist per-box heights so the next skeleton on this path sizes
             // each card to match the real card exactly.
             this.saveSkelHeightCache(context);
@@ -945,7 +944,6 @@ export default class BoardComponents implements IService {
             .board-components-result {
                 width: 100%;
                 box-sizing: border-box;
-                transition: height 220ms ease;
             }
             .board-components-result > .list-items {
                 column-width: 300px;
@@ -1128,9 +1126,15 @@ export default class BoardComponents implements IService {
 
     private static readonly SKEL_HEIGHT_CACHE_KEY = 'boardSkelHeights';
 
+    // Scoped per board (projectId prefix) so different boards don't stomp on
+    // each other's per-box height measurements.
+    private getSkelHeightCacheKey() {
+        return this.getProjectId() + "_" + BoardComponents.SKEL_HEIGHT_CACHE_KEY;
+    }
+
     private getSkelHeightCache(): Record<string, number> {
         try {
-            const raw = this.getlocalStorage().getItem(BoardComponents.SKEL_HEIGHT_CACHE_KEY);
+            const raw = this.getlocalStorage().getItem(this.getSkelHeightCacheKey());
             return raw ? JSON.parse(raw) : {};
         } catch (e) { return {}; }
     }
@@ -1145,7 +1149,7 @@ export default class BoardComponents implements IService {
                 const title = el.getAttribute('data-type');
                 if (title) cache[title] = el.offsetHeight;
             });
-            this.getlocalStorage().setItem(BoardComponents.SKEL_HEIGHT_CACHE_KEY, JSON.stringify(cache));
+            this.getlocalStorage().setItem(this.getSkelHeightCacheKey(), JSON.stringify(cache));
         } catch (e) { /* ignore */ }
     }
 

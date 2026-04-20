@@ -69,6 +69,7 @@ export default class BoardComponents implements IService {
     protected showLoading(container: JQuery, specs?: ISkeletonCardSpec[]): void;
     private buildSkelCard;
     private static readonly SKEL_HEIGHT_CACHE_KEY;
+    private getSkelHeightCacheKey;
     private getSkelHeightCache;
     private saveSkelHeightCache;
     private deriveSkeletonSpecsFromCache;
