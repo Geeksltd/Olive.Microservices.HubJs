@@ -41,11 +41,11 @@ export default class HubAjaxRedirect extends AjaxRedirect {
             let service = Service.fromUrl(url);
             if (service) {
                 const mainTag = this.finalTargetAsMainTag(trigger);
+                const urlData = new URL(url);
                 if (!this.isInternalMainTag(mainTag)) {
-                    let addressBar = url.trimHttpProtocol().replace(service.BaseUrl.trimHttpProtocol(), service.Name).withPrefix("/");
+                    let addressBar = `/${service.Name.toLowerCase()}${urlData.pathname}${urlData.search}`;
                     window.history.pushState(null, "Error > " + service.Name, addressBar);
                 } else {
-                    var urlData = new URL(url);
                     const relativeUrl = `/[${service.Name.toLowerCase()}]${urlData.pathname}${urlData.search}`;
                     (window.page as OlivePage).getService<MainTagHelper>(Services.MainTagHelper)
                         .changeUrl(relativeUrl, mainTag.attr("name").replace("$", ""), "Error > " + service.Name);
