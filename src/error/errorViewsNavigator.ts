@@ -11,7 +11,7 @@ export default class ErrorViewsNavigator {
             .replace("[#URL#]", url)
             .replace("[#STATUS#]", response.status == 404 ? "404 - Resource not found" : "Keep calm and try again later!")
             .replace("[#SERVICE#]", service.Name)
-            .replace("[#RESPONSE#]", response.responseText);
+            .replace("[#RESPONSE#]", response.responseText || "No additional information is available.");
 
         if (trigger && trigger.length > 0) {
             if (trigger.prop("tagName") == "MAIN") {
