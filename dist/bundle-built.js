@@ -38013,15 +38013,11 @@ define('app/boardComponents',["require", "exports", "olive/components/url"], fun
                 const resultPanel = this.getResultPanel();
                 const addableItemsPanel = this.getAddableItemsPanel();
                 addableItemsPanel.empty();
-                // Inject skeleton/widget-loader CSS into the board container up front so
-                // no <style> is added to the document during the reveal (which would
-                // make Chromium re-resolve all web fonts, blanking FA icons briefly).
-                BoardComponents.ensureSkeletonStyle(resultPanel[0]);
                 // Hide the grid until revealBoard() fires, so items don't flicker into
                 // view in their pre-layout positions while AJAX is still in flight.
                 // (Absolute positioning is added later only on the loading-skeleton path,
                 // so the cached path doesn't briefly collapse the parent height.)
-                const boardHolder = $("<div class='list-items'>").css('opacity', 0);
+                const boardHolder = $("<div class='list-items board-holder-hidden'>");
                 const addabledItemsHolder = $("<div class='list-items'>");
                 $("iframe.view-frame").hide();
                 var urlToLoad = new url_1.default().getQuery("url", location.href);
@@ -38068,7 +38064,7 @@ define('app/boardComponents',["require", "exports", "olive/components/url"], fun
                 // lands on dot-spinner placeholders and widget HTML arrives after with
                 // visible layout shifts. revealBoard is triggered only from Phase 4's
                 // completeOnce gate, which already awaits AJAX + widget promises.
-                boardHolder.css({ position: 'absolute', top: 0, left: 0, right: 0 });
+                boardHolder.addClass('board-holder-overlay');
                 // Derive skeleton card structure + heights from cached AJAX responses
                 // and the per-box height cache populated by previous reveals. Falls back
                 // to a generic pattern when nothing is cached.
@@ -38159,8 +38155,6 @@ define('app/boardComponents',["require", "exports", "olive/components/url"], fun
                 context.resultCount++;
                 content.append(this.createInfo(items[i], context));
             }
-            if (widgets.length > 0)
-                BoardComponents.ensureSkeletonStyle(context.resultPanel[0]);
             for (let i = 0; i < widgets.length; i++) {
                 context.resultCount++;
                 // Build the placeholder as an element and pass it directly to
@@ -38605,14 +38599,8 @@ define('app/boardComponents',["require", "exports", "olive/components/url"], fun
             // Clear the absolute positioning that was applied while the skeleton
             // was in charge of the visible vertical space. Once real cards are
             // rendering they need to own that space back.
-            context.boardHolder.css({
-                opacity: '',
-                position: '',
-                top: '',
-                left: '',
-                right: ''
-            });
-            context.resultPanel.css('position', '');
+            context.boardHolder.removeClass('board-holder-hidden board-holder-overlay');
+            context.resultPanel.removeClass('board-loading-host');
             // Drop any lingering skeleton — this can only happen on the empty-then-late
             // path where hideLoading() already ran, but it's cheap and idempotent.
             this.hideLoading(context.resultPanel);
@@ -38645,8 +38633,8 @@ define('app/boardComponents',["require", "exports", "olive/components/url"], fun
             // via recoverFromLateArrival().
             if (context.resultCount === 0) {
                 this.hideLoading($('.board-components-result'));
-                context.boardHolder.css({ opacity: '', position: '', top: '', left: '', right: '' });
-                context.resultPanel.css('position', '');
+                context.boardHolder.removeClass('board-holder-hidden board-holder-overlay');
+                context.resultPanel.removeClass('board-loading-host');
                 return;
             }
             // Reveal the grid (handles non-cached case — AJAX finished, items are in the DOM).
@@ -38674,8 +38662,8 @@ define('app/boardComponents',["require", "exports", "olive/components/url"], fun
                 this.bindResize(context);
                 if (options === null || options === void 0 ? void 0 : options.skipFade) {
                     this.hideLoading(context.resultPanel);
-                    context.boardHolder.css({ opacity: '', position: '', top: '', left: '', right: '' });
-                    context.resultPanel.css('position', '');
+                    context.boardHolder.removeClass('board-holder-hidden board-holder-overlay');
+                    context.resultPanel.removeClass('board-loading-host');
                     return;
                 }
                 // Wait for in-flight widget XHRs to land their HTML — revealBoard can be
@@ -38710,18 +38698,18 @@ define('app/boardComponents',["require", "exports", "olive/components/url"], fun
             // loading (no forced height animation, no page-height oscillation that
             // interferes with the user's scroll).
             const finalH = holder.offsetHeight;
-            panel.style.minHeight = finalH + 'px';
+            panel.style.setProperty('--board-min-height', finalH + 'px');
             const skel = panel.querySelector('.board-loading');
             if (skel)
-                skel.style.opacity = '0';
-            context.boardHolder.css('opacity', '1');
+                skel.classList.add('board-loading-hiding');
+            context.boardHolder.removeClass('board-holder-hidden');
             setTimeout(() => {
                 if (this.destroyed)
                     return;
                 this.hideLoading(context.resultPanel);
-                context.boardHolder.css({ opacity: '', position: '', top: '', left: '', right: '' });
-                context.resultPanel.css('position', '');
-                panel.style.minHeight = '';
+                context.boardHolder.removeClass('board-holder-hidden board-holder-overlay');
+                context.resultPanel.removeClass('board-loading-host');
+                panel.style.removeProperty('--board-min-height');
                 // Persist per-box heights so the next skeleton on this path sizes
                 // each card to match the real card exactly.
                 this.saveSkelHeightCache(context);
@@ -38781,8 +38769,9 @@ define('app/boardComponents',["require", "exports", "olive/components/url"], fun
             const minCol = dataAttr ? parseInt(dataAttr) : 300;
             const width = panel.getBoundingClientRect().width || panel.clientWidth || window.innerWidth;
             const count = Math.max(1, Math.floor(width / minCol));
-            holder.style.columnCount = String(count);
-            holder.style.display = 'block'; // ensure the holder is block-level for column layout
+            // Column count drives the multi-column masonry layout; the static rules
+            // (including display:block) live in the Hub's board-skeleton.scss.
+            holder.style.setProperty('--board-cols', String(count));
         }
         bindResize(context) {
             if (this.resizeHandler)
@@ -38843,164 +38832,20 @@ define('app/boardComponents',["require", "exports", "olive/components/url"], fun
                     this.input.removeData('boardComponents');
             }
         }
-        // Inject the skeleton + widget-loader CSS into a board-local container
-        // instead of <head>. Adding stylesheets to <head> at runtime makes Chromium
-        // re-resolve every web font on the page, which briefly blanks all
-        // FontAwesome glyphs (FA's font-display: block). Per-board injection keeps
-        // it scoped to the board's lifecycle.
-        static ensureSkeletonStyle(target) {
-            if (typeof document === 'undefined' || !target)
-                return;
-            if (target.querySelector('style.' + BoardComponents.SKELETON_STYLE_CLASS))
-                return;
-            const style = document.createElement('style');
-            style.className = BoardComponents.SKELETON_STYLE_CLASS;
-            // Card shape mirrors the real .item: colored header bar on top,
-            // then rows of [icon + name + description]. Multi-column flow gives
-            // true masonry behavior so heights balance across columns.
-            style.textContent = `
-            /* CSS multi-column owns layout: browser distributes items across
-               columns and balances heights (min total height). column-count is
-               applied inline in JS (see applyColumnCount). */
-            .board-components-result {
-                width: 100%;
-                box-sizing: border-box;
-            }
-            .board-components-result > .list-items {
-                column-width: 300px;
-                column-gap: 16px;
-                column-fill: balance;
-                padding: 8px 0;
-                width: 100%;
-                box-sizing: border-box;
-                transition: opacity 220ms ease-in;
-            }
-            .board-components-result > .list-items > .item {
-                break-inside: avoid;
-                display: block;
-                width: 100%;
-                margin-bottom: 16px;
-            }
-            .board-loading {
-                column-width: 300px;
-                column-gap: 16px;
-                column-fill: balance;
-                padding: 8px 0;
-                width: 100%;
-                box-sizing: border-box;
-                transition: opacity 220ms ease-out;
-            }
-            .board-loading .skel-card {
-                break-inside: avoid;
-                margin-bottom: 16px;
-                background: #fff;
-                border-radius: 10px;
-                overflow: hidden;
-                box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-                border: 1px solid #eee;
-                width: 100%;
-            }
-            .board-loading .skel-card-header {
-                height: 44px;
-                background: linear-gradient(90deg, #d8dde2 0%, #e9edf0 50%, #d8dde2 100%);
-                background-size: 200% 100%;
-                animation: board-skel-shimmer 1.4s ease-in-out infinite;
-            }
-            .board-loading .skel-row {
-                display: flex;
-                align-items: center;
-                gap: 12px;
-                padding: 11px 14px;
-                border-top: 1px solid #f3f3f3;
-                height: 52px;
-                box-sizing: border-box;
-            }
-            .board-loading .skel-icon {
-                width: 18px;
-                height: 18px;
-                border-radius: 3px;
-                flex-shrink: 0;
-                order: 2;
-                background: linear-gradient(90deg, #ececec 0%, #f6f7f8 50%, #ececec 100%);
-                background-size: 200% 100%;
-                animation: board-skel-shimmer 1.4s ease-in-out infinite;
-            }
-            .board-loading .skel-row-text {
-                flex: 1;
-                min-width: 0;
-                order: 1;
-            }
-            .board-loading .skel-bar {
-                display: block;
-                height: 10px;
-                border-radius: 4px;
-                background: linear-gradient(90deg, #ececec 0%, #f6f7f8 50%, #ececec 100%);
-                background-size: 200% 100%;
-                animation: board-skel-shimmer 1.4s ease-in-out infinite;
-            }
-            .board-loading .skel-name { width: 55%; margin-bottom: 7px; }
-            .board-loading .skel-desc { width: 78%; height: 8px; opacity: 0.7; }
-            .board-loading .skel-widget-block {
-                height: 60px;
-                margin: 10px 14px;
-                border-radius: 4px;
-                background: linear-gradient(90deg, #ececec 0%, #f6f7f8 50%, #ececec 100%);
-                background-size: 200% 100%;
-                animation: board-skel-shimmer 1.4s ease-in-out infinite;
-            }
-            .board-loading .skel-html-block {
-                height: 80px;
-                margin: 10px 14px;
-                border-radius: 4px;
-                background: linear-gradient(90deg, #ececec 0%, #f6f7f8 50%, #ececec 100%);
-                background-size: 200% 100%;
-                animation: board-skel-shimmer 1.4s ease-in-out infinite;
-            }
-            @keyframes board-skel-shimmer {
-                0% { background-position: 100% 0; }
-                100% { background-position: -100% 0; }
-            }
-            /* In-card widget loader: 3 bouncing dots, neutral palette.
-               Kept small (40px) so the layout shift when the real widget
-               content replaces the loader is minimised. */
-            .board-widget-loading {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 6px;
-                min-height: 40px;
-                padding: 10px;
-            }
-            .board-widget-loading .dot {
-                width: 8px;
-                height: 8px;
-                border-radius: 50%;
-                background: #b0b6bd;
-                animation: board-widget-bounce 1.2s ease-in-out infinite both;
-            }
-            .board-widget-loading .dot:nth-child(1) { animation-delay: -0.32s; }
-            .board-widget-loading .dot:nth-child(2) { animation-delay: -0.16s; }
-            @keyframes board-widget-bounce {
-                0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
-                40%           { transform: scale(1);   opacity: 1; }
-            }
-        `;
-            target.appendChild(style);
-        }
         widgetLoadingHtml() {
             return '<div class="board-widget-loading"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>';
         }
         showLoading(container, specs) {
-            BoardComponents.ensureSkeletonStyle(container[0]);
-            // Container must be position:relative so the absolutely-positioned
-            // .list-items overlays this skeleton area.
-            container.css('position', 'relative');
+            // Host must be position:relative so the absolutely-positioned
+            // .list-items overlays this skeleton area (board-skeleton.scss).
+            container.addClass('board-loading-host');
             const dataAttr = container.attr("data-min-column-width");
             const minCol = dataAttr ? parseInt(dataAttr) : 300;
             const containerWidth = container[0].clientWidth || window.innerWidth;
             const estColCount = Math.max(Math.floor(containerWidth / minCol), 1);
             const wrap = $('<div class="board-loading">');
-            wrap.css('column-count', estColCount);
+            // Column count feeds the multi-column layout in board-skeleton.scss.
+            wrap[0].style.setProperty('--skel-cols', String(estColCount));
             if (specs && specs.length > 0) {
                 // Precise skeleton: one card per cached box, matching row / widget /
                 // html counts and (if available) the previously-measured card height.
@@ -39023,8 +38868,9 @@ define('app/boardComponents',["require", "exports", "olive/components/url"], fun
         }
         buildSkelCard(spec) {
             const card = $('<div class="skel-card">');
+            // Cached per-box height feeds the --skel-card-height rule in board-skeleton.scss.
             if (spec.height && spec.height > 0)
-                card.css('height', spec.height + 'px');
+                card[0].style.setProperty('--skel-card-height', spec.height + 'px');
             card.append('<div class="skel-card-header"></div>');
             for (let j = 0; j < spec.rowCount; j++) {
                 card.append('<div class="skel-row">' +
@@ -39116,7 +38962,6 @@ define('app/boardComponents',["require", "exports", "olive/components/url"], fun
     }
     BoardComponents.EMPTY_STATE_CLASS = 'board-empty-state';
     BoardComponents.DOC_CLICK_NAMESPACE = 'click.boardComponents';
-    BoardComponents.SKELETON_STYLE_CLASS = 'board-loading-skeleton-style';
     BoardComponents.SKEL_HEIGHT_CACHE_KEY = 'boardSkelHeights';
     exports.default = BoardComponents;
     var AjaxState;

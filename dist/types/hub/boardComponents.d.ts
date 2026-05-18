@@ -63,8 +63,6 @@ export default class BoardComponents implements IService {
     private applyColumnCount;
     private bindResize;
     destroy(): void;
-    private static readonly SKELETON_STYLE_CLASS;
-    static ensureSkeletonStyle(target: Element): void;
     private widgetLoadingHtml;
     protected showLoading(container: JQuery, specs?: ISkeletonCardSpec[]): void;
     private buildSkelCard;
