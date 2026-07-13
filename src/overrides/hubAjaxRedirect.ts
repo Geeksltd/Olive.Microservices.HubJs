@@ -42,15 +42,22 @@ export default class HubAjaxRedirect extends AjaxRedirect {
             if (service) {
                 const mainTag = this.finalTargetAsMainTag(trigger);
                 const urlData = new URL(url);
+                const addressBar = `/${service.Name.toLowerCase()}${urlData.pathname}${urlData.search}`;
+
+                // The address bar is about to be replaced with the failing address, so capture
+                // where the user came from. If they landed on the failing address directly,
+                // there is nowhere to go back to.
+                const cameFrom = window.location.pathname + window.location.search;
+                const backUrl = cameFrom == addressBar ? null : window.location.href;
+
                 if (!this.isInternalMainTag(mainTag)) {
-                    let addressBar = `/${service.Name.toLowerCase()}${urlData.pathname}${urlData.search}`;
                     window.history.pushState(null, "Error > " + service.Name, addressBar);
                 } else {
                     const relativeUrl = `/[${service.Name.toLowerCase()}]${urlData.pathname}${urlData.search}`;
                     (window.page as OlivePage).getService<MainTagHelper>(Services.MainTagHelper)
                         .changeUrl(relativeUrl, mainTag.attr("name").replace("$", ""), "Error > " + service.Name);
                 }
-                ErrorViewsNavigator.showServiceError(trigger, service, url, response);
+                ErrorViewsNavigator.showServiceError(trigger, service, url, response, backUrl);
             }
             else
                 super.onRedirectionFailed(trigger, url, response);

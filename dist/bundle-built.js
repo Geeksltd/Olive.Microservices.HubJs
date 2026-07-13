@@ -37487,22 +37487,67 @@ define('app/featuresMenu/FullMenuFiltering',["require", "exports"], function (re
     });
 });
 //# sourceMappingURL=FullMenuFiltering.js.map;
+define('app/model/currentUser',["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    class CurrentUser {
+        static get isEmployee() {
+            return window["isEmployee"] === true;
+        }
+    }
+    exports.default = CurrentUser;
+});
+//# sourceMappingURL=currentUser.js.map;
+define('app/model/hubSettings',["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    class HubSettings {
+        static get supportEmail() {
+            return window["supportEmail"] || "";
+        }
+    }
+    exports.default = HubSettings;
+});
+//# sourceMappingURL=hubSettings.js.map;
 define('app/error/errorTemplates',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.SERVICE_ERROR_TEMPLATE = void 0;
+    exports.SUPPORT_REFERENCE_TEMPLATE = exports.SUPPORT_FALLBACK_CONTACT = exports.SUPPORT_EMAIL_TEMPLATE = exports.SUPPORT_LINE_TEMPLATE = exports.HOME_BUTTON_TEMPLATE = exports.BACK_BUTTON_TEMPLATE = exports.SERVICE_ERROR_TEMPLATE_FOR_EMPLOYEE = exports.SERVICE_ERROR_TEMPLATE = void 0;
     exports.SERVICE_ERROR_TEMPLATE = `
 <main>
   <div class="error" >
-<h2>Oops!</h2>
+   <h2>Something went wrong</h2>
    <h3>
-      [#STATUS#]
+      [#MESSAGE#]
    </h3>
    <p>
-      Something went wrong in the <b>[#SERVICE#]</b> service.
+      [#SUPPORT#]
    </p>
    <div class="buttons-row">
       <div class="buttons">
+         [#BUTTONS#]
+      </div>
+   </div>
+   <br/>
+  </div>
+</main>
+`;
+    exports.SERVICE_ERROR_TEMPLATE_FOR_EMPLOYEE = `
+<main>
+  <div class="error" >
+   <h2>Something went wrong</h2>
+   <h3>
+      [#MESSAGE#]
+   </h3>
+   <p>
+      [#SUPPORT#]
+   </p>
+   <p>
+      The <b>[#SERVICE#]</b> service returned status [#STATUS#].
+   </p>
+   <div class="buttons-row">
+      <div class="buttons">
+         [#BUTTONS#]
          <a class="btn btn-success" href="javascript:;" onclick="alert($('.ajax-error-content').html())">Show the error here</a>&nbsp;
          <a name="ShowMeTheError" class="btn btn-primary" href="[#URL#]" target="_blank" default-button="true">Show me the error</a>
       </div>
@@ -37518,18 +37563,35 @@ define('app/error/errorTemplates',["require", "exports"], function (require, exp
   </pre>
 </div>
 `;
+    exports.BACK_BUTTON_TEMPLATE = `<a class="btn btn-primary" href="[#BACK_URL#]">Back</a>&nbsp;`;
+    exports.HOME_BUTTON_TEMPLATE = `<a class="btn btn-secondary" href="/">Home</a>&nbsp;`;
+    exports.SUPPORT_LINE_TEMPLATE = `If the problem continues, please contact [#CONTACT#][#REFERENCE#].`;
+    exports.SUPPORT_EMAIL_TEMPLATE = `<a href="mailto:[#SUPPORT_EMAIL#][#SUBJECT#]">[#SUPPORT_EMAIL#]</a>`;
+    exports.SUPPORT_FALLBACK_CONTACT = `your system administrator`;
+    exports.SUPPORT_REFERENCE_TEMPLATE = ` and quote reference <b>[#REFERENCE_CODE#]</b>`;
 });
 //# sourceMappingURL=errorTemplates.js.map;
-define('app/error/errorViewsNavigator',["require", "exports", "./errorTemplates", "../model/service", "../extensions"], function (require, exports, errorTemplates_1) {
+define('app/error/errorViewsNavigator',["require", "exports", "../model/currentUser", "../model/hubSettings", "./errorTemplates", "../model/service", "../extensions"], function (require, exports, currentUser_1, hubSettings_1, errorTemplates_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    // Set on every response by Olive's reference code middleware. Support can search the logs for it.
+    const REFERENCE_CODE_HEADER = "X-Reference-Code";
+    const REFERENCE_CODE_FORMAT = /^REF-[A-Z2-9]{8}$/;
     class ErrorViewsNavigator {
-        static showServiceError(trigger, service, url, response) {
-            let errorContent = errorTemplates_1.SERVICE_ERROR_TEMPLATE
-                .replace("[#URL#]", url)
-                .replace("[#STATUS#]", response.status == 404 ? "404 - Resource not found" : "Keep calm and try again later!")
-                .replace("[#SERVICE#]", service.Name)
-                .replace("[#RESPONSE#]", response.responseText || "No additional information is available.");
+        static showServiceError(trigger, service, url, response, backUrl) {
+            let errorContent = currentUser_1.default.isEmployee
+                ? this.fill(errorTemplates_1.SERVICE_ERROR_TEMPLATE_FOR_EMPLOYEE, {
+                    "[#SERVICE#]": service.Name,
+                    "[#STATUS#]": response.status.toString(),
+                    "[#URL#]": url,
+                    "[#RESPONSE#]": response.responseText || "No additional information is available."
+                })
+                : errorTemplates_1.SERVICE_ERROR_TEMPLATE;
+            errorContent = this.fill(errorContent, {
+                "[#MESSAGE#]": this.getMessage(response),
+                "[#SUPPORT#]": this.getSupportLine(this.getReferenceCode(response)),
+                "[#BUTTONS#]": this.getButtons(backUrl)
+            });
             if (trigger && trigger.length > 0) {
                 if (trigger.prop("tagName") == "MAIN") {
                     trigger.html(errorContent);
@@ -37546,6 +37608,57 @@ define('app/error/errorViewsNavigator',["require", "exports", "./errorTemplates"
                 return;
             }
             $("main").html(errorContent);
+        }
+        static getMessage(response) {
+            if (response.status == 404)
+                return "The page you are looking for is not available. It may have been moved or removed.";
+            return "We could not load this page right now. Please try again in a few moments.";
+        }
+        // Services running an older version of Olive do not send the header, and the response of a
+        // failed cross-origin request is not necessarily one of ours, so the value is not trusted.
+        static getReferenceCode(response) {
+            let code;
+            try {
+                code = response.getResponseHeader(REFERENCE_CODE_HEADER);
+            }
+            catch (error) {
+                return "";
+            }
+            return REFERENCE_CODE_FORMAT.test(code) ? code : "";
+        }
+        static getSupportLine(referenceCode) {
+            const email = hubSettings_1.default.supportEmail;
+            const contact = email
+                ? this.fill(errorTemplates_1.SUPPORT_EMAIL_TEMPLATE, {
+                    "[#SUPPORT_EMAIL#]": email,
+                    "[#SUBJECT#]": referenceCode
+                        ? "?subject=" + encodeURIComponent("Error reference " + referenceCode)
+                        : ""
+                })
+                : errorTemplates_1.SUPPORT_FALLBACK_CONTACT;
+            // With no code there is nothing for support to search for, so we claim nothing.
+            const reference = referenceCode
+                ? this.fill(errorTemplates_1.SUPPORT_REFERENCE_TEMPLATE, { "[#REFERENCE_CODE#]": referenceCode })
+                : "";
+            return this.fill(errorTemplates_1.SUPPORT_LINE_TEMPLATE, {
+                "[#CONTACT#]": contact,
+                "[#REFERENCE#]": reference
+            });
+        }
+        static getButtons(backUrl) {
+            const back = backUrl
+                ? this.fill(errorTemplates_1.BACK_BUTTON_TEMPLATE, { "[#BACK_URL#]": backUrl })
+                : "";
+            return back + errorTemplates_1.HOME_BUTTON_TEMPLATE;
+        }
+        // split/join rather than replace(): it replaces every occurrence (the support email appears
+        // twice), and it does not treat '$' sequences in the values (e.g. main tag urls such as
+        // '?$Body=...') as replacement patterns.
+        static fill(template, values) {
+            let result = template;
+            for (const token in values)
+                result = result.split(token).join(values[token]);
+            return result;
         }
     }
     exports.default = ErrorViewsNavigator;
@@ -37586,8 +37699,13 @@ define('overrides/hubAjaxRedirect',["require", "exports", "olive/mvc/ajaxRedirec
                 if (service) {
                     const mainTag = this.finalTargetAsMainTag(trigger);
                     const urlData = new URL(url);
+                    const addressBar = `/${service.Name.toLowerCase()}${urlData.pathname}${urlData.search}`;
+                    // The address bar is about to be replaced with the failing address, so capture
+                    // where the user came from. If they landed on the failing address directly,
+                    // there is nowhere to go back to.
+                    const cameFrom = window.location.pathname + window.location.search;
+                    const backUrl = cameFrom == addressBar ? null : window.location.href;
                     if (!this.isInternalMainTag(mainTag)) {
-                        let addressBar = `/${service.Name.toLowerCase()}${urlData.pathname}${urlData.search}`;
                         window.history.pushState(null, "Error > " + service.Name, addressBar);
                     }
                     else {
@@ -37595,7 +37713,7 @@ define('overrides/hubAjaxRedirect',["require", "exports", "olive/mvc/ajaxRedirec
                         window.page.getService(services_1.default.MainTagHelper)
                             .changeUrl(relativeUrl, mainTag.attr("name").replace("$", ""), "Error > " + service.Name);
                     }
-                    errorViewsNavigator_1.default.showServiceError(trigger, service, url, response);
+                    errorViewsNavigator_1.default.showServiceError(trigger, service, url, response, backUrl);
                 }
                 else
                     super.onRedirectionFailed(trigger, url, response);
