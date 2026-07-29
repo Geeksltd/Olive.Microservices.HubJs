@@ -60,7 +60,10 @@ export default class HubAjaxRedirect extends AjaxRedirect {
                 ErrorViewsNavigator.showServiceError(trigger, service, url, response, backUrl);
             }
             else
-                super.onRedirectionFailed(trigger, url, response);
+                // No service maps to this url. Render the same error view (message + reference code)
+                // rather than the base class's confirm() dialog, so every failure looks the same to the
+                // user. 401 is already handled above, so we are not swallowing the login redirect.
+                ErrorViewsNavigator.showGenericError(trigger, url, response);
         }
     }
 

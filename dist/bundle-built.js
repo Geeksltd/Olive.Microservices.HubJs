@@ -37512,22 +37512,24 @@ define('app/model/hubSettings',["require", "exports"], function (require, export
 define('app/error/errorTemplates',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.SUPPORT_REFERENCE_TEMPLATE = exports.SUPPORT_FALLBACK_CONTACT = exports.SUPPORT_EMAIL_TEMPLATE = exports.SUPPORT_LINE_TEMPLATE = exports.HOME_BUTTON_TEMPLATE = exports.BACK_BUTTON_TEMPLATE = exports.SERVICE_ERROR_TEMPLATE_FOR_EMPLOYEE = exports.SERVICE_ERROR_TEMPLATE = void 0;
+    exports.SUPPORT_FALLBACK_CONTACT = exports.SUPPORT_EMAIL_TEMPLATE = exports.SUPPORT_LINE_TEMPLATE = exports.HOME_BUTTON_TEMPLATE = exports.BACK_BUTTON_TEMPLATE = exports.SERVICE_ERROR_TEMPLATE_FOR_EMPLOYEE = exports.SERVICE_ERROR_TEMPLATE = void 0;
+    // The support line sits BELOW the buttons, small and muted: a user who is stuck needs a code to quote,
+    // but it is not an invitation to write in — the message above has already told them the team knows.
+    // The same shape as FriendlyErrorPage in FS.Shared.Website, which renders this view's equivalent when a
+    // request fails outside the Hub. If you change one, change the other.
     exports.SERVICE_ERROR_TEMPLATE = `
 <main>
   <div class="error" >
    <h2>Something went wrong</h2>
-   <h3>
+   <h4>
       [#MESSAGE#]
-   </h3>
-   <p>
-      [#SUPPORT#]
-   </p>
+   </h4>
    <div class="buttons-row">
       <div class="buttons">
          [#BUTTONS#]
       </div>
    </div>
+   [#SUPPORT#]
    <br/>
   </div>
 </main>
@@ -37536,12 +37538,9 @@ define('app/error/errorTemplates',["require", "exports"], function (require, exp
 <main>
   <div class="error" >
    <h2>Something went wrong</h2>
-   <h3>
+   <h4>
       [#MESSAGE#]
-   </h3>
-   <p>
-      [#SUPPORT#]
-   </p>
+   </h4>
    <p>
       The <b>[#SERVICE#]</b> service returned status [#STATUS#].
    </p>
@@ -37552,6 +37551,7 @@ define('app/error/errorTemplates',["require", "exports"], function (require, exp
          <a name="ShowMeTheError" class="btn btn-primary" href="[#URL#]" target="_blank" default-button="true">Show me the error</a>
       </div>
    </div>
+   [#SUPPORT#]
    <br/>
   </div>
 </main>
@@ -37565,10 +37565,9 @@ define('app/error/errorTemplates',["require", "exports"], function (require, exp
 `;
     exports.BACK_BUTTON_TEMPLATE = `<a class="btn btn-primary" href="[#BACK_URL#]">Back</a>&nbsp;`;
     exports.HOME_BUTTON_TEMPLATE = `<a class="btn btn-secondary" href="/">Home</a>&nbsp;`;
-    exports.SUPPORT_LINE_TEMPLATE = `If the problem continues, please contact [#CONTACT#][#REFERENCE#].`;
+    exports.SUPPORT_LINE_TEMPLATE = `<p class="support text-muted small">If you need to contact [#CONTACT#], quote reference <b>[#REFERENCE_CODE#]</b>.</p>`;
     exports.SUPPORT_EMAIL_TEMPLATE = `<a href="mailto:[#SUPPORT_EMAIL#][#SUBJECT#]">[#SUPPORT_EMAIL#]</a>`;
     exports.SUPPORT_FALLBACK_CONTACT = `your system administrator`;
-    exports.SUPPORT_REFERENCE_TEMPLATE = ` and quote reference <b>[#REFERENCE_CODE#]</b>`;
 });
 //# sourceMappingURL=errorTemplates.js.map;
 define('app/error/errorViewsNavigator',["require", "exports", "../model/currentUser", "../model/hubSettings", "./errorTemplates", "../model/service", "../extensions"], function (require, exports, currentUser_1, hubSettings_1, errorTemplates_1) {
@@ -37576,20 +37575,36 @@ define('app/error/errorViewsNavigator',["require", "exports", "../model/currentU
     Object.defineProperty(exports, "__esModule", { value: true });
     // Set on every response by Olive's reference code middleware. Support can search the logs for it.
     const REFERENCE_CODE_HEADER = "X-Reference-Code";
-    const REFERENCE_CODE_FORMAT = /^REF-[A-Z2-9]{8}$/;
+    // Codes are 12 characters. The rollout that briefly allowed shorter (8-char) codes from
+    // not-yet-upgraded services is complete, so anything other than 12 is no longer a valid code.
+    const REFERENCE_CODE_FORMAT = /^REF-[A-Z2-9]{12}$/;
+    // A page that does not exist is not a fault. Nobody has been notified, nothing was logged for support to
+    // find, and offering a reference code for it invites a conversation about a bug that never happened.
+    const NOT_FOUND = 404;
     class ErrorViewsNavigator {
         static showServiceError(trigger, service, url, response, backUrl) {
+            this.showError(trigger, url, response, service.Name, backUrl);
+        }
+        // The same view — message, support line and reference code — for a failure whose URL maps to no
+        // known service. Without this it would fall through to the base handler's bare confirm() dialog,
+        // showing the user neither the reassurance nor a code to quote. One failure, one error UX, however
+        // the request was routed, and matching FriendlyErrorPage in FS.Shared.Website.
+        static showGenericError(trigger, url, response, backUrl) {
+            this.showError(trigger, url, response, null, backUrl);
+        }
+        static showError(trigger, url, response, serviceName, backUrl) {
             let errorContent = currentUser_1.default.isEmployee
                 ? this.fill(errorTemplates_1.SERVICE_ERROR_TEMPLATE_FOR_EMPLOYEE, {
-                    "[#SERVICE#]": service.Name,
+                    "[#SERVICE#]": serviceName || this.hostOf(url),
                     "[#STATUS#]": response.status.toString(),
                     "[#URL#]": url,
                     "[#RESPONSE#]": response.responseText || "No additional information is available."
                 })
                 : errorTemplates_1.SERVICE_ERROR_TEMPLATE;
+            const referenceCode = response.status == NOT_FOUND ? "" : this.getReferenceCode(response);
             errorContent = this.fill(errorContent, {
                 "[#MESSAGE#]": this.getMessage(response),
-                "[#SUPPORT#]": this.getSupportLine(this.getReferenceCode(response)),
+                "[#SUPPORT#]": this.getSupportLine(referenceCode),
                 "[#BUTTONS#]": this.getButtons(backUrl)
             });
             if (trigger && trigger.length > 0) {
@@ -37609,10 +37624,21 @@ define('app/error/errorViewsNavigator',["require", "exports", "../model/currentU
             }
             $("main").html(errorContent);
         }
+        // A label for the failing target when it maps to no registered service (employee diagnostic view only).
+        static hostOf(url) {
+            try {
+                return new URL(url, window.location.origin).host || "the requested page";
+            }
+            catch (_a) {
+                return "the requested page";
+            }
+        }
         static getMessage(response) {
-            if (response.status == 404)
+            // A 404 is not a fault, so nobody has been notified and there is nothing to reassure anyone
+            // about. Only a real failure gets the "we know" message.
+            if (response.status == NOT_FOUND)
                 return "The page you are looking for is not available. It may have been moved or removed.";
-            return "We could not load this page right now. Please try again in a few moments.";
+            return "Our technical team has been notified and is working on it. Please try again in a few moments.";
         }
         // Services running an older version of Olive do not send the header, and the response of a
         // failed cross-origin request is not necessarily one of ours, so the value is not trusted.
@@ -37626,23 +37652,23 @@ define('app/error/errorViewsNavigator',["require", "exports", "../model/currentU
             }
             return REFERENCE_CODE_FORMAT.test(code) ? code : "";
         }
+        // Small and muted, and below the buttons: a user who really is stuck needs a code to quote, but the
+        // message above has already told them the team knows, so this is not an invitation to write in.
         static getSupportLine(referenceCode) {
+            // With no code there is nothing for support to search for, so we say nothing at all rather than
+            // inviting an email we could not act on. A service on an older Olive sends no code.
+            if (!referenceCode)
+                return "";
             const email = hubSettings_1.default.supportEmail;
             const contact = email
                 ? this.fill(errorTemplates_1.SUPPORT_EMAIL_TEMPLATE, {
                     "[#SUPPORT_EMAIL#]": email,
-                    "[#SUBJECT#]": referenceCode
-                        ? "?subject=" + encodeURIComponent("Error reference " + referenceCode)
-                        : ""
+                    "[#SUBJECT#]": "?subject=" + encodeURIComponent("Error reference " + referenceCode)
                 })
                 : errorTemplates_1.SUPPORT_FALLBACK_CONTACT;
-            // With no code there is nothing for support to search for, so we claim nothing.
-            const reference = referenceCode
-                ? this.fill(errorTemplates_1.SUPPORT_REFERENCE_TEMPLATE, { "[#REFERENCE_CODE#]": referenceCode })
-                : "";
             return this.fill(errorTemplates_1.SUPPORT_LINE_TEMPLATE, {
                 "[#CONTACT#]": contact,
-                "[#REFERENCE#]": reference
+                "[#REFERENCE_CODE#]": referenceCode
             });
         }
         static getButtons(backUrl) {
@@ -37716,7 +37742,10 @@ define('overrides/hubAjaxRedirect',["require", "exports", "olive/mvc/ajaxRedirec
                     errorViewsNavigator_1.default.showServiceError(trigger, service, url, response, backUrl);
                 }
                 else
-                    super.onRedirectionFailed(trigger, url, response);
+                    // No service maps to this url. Render the same error view (message + reference code)
+                    // rather than the base class's confirm() dialog, so every failure looks the same to the
+                    // user. 401 is already handled above, so we are not swallowing the login redirect.
+                    errorViewsNavigator_1.default.showGenericError(trigger, url, response);
             }
         }
         go(url, trigger = null, isBack = false, keepScroll = false, addToHistory = true, onComplete, ajaxTarget, ajaxhref) {
