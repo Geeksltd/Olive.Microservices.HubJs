@@ -4,6 +4,7 @@ import Service from '../model/service';
 import CurrentUser from '../model/currentUser';
 import HubSettings from '../model/hubSettings';
 import {
+    AUDIT_LINK_TEMPLATE,
     BACK_BUTTON_TEMPLATE,
     HOME_BUTTON_TEMPLATE,
     SERVICE_ERROR_TEMPLATE,
@@ -23,6 +24,16 @@ const REFERENCE_CODE_FORMAT = /^REF-[A-Z2-9]{12}$/;
 // A page that does not exist is not a fault. Nobody has been notified, nothing was logged for support to
 // find, and offering a reference code for it invites a conversation about a bug that never happened.
 const NOT_FOUND = 404;
+
+// The audit service's Request logs page, reached through the Hub as /[service]/request-logs. It searches
+// by the whole code, REF- prefix included. Its own gate is Dev, DevOps and ViewLogs, so an employee
+// without one of those roles gets an access denied rather than the log — that is the audit service's
+// call to make, and the code is still there to quote either way.
+const AUDIT_LOG_PATH = "/request-logs?Reference=";
+
+// The name the audit service registers itself under differs between environments, so the URL is built
+// from whichever one is actually in window["services"] rather than hard-coded.
+const AUDIT_SERVICE_NAMES = ["Audit", "AuditLog"];
 
 export default class ErrorViewsNavigator {
     public static showServiceError(trigger: JQuery, service: Service, url: string, response: JQueryXHR, backUrl?: string) {
@@ -89,7 +100,7 @@ export default class ErrorViewsNavigator {
         if (response.status == NOT_FOUND)
             return "The page you are looking for is not available. It may have been moved or removed.";
 
-        return "Our technical team has been notified and is working on it. Please try again in a few moments.";
+        return "Our technical team has been notified and is working on it. Please try again later.";
     }
 
     // Services running an older version of Olive do not send the header, and the response of a
@@ -121,8 +132,39 @@ export default class ErrorViewsNavigator {
 
         return this.fill(SUPPORT_LINE_TEMPLATE, {
             "[#CONTACT#]": contact,
+            "[#REFERENCE_CODE#]": this.getReferenceCodeHtml(referenceCode)
+        });
+    }
+
+    // For an employee the code is the way into the log, so it is a link. For everyone else it stays plain
+    // text: the audit service would refuse them, and a link they cannot open only causes a support call.
+    private static getReferenceCodeHtml(referenceCode: string): string {
+        if (!CurrentUser.isEmployee) return referenceCode;
+
+        const auditUrl = this.getAuditUrl(referenceCode);
+        if (!auditUrl) return referenceCode;
+
+        return this.fill(AUDIT_LINK_TEMPLATE, {
+            "[#AUDIT_URL#]": auditUrl,
             "[#REFERENCE_CODE#]": referenceCode
         });
+    }
+
+    // Nothing is linked when the audit service is not registered in this Hub: a dead link on an error page
+    // is worse than the plain code, which support can search for anyway.
+    private static getAuditUrl(referenceCode: string): string {
+        for (const name of AUDIT_SERVICE_NAMES) {
+            let service: Service;
+
+            // fromName throws rather than returning null when a service is not registered.
+            try { service = Service.fromName(name); }
+            catch (error) { continue; }
+
+            // The Hub address of a service page, i.e. what the features menu links to.
+            return service.AddressBarPrefix + AUDIT_LOG_PATH + encodeURIComponent(referenceCode);
+        }
+
+        return "";
     }
 
     private static getButtons(backUrl: string): string {

@@ -33,8 +33,12 @@ export const SERVICE_ERROR_TEMPLATE_FOR_EMPLOYEE = `
    <div class="buttons-row">
       <div class="buttons">
          [#BUTTONS#]
-         <a class="btn btn-success" href="javascript:;" onclick="alert($('.ajax-error-content').html())">Show the error here</a>&nbsp;
-         <a name="ShowMeTheError" class="btn btn-primary" href="[#URL#]" target="_blank" default-button="true">Show me the error</a>
+         <!-- The two diagnostic buttons do different things, so the labels have to say which is which:
+              the first shows what this failed request already returned, the second re-issues the request
+              in a new tab (a fresh GET, so it will not reproduce a failure that depended on the original
+              request's method or body). -->
+         <a class="btn btn-success" href="javascript:;" title="Show the response this failed request returned, without leaving the page." onclick="alert($('.ajax-error-content').html())">Show response details here</a>&nbsp;
+         <a name="ShowMeTheError" class="btn btn-primary" href="[#URL#]" target="_blank" title="Request the failing URL again in a new tab, to see the full server error page." default-button="true">Open failing URL in a new tab</a>
       </div>
    </div>
    [#SUPPORT#]
@@ -55,6 +59,10 @@ export const BACK_BUTTON_TEMPLATE = `<a class="btn btn-primary" href="[#BACK_URL
 export const HOME_BUTTON_TEMPLATE = `<a class="btn btn-secondary" href="/">Home</a>&nbsp;`;
 
 export const SUPPORT_LINE_TEMPLATE = `<p class="support text-muted small">If you need to contact [#CONTACT#], quote reference <b>[#REFERENCE_CODE#]</b>.</p>`;
+
+// Employees get the code as a link to the audit service's Request logs page, which looks the request
+// up by exactly this code. In a new tab, so the error view (and the URL that produced it) is not lost.
+export const AUDIT_LINK_TEMPLATE = `<a href="[#AUDIT_URL#]" target="_blank" title="Find this request in the audit log">[#REFERENCE_CODE#]</a>`;
 
 export const SUPPORT_EMAIL_TEMPLATE = `<a href="mailto:[#SUPPORT_EMAIL#][#SUBJECT#]">[#SUPPORT_EMAIL#]</a>`;
 

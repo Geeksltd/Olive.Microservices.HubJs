@@ -9,6 +9,8 @@ export default class ErrorViewsNavigator {
     private static getMessage;
     private static getReferenceCode;
     private static getSupportLine;
+    private static getReferenceCodeHtml;
+    private static getAuditUrl;
     private static getButtons;
     private static fill;
 }

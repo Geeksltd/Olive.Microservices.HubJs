@@ -37512,7 +37512,7 @@ define('app/model/hubSettings',["require", "exports"], function (require, export
 define('app/error/errorTemplates',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.SUPPORT_FALLBACK_CONTACT = exports.SUPPORT_EMAIL_TEMPLATE = exports.SUPPORT_LINE_TEMPLATE = exports.HOME_BUTTON_TEMPLATE = exports.BACK_BUTTON_TEMPLATE = exports.SERVICE_ERROR_TEMPLATE_FOR_EMPLOYEE = exports.SERVICE_ERROR_TEMPLATE = void 0;
+    exports.SUPPORT_FALLBACK_CONTACT = exports.SUPPORT_EMAIL_TEMPLATE = exports.AUDIT_LINK_TEMPLATE = exports.SUPPORT_LINE_TEMPLATE = exports.HOME_BUTTON_TEMPLATE = exports.BACK_BUTTON_TEMPLATE = exports.SERVICE_ERROR_TEMPLATE_FOR_EMPLOYEE = exports.SERVICE_ERROR_TEMPLATE = void 0;
     // The support line sits BELOW the buttons, small and muted: a user who is stuck needs a code to quote,
     // but it is not an invitation to write in — the message above has already told them the team knows.
     // The same shape as FriendlyErrorPage in FS.Shared.Website, which renders this view's equivalent when a
@@ -37547,8 +37547,12 @@ define('app/error/errorTemplates',["require", "exports"], function (require, exp
    <div class="buttons-row">
       <div class="buttons">
          [#BUTTONS#]
-         <a class="btn btn-success" href="javascript:;" onclick="alert($('.ajax-error-content').html())">Show the error here</a>&nbsp;
-         <a name="ShowMeTheError" class="btn btn-primary" href="[#URL#]" target="_blank" default-button="true">Show me the error</a>
+         <!-- The two diagnostic buttons do different things, so the labels have to say which is which:
+              the first shows what this failed request already returned, the second re-issues the request
+              in a new tab (a fresh GET, so it will not reproduce a failure that depended on the original
+              request's method or body). -->
+         <a class="btn btn-success" href="javascript:;" title="Show the response this failed request returned, without leaving the page." onclick="alert($('.ajax-error-content').html())">Show response details here</a>&nbsp;
+         <a name="ShowMeTheError" class="btn btn-primary" href="[#URL#]" target="_blank" title="Request the failing URL again in a new tab, to see the full server error page." default-button="true">Open failing URL in a new tab</a>
       </div>
    </div>
    [#SUPPORT#]
@@ -37566,11 +37570,14 @@ define('app/error/errorTemplates',["require", "exports"], function (require, exp
     exports.BACK_BUTTON_TEMPLATE = `<a class="btn btn-primary" href="[#BACK_URL#]">Back</a>&nbsp;`;
     exports.HOME_BUTTON_TEMPLATE = `<a class="btn btn-secondary" href="/">Home</a>&nbsp;`;
     exports.SUPPORT_LINE_TEMPLATE = `<p class="support text-muted small">If you need to contact [#CONTACT#], quote reference <b>[#REFERENCE_CODE#]</b>.</p>`;
+    // Employees get the code as a link to the audit service's Request logs page, which looks the request
+    // up by exactly this code. In a new tab, so the error view (and the URL that produced it) is not lost.
+    exports.AUDIT_LINK_TEMPLATE = `<a href="[#AUDIT_URL#]" target="_blank" title="Find this request in the audit log">[#REFERENCE_CODE#]</a>`;
     exports.SUPPORT_EMAIL_TEMPLATE = `<a href="mailto:[#SUPPORT_EMAIL#][#SUBJECT#]">[#SUPPORT_EMAIL#]</a>`;
     exports.SUPPORT_FALLBACK_CONTACT = `your system administrator`;
 });
 //# sourceMappingURL=errorTemplates.js.map;
-define('app/error/errorViewsNavigator',["require", "exports", "../model/currentUser", "../model/hubSettings", "./errorTemplates", "../model/service", "../extensions"], function (require, exports, currentUser_1, hubSettings_1, errorTemplates_1) {
+define('app/error/errorViewsNavigator',["require", "exports", "../model/service", "../model/currentUser", "../model/hubSettings", "./errorTemplates", "../model/service", "../extensions"], function (require, exports, service_1, currentUser_1, hubSettings_1, errorTemplates_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     // Set on every response by Olive's reference code middleware. Support can search the logs for it.
@@ -37581,6 +37588,14 @@ define('app/error/errorViewsNavigator',["require", "exports", "../model/currentU
     // A page that does not exist is not a fault. Nobody has been notified, nothing was logged for support to
     // find, and offering a reference code for it invites a conversation about a bug that never happened.
     const NOT_FOUND = 404;
+    // The audit service's Request logs page, reached through the Hub as /[service]/request-logs. It searches
+    // by the whole code, REF- prefix included. Its own gate is Dev, DevOps and ViewLogs, so an employee
+    // without one of those roles gets an access denied rather than the log — that is the audit service's
+    // call to make, and the code is still there to quote either way.
+    const AUDIT_LOG_PATH = "/request-logs?Reference=";
+    // The name the audit service registers itself under differs between environments, so the URL is built
+    // from whichever one is actually in window["services"] rather than hard-coded.
+    const AUDIT_SERVICE_NAMES = ["Audit", "AuditLog"];
     class ErrorViewsNavigator {
         static showServiceError(trigger, service, url, response, backUrl) {
             this.showError(trigger, url, response, service.Name, backUrl);
@@ -37638,7 +37653,7 @@ define('app/error/errorViewsNavigator',["require", "exports", "../model/currentU
             // about. Only a real failure gets the "we know" message.
             if (response.status == NOT_FOUND)
                 return "The page you are looking for is not available. It may have been moved or removed.";
-            return "Our technical team has been notified and is working on it. Please try again in a few moments.";
+            return "Our technical team has been notified and is working on it. Please try again later.";
         }
         // Services running an older version of Olive do not send the header, and the response of a
         // failed cross-origin request is not necessarily one of ours, so the value is not trusted.
@@ -37668,8 +37683,38 @@ define('app/error/errorViewsNavigator',["require", "exports", "../model/currentU
                 : errorTemplates_1.SUPPORT_FALLBACK_CONTACT;
             return this.fill(errorTemplates_1.SUPPORT_LINE_TEMPLATE, {
                 "[#CONTACT#]": contact,
+                "[#REFERENCE_CODE#]": this.getReferenceCodeHtml(referenceCode)
+            });
+        }
+        // For an employee the code is the way into the log, so it is a link. For everyone else it stays plain
+        // text: the audit service would refuse them, and a link they cannot open only causes a support call.
+        static getReferenceCodeHtml(referenceCode) {
+            if (!currentUser_1.default.isEmployee)
+                return referenceCode;
+            const auditUrl = this.getAuditUrl(referenceCode);
+            if (!auditUrl)
+                return referenceCode;
+            return this.fill(errorTemplates_1.AUDIT_LINK_TEMPLATE, {
+                "[#AUDIT_URL#]": auditUrl,
                 "[#REFERENCE_CODE#]": referenceCode
             });
+        }
+        // Nothing is linked when the audit service is not registered in this Hub: a dead link on an error page
+        // is worse than the plain code, which support can search for anyway.
+        static getAuditUrl(referenceCode) {
+            for (const name of AUDIT_SERVICE_NAMES) {
+                let service;
+                // fromName throws rather than returning null when a service is not registered.
+                try {
+                    service = service_1.default.fromName(name);
+                }
+                catch (error) {
+                    continue;
+                }
+                // The Hub address of a service page, i.e. what the features menu links to.
+                return service.AddressBarPrefix + AUDIT_LOG_PATH + encodeURIComponent(referenceCode);
+            }
+            return "";
         }
         static getButtons(backUrl) {
             const back = backUrl
