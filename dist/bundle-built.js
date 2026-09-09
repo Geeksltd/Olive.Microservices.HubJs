@@ -37611,6 +37611,11 @@ define('app/model/currentUser',["require", "exports"], function (require, export
         static get isEmployee() {
             return window["isEmployee"] === true;
         }
+        // Set by the Hub website alongside isEmployee. Services on an older Hub do not set it, so every
+        // caller has to cope with an empty string rather than assume there is an address to show.
+        static get email() {
+            return window["userEmail"] || "";
+        }
     }
     exports.default = CurrentUser;
 });
@@ -37629,7 +37634,7 @@ define('app/model/hubSettings',["require", "exports"], function (require, export
 define('app/error/errorTemplates',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.SUPPORT_FALLBACK_CONTACT = exports.SUPPORT_EMAIL_TEMPLATE = exports.AUDIT_LINK_TEMPLATE = exports.SUPPORT_LINE_TEMPLATE = exports.HOME_BUTTON_TEMPLATE = exports.BACK_BUTTON_TEMPLATE = exports.SERVICE_ERROR_TEMPLATE_FOR_EMPLOYEE = exports.SERVICE_ERROR_TEMPLATE = void 0;
+    exports.ACCESS_DENIED_BACK_BUTTON_TEMPLATE = exports.ACCESS_DENIED_HOME_BUTTON_TEMPLATE = exports.ACCESS_DENIED_LEAD = exports.ACCESS_DENIED_LEAD_WITH_ACCOUNT = exports.ACCESS_DENIED_TEMPLATE = exports.SUPPORT_FALLBACK_CONTACT = exports.SUPPORT_EMAIL_TEMPLATE = exports.AUDIT_LINK_TEMPLATE = exports.SUPPORT_LINE_TEMPLATE = exports.HOME_BUTTON_TEMPLATE = exports.BACK_BUTTON_TEMPLATE = exports.SERVICE_ERROR_TEMPLATE_FOR_EMPLOYEE = exports.SERVICE_ERROR_TEMPLATE = void 0;
     // The support line sits BELOW the buttons, small and muted: a user who is stuck needs a code to quote,
     // but it is not an invitation to write in — the message above has already told them the team knows.
     // The same shape as FriendlyErrorPage in FS.Shared.Website, which renders this view's equivalent when a
@@ -37692,6 +37697,48 @@ define('app/error/errorTemplates',["require", "exports"], function (require, exp
     exports.AUDIT_LINK_TEMPLATE = `<a href="[#AUDIT_URL#]" target="_blank" title="Find this request in the audit log">[#REFERENCE_CODE#]</a>`;
     exports.SUPPORT_EMAIL_TEMPLATE = `<a href="mailto:[#SUPPORT_EMAIL#][#SUBJECT#]">[#SUPPORT_EMAIL#]</a>`;
     exports.SUPPORT_FALLBACK_CONTACT = `your system administrator`;
+    // A 403 is not a fault. Nothing was logged, nobody was notified, and the page the user asked for is
+    // exactly where they thought it was — they simply are not entitled to it. So this view says who they
+    // are signed in as and what to do about it, and offers no reference code: there is nothing to look up.
+    // The card is styled by the hub's base stylesheet (styles/common/components/access-denied.scss in
+    // Olive.Microservices.Hub), which is where its colour tokens live. Only class hooks appear here.
+    exports.ACCESS_DENIED_TEMPLATE = `
+<main>
+  <div class="error access-denied">
+    <div class="access-denied-eyebrow">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <rect x="3.5" y="8.5" width="13" height="9" rx="2" stroke="currentColor" stroke-width="1.6"></rect>
+        <path d="M6.75 8.5V6.25a3.25 3.25 0 0 1 6.5 0V8.5" stroke="currentColor" stroke-width="1.6"></path>
+      </svg>
+      <span>Not available to your account</span>
+    </div>
+
+    <h1 class="access-denied-title">[#AREA#] is not open to your account</h1>
+
+    <p class="access-denied-lead">[#LEAD#] The page still exists, so the link you followed is fine.</p>
+
+    <div class="access-denied-next">
+      <div class="access-denied-next-title">Two things worth trying</div>
+      <ul>
+        <li>If you have a second account with wider access, <a href="[#LOGIN_URL#]">sign in as a different user</a>.</li>
+        <li>Otherwise, ask to have [#AREA_MID#] added to this account. Staff should speak to their team lead; applicants should contact Admissions.</li>
+      </ul>
+    </div>
+
+    <div class="buttons-row">
+      [#BUTTONS#]
+    </div>
+  </div>
+</main>
+`;
+    // Naming the account matters when someone is signed in as the wrong one of two, which is the common
+    // cause. The address is only shown when the server has told us what it is.
+    exports.ACCESS_DENIED_LEAD_WITH_ACCOUNT = `You are signed in as <span class="access-denied-account">[#USER_EMAIL#]</span>, and this account does not include [#AREA_MID#].`;
+    exports.ACCESS_DENIED_LEAD = `This account does not include [#AREA_MID#].`;
+    // Home leads here, unlike the fault view: there is nothing to retry on this page, so the way out is
+    // somewhere the user can actually go.
+    exports.ACCESS_DENIED_HOME_BUTTON_TEMPLATE = `<a class="btn btn-primary" href="/">Home</a>`;
+    exports.ACCESS_DENIED_BACK_BUTTON_TEMPLATE = `<a class="btn btn-secondary" href="[#BACK_URL#]">Back</a>`;
 });
 //# sourceMappingURL=errorTemplates.js.map;
 define('app/error/errorViewsNavigator',["require", "exports", "../model/service", "../model/currentUser", "../model/hubSettings", "./errorTemplates", "../model/service", "../extensions"], function (require, exports, service_1, currentUser_1, hubSettings_1, errorTemplates_1) {
@@ -37705,6 +37752,10 @@ define('app/error/errorViewsNavigator',["require", "exports", "../model/service"
     // A page that does not exist is not a fault. Nobody has been notified, nothing was logged for support to
     // find, and offering a reference code for it invites a conversation about a bug that never happened.
     const NOT_FOUND = 404;
+    // Nor is a page the user is not entitled to see. A 403 means the page is exactly where they expected
+    // and their account does not reach it, which is a different conversation from a fault, so it gets its
+    // own view rather than an apology and a reference code.
+    const FORBIDDEN = 403;
     // The audit service's Request logs page, reached through the Hub as /[service]/request-logs. It searches
     // by the whole code, REF- prefix included. Its own gate is Dev, DevOps and ViewLogs, so an employee
     // without one of those roles gets an access denied rather than the log — that is the audit service's
@@ -37725,6 +37776,13 @@ define('app/error/errorViewsNavigator',["require", "exports", "../model/service"
             this.showError(trigger, url, response, null, backUrl);
         }
         static showError(trigger, url, response, serviceName, backUrl) {
+            const errorContent = response.status == FORBIDDEN
+                ? this.getAccessDeniedContent(serviceName, backUrl)
+                : this.getFaultContent(url, response, serviceName, backUrl);
+            this.render(trigger, errorContent);
+        }
+        // Something broke: the team has been notified and the user gets a code to quote.
+        static getFaultContent(url, response, serviceName, backUrl) {
             let errorContent = currentUser_1.default.isEmployee
                 ? this.fill(errorTemplates_1.SERVICE_ERROR_TEMPLATE_FOR_EMPLOYEE, {
                     "[#SERVICE#]": serviceName || this.hostOf(url),
@@ -37734,11 +37792,36 @@ define('app/error/errorViewsNavigator',["require", "exports", "../model/service"
                 })
                 : errorTemplates_1.SERVICE_ERROR_TEMPLATE;
             const referenceCode = response.status == NOT_FOUND ? "" : this.getReferenceCode(response);
-            errorContent = this.fill(errorContent, {
+            return this.fill(errorContent, {
                 "[#MESSAGE#]": this.getMessage(response),
                 "[#SUPPORT#]": this.getSupportLine(referenceCode),
                 "[#BUTTONS#]": this.getButtons(backUrl)
             });
+        }
+        // Nothing broke: the page is fine and this account does not reach it. No reference code and no
+        // "we have been notified", because neither is true — the way out is a different account or an
+        // access request, and the view says so instead of apologising for a fault that did not happen.
+        static getAccessDeniedContent(serviceName, backUrl) {
+            const area = this.getAreaName(serviceName);
+            // With no name for it the sentences still have to read, so the wording falls back to "this page"
+            // — capitalised where it opens the headline, lower case where it sits mid-sentence.
+            const areaStart = area || "This page";
+            const areaMid = area || "this page";
+            const lead = currentUser_1.default.email
+                ? this.fill(errorTemplates_1.ACCESS_DENIED_LEAD_WITH_ACCOUNT, {
+                    "[#USER_EMAIL#]": this.escape(currentUser_1.default.email),
+                    "[#AREA_MID#]": areaMid
+                })
+                : this.fill(errorTemplates_1.ACCESS_DENIED_LEAD, { "[#AREA_MID#]": areaMid });
+            return this.fill(errorTemplates_1.ACCESS_DENIED_TEMPLATE, {
+                "[#AREA#]": areaStart,
+                "[#AREA_MID#]": areaMid,
+                "[#LOGIN_URL#]": this.getLoginUrl(),
+                "[#BUTTONS#]": this.getAccessDeniedButtons(backUrl),
+                "[#LEAD#]": lead
+            });
+        }
+        static render(trigger, errorContent) {
             if (trigger && trigger.length > 0) {
                 if (trigger.prop("tagName") == "MAIN") {
                     trigger.html(errorContent);
@@ -37755,6 +37838,34 @@ define('app/error/errorViewsNavigator',["require", "exports", "../model/service"
                 return;
             }
             $("main").html(errorContent);
+        }
+        // The name of what they cannot reach, as the user knows it: the page they were heading for, which
+        // the breadcrumb names, falling back to the service it belongs to. Empty when neither is known.
+        static getAreaName(serviceName) {
+            const breadcrumb = $(".breadcrumb").children().last().text().trim();
+            if (breadcrumb)
+                return this.escape(breadcrumb);
+            return serviceName ? this.escape(serviceName) : "";
+        }
+        // Signing in again should land back on the page they were denied, in case the other account does
+        // reach it. This is the plain returnUrl form (the one Url uses when it sends someone to the login
+        // page from a query string) rather than Url's gzipped form, which needs the DI'd Url component.
+        static getLoginUrl() {
+            const returnUrl = window.location.pathname + window.location.search;
+            return "/login?returnUrl=" + encodeURIComponent(returnUrl);
+        }
+        // Home comes first and takes the primary style here: there is nothing to retry on this page, so the
+        // useful action is leaving it, not going back to whatever linked here.
+        static getAccessDeniedButtons(backUrl) {
+            const back = backUrl
+                ? this.fill(errorTemplates_1.ACCESS_DENIED_BACK_BUTTON_TEMPLATE, { "[#BACK_URL#]": backUrl })
+                : "";
+            return errorTemplates_1.ACCESS_DENIED_HOME_BUTTON_TEMPLATE + back;
+        }
+        // The address and the area name are rendered into markup, and neither is ours to trust: the address
+        // comes from the server and the area name from whatever the breadcrumb happens to hold.
+        static escape(value) {
+            return $("<div/>").text(value).html();
         }
         // A label for the failing target when it maps to no registered service (employee diagnostic view only).
         static hostOf(url) {

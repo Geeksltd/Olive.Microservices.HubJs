@@ -4,6 +4,11 @@ import Service from '../model/service';
 import CurrentUser from '../model/currentUser';
 import HubSettings from '../model/hubSettings';
 import {
+    ACCESS_DENIED_BACK_BUTTON_TEMPLATE,
+    ACCESS_DENIED_HOME_BUTTON_TEMPLATE,
+    ACCESS_DENIED_LEAD,
+    ACCESS_DENIED_LEAD_WITH_ACCOUNT,
+    ACCESS_DENIED_TEMPLATE,
     AUDIT_LINK_TEMPLATE,
     BACK_BUTTON_TEMPLATE,
     HOME_BUTTON_TEMPLATE,
@@ -24,6 +29,11 @@ const REFERENCE_CODE_FORMAT = /^REF-[A-Z2-9]{12}$/;
 // A page that does not exist is not a fault. Nobody has been notified, nothing was logged for support to
 // find, and offering a reference code for it invites a conversation about a bug that never happened.
 const NOT_FOUND = 404;
+
+// Nor is a page the user is not entitled to see. A 403 means the page is exactly where they expected
+// and their account does not reach it, which is a different conversation from a fault, so it gets its
+// own view rather than an apology and a reference code.
+const FORBIDDEN = 403;
 
 // The audit service's Request logs page, reached through the Hub as /[service]/request-logs. It searches
 // by the whole code, REF- prefix included. Its own gate is Dev, DevOps and ViewLogs, so an employee
@@ -50,6 +60,16 @@ export default class ErrorViewsNavigator {
 
     private static showError(trigger: JQuery, url: string, response: JQueryXHR, serviceName: string | null, backUrl?: string) {
 
+        const errorContent = response.status == FORBIDDEN
+            ? this.getAccessDeniedContent(serviceName, backUrl)
+            : this.getFaultContent(url, response, serviceName, backUrl);
+
+        this.render(trigger, errorContent);
+    }
+
+    // Something broke: the team has been notified and the user gets a code to quote.
+    private static getFaultContent(url: string, response: JQueryXHR, serviceName: string | null, backUrl?: string): string {
+
         let errorContent = CurrentUser.isEmployee
             ? this.fill(SERVICE_ERROR_TEMPLATE_FOR_EMPLOYEE, {
                 "[#SERVICE#]": serviceName || this.hostOf(url),
@@ -61,11 +81,42 @@ export default class ErrorViewsNavigator {
 
         const referenceCode = response.status == NOT_FOUND ? "" : this.getReferenceCode(response);
 
-        errorContent = this.fill(errorContent, {
+        return this.fill(errorContent, {
             "[#MESSAGE#]": this.getMessage(response),
             "[#SUPPORT#]": this.getSupportLine(referenceCode),
             "[#BUTTONS#]": this.getButtons(backUrl)
         });
+    }
+
+    // Nothing broke: the page is fine and this account does not reach it. No reference code and no
+    // "we have been notified", because neither is true — the way out is a different account or an
+    // access request, and the view says so instead of apologising for a fault that did not happen.
+    private static getAccessDeniedContent(serviceName: string | null, backUrl?: string): string {
+
+        const area = this.getAreaName(serviceName);
+
+        // With no name for it the sentences still have to read, so the wording falls back to "this page"
+        // — capitalised where it opens the headline, lower case where it sits mid-sentence.
+        const areaStart = area || "This page";
+        const areaMid = area || "this page";
+
+        const lead = CurrentUser.email
+            ? this.fill(ACCESS_DENIED_LEAD_WITH_ACCOUNT, {
+                "[#USER_EMAIL#]": this.escape(CurrentUser.email),
+                "[#AREA_MID#]": areaMid
+            })
+            : this.fill(ACCESS_DENIED_LEAD, { "[#AREA_MID#]": areaMid });
+
+        return this.fill(ACCESS_DENIED_TEMPLATE, {
+            "[#AREA#]": areaStart,
+            "[#AREA_MID#]": areaMid,
+            "[#LOGIN_URL#]": this.getLoginUrl(),
+            "[#BUTTONS#]": this.getAccessDeniedButtons(backUrl),
+            "[#LEAD#]": lead
+        });
+    }
+
+    private static render(trigger: JQuery, errorContent: string) {
 
         if (trigger && trigger.length > 0) {
             if (trigger.prop("tagName") == "MAIN") {
@@ -86,6 +137,39 @@ export default class ErrorViewsNavigator {
         }
 
         $("main").html(errorContent);
+    }
+
+    // The name of what they cannot reach, as the user knows it: the page they were heading for, which
+    // the breadcrumb names, falling back to the service it belongs to. Empty when neither is known.
+    private static getAreaName(serviceName: string | null): string {
+        const breadcrumb = $(".breadcrumb").children().last().text().trim();
+        if (breadcrumb) return this.escape(breadcrumb);
+
+        return serviceName ? this.escape(serviceName) : "";
+    }
+
+    // Signing in again should land back on the page they were denied, in case the other account does
+    // reach it. This is the plain returnUrl form (the one Url uses when it sends someone to the login
+    // page from a query string) rather than Url's gzipped form, which needs the DI'd Url component.
+    private static getLoginUrl(): string {
+        const returnUrl = window.location.pathname + window.location.search;
+        return "/login?returnUrl=" + encodeURIComponent(returnUrl);
+    }
+
+    // Home comes first and takes the primary style here: there is nothing to retry on this page, so the
+    // useful action is leaving it, not going back to whatever linked here.
+    private static getAccessDeniedButtons(backUrl: string): string {
+        const back = backUrl
+            ? this.fill(ACCESS_DENIED_BACK_BUTTON_TEMPLATE, { "[#BACK_URL#]": backUrl })
+            : "";
+
+        return ACCESS_DENIED_HOME_BUTTON_TEMPLATE + back;
+    }
+
+    // The address and the area name are rendered into markup, and neither is ours to trust: the address
+    // comes from the server and the area name from whatever the breadcrumb happens to hold.
+    private static escape(value: string): string {
+        return $("<div/>").text(value).html();
     }
 
     // A label for the failing target when it maps to no registered service (employee diagnostic view only).

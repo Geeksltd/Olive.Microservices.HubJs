@@ -5,6 +5,13 @@ export default class ErrorViewsNavigator {
     static showServiceError(trigger: JQuery, service: Service, url: string, response: JQueryXHR, backUrl?: string): void;
     static showGenericError(trigger: JQuery, url: string, response: JQueryXHR, backUrl?: string): void;
     private static showError;
+    private static getFaultContent;
+    private static getAccessDeniedContent;
+    private static render;
+    private static getAreaName;
+    private static getLoginUrl;
+    private static getAccessDeniedButtons;
+    private static escape;
     private static hostOf;
     private static getMessage;
     private static getReferenceCode;
