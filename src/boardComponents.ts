@@ -437,14 +437,15 @@ export default class BoardComponents implements IService {
                     }
                     console.log(response);
                     console.log(x);
-                    // Build the failure message as elements so the fallback URL
-                    // doesn't need interpolation into an HTML string.
+                    // A widget is one tile on a board, so the failure is one line inside it rather than
+                    // the full error card a failed page navigation gets. Built as elements so the
+                    // fallback URL doesn't need interpolation into an HTML string.
                     const fallbackHref = this.input.attr("src") || '';
-                    const fallbackLink = $('<a target="_blank">').attr('href', fallbackHref).text('widget');
+                    const fallbackLink = $('<a target="_blank">').attr('href', fallbackHref).text('Open it directly');
                     placeholder.empty().append(
-                        $('<div>').append('<br/><br/><br/>').append(
-                            $('<center>').append('Failed to load ').append(fallbackLink)
-                        )
+                        $('<div class="board-error">')
+                            .append($('<span>').text('This widget could not be loaded. '))
+                            .append(fallbackLink)
                     );
                     resolve();
                 }
@@ -1032,11 +1033,11 @@ export default class BoardComponents implements IService {
 
     protected onError(sender: IAjaxObject, boardHolder: JQuery, jqXHR: JQueryXHR) {
         sender.state = AjaxState.failed;
-        const ulFail = $("<div class=\"item\">");
-        ulFail.append($("<a>")
-            .html("ajax failed Loading data from source [" + sender.url + "]"));
-        boardHolder.append(ulFail);
-        console.error(jqXHR);
+        // What the user is told and what a developer needs are different things. The board shows one
+        // line saying this part did not load; the failing URL and the response go to the console, where
+        // they are useful and where they are not read as an instruction to the person at the screen.
+        boardHolder.append($('<div class="item board-error">').text("This section could not be loaded."));
+        console.error("Board source failed: " + sender.url, jqXHR);
     }
 }
 

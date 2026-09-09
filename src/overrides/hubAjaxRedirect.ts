@@ -34,6 +34,11 @@ export default class HubAjaxRedirect extends AjaxRedirect {
     }
 
     protected onRedirectionFailed(trigger: JQuery, url: string, response: JQueryXHR) {
+        // A request the page itself cancelled is not a failure. Bailing out here rather than only in the
+        // error view keeps the address bar and the history entry alone as well, which a user who simply
+        // clicked away has no reason to see rewritten to "Error > ...".
+        if (response.statusText == "abort") return;
+
         if (response.status == 401) {
             this.url.goToUrlAfterLogin(this.url.current());
         }
@@ -57,7 +62,10 @@ export default class HubAjaxRedirect extends AjaxRedirect {
                     (window.page as OlivePage).getService<MainTagHelper>(Services.MainTagHelper)
                         .changeUrl(relativeUrl, mainTag.attr("name").replace("$", ""), "Error > " + service.Name);
                 }
-                ErrorViewsNavigator.showServiceError(trigger, service, url, response, backUrl);
+                // The address bar now holds the failing page's hub address, so it is also the address
+                // that would re-request it. The error view offers it as Try again; a reload would not do,
+                // because the main tag branch above leaves the address bar on the surrounding page.
+                ErrorViewsNavigator.showServiceError(trigger, service, url, response, backUrl, addressBar);
             }
             else
                 // No service maps to this url. Render the same error view (message + reference code)

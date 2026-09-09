@@ -37634,111 +37634,173 @@ define('app/model/hubSettings',["require", "exports"], function (require, export
 define('app/error/errorTemplates',["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.ACCESS_DENIED_BACK_BUTTON_TEMPLATE = exports.ACCESS_DENIED_HOME_BUTTON_TEMPLATE = exports.ACCESS_DENIED_LEAD = exports.ACCESS_DENIED_LEAD_WITH_ACCOUNT = exports.ACCESS_DENIED_TEMPLATE = exports.SUPPORT_FALLBACK_CONTACT = exports.SUPPORT_EMAIL_TEMPLATE = exports.AUDIT_LINK_TEMPLATE = exports.SUPPORT_LINE_TEMPLATE = exports.HOME_BUTTON_TEMPLATE = exports.BACK_BUTTON_TEMPLATE = exports.SERVICE_ERROR_TEMPLATE_FOR_EMPLOYEE = exports.SERVICE_ERROR_TEMPLATE = void 0;
-    // The support line sits BELOW the buttons, small and muted: a user who is stuck needs a code to quote,
-    // but it is not an invitation to write in — the message above has already told them the team knows.
-    // The same shape as FriendlyErrorPage in FS.Shared.Website, which renders this view's equivalent when a
-    // request fails outside the Hub. If you change one, change the other.
-    exports.SERVICE_ERROR_TEMPLATE = `
+    exports.SUPPORT_FALLBACK_CONTACT = exports.SUPPORT_EMAIL_TEMPLATE = exports.AUDIT_LINK_TEMPLATE = exports.SUPPORT_LINE_TEMPLATE = exports.EMPLOYEE_RESPONSE_TEMPLATE = exports.EMPLOYEE_OPEN_URL_BUTTON_TEMPLATE = exports.EMPLOYEE_DETAIL_NO_RESPONSE_TEMPLATE = exports.EMPLOYEE_DETAIL_TEMPLATE = exports.OFFLINE_NEXT_ITEMS = exports.OFFLINE_NEXT_TITLE = exports.OFFLINE_LEAD = exports.OFFLINE_TITLE = exports.OFFLINE_EYEBROW = exports.OFFLINE_MODIFIER = exports.FAULT_LEAD = exports.FAULT_TITLE = exports.FAULT_EYEBROW = exports.FAULT_MODIFIER = exports.NOT_FOUND_NEXT_ITEMS = exports.NOT_FOUND_NEXT_TITLE = exports.NOT_FOUND_LEAD = exports.NOT_FOUND_TITLE = exports.NOT_FOUND_EYEBROW = exports.NOT_FOUND_MODIFIER = exports.ACCESS_DENIED_NEXT_ITEMS = exports.ACCESS_DENIED_NEXT_TITLE = exports.ACCESS_DENIED_LEAD = exports.ACCESS_DENIED_LEAD_WITH_ACCOUNT = exports.ACCESS_DENIED_TITLE = exports.ACCESS_DENIED_EYEBROW = exports.ACCESS_DENIED_MODIFIER = exports.OFFLINE_ICON = exports.FAULT_ICON = exports.MISSING_ICON = exports.DENIED_ICON = exports.BUTTON_TEMPLATE = exports.NEXT_STEPS_TEMPLATE = exports.ERROR_CARD_TEMPLATE = void 0;
+    // Every error view the hub renders is this one card with different words in it, so a user who hits two
+    // different failures sees one design rather than two. The parts only some views need — the next steps
+    // box, the employee diagnostics, the support line — are whole blocks, and a view with nothing true to
+    // put in one fills it with an empty string rather than carrying a second copy of the markup.
+    //
+    // Each view says only what is true of its own status. A 403 is not a fault and neither is a 404, so
+    // neither claims anyone has been notified; a dropped connection reached no server at all, so it does not
+    // offer a reference code there is no response to carry.
+    //
+    // The card is styled by the hub's base stylesheet (styles/common/components/error-card.scss in the hub
+    // repo), which is where its colour tokens live. Only class hooks appear here. The modifier picks the
+    // accent for the status; the stylesheet defaults every modifier to the same colour, so a theme that has
+    // not been updated still renders all four views correctly.
+    exports.ERROR_CARD_TEMPLATE = `
 <main>
-  <div class="error" >
-   <h2>Something went wrong</h2>
-   <h4>
-      [#MESSAGE#]
-   </h4>
-   <div class="buttons-row">
-      <div class="buttons">
-         [#BUTTONS#]
-      </div>
-   </div>
-   [#SUPPORT#]
-   <br/>
+  <div class="error error-card [#MODIFIER#]">
+    <div class="error-card-eyebrow">
+      [#ICON#]
+      <span>[#EYEBROW#]</span>
+    </div>
+
+    <h1 class="error-card-title">[#TITLE#]</h1>
+
+    <p class="error-card-lead">[#LEAD#]</p>
+
+    [#NEXT#]
+
+    [#DETAIL#]
+
+    <div class="buttons-row">
+      [#BUTTONS#]
+    </div>
+
+    [#SUPPORT#]
   </div>
 </main>
 `;
-    exports.SERVICE_ERROR_TEMPLATE_FOR_EMPLOYEE = `
-<main>
-  <div class="error" >
-   <h2>Something went wrong</h2>
-   <h4>
-      [#MESSAGE#]
-   </h4>
-   <p>
-      The <b>[#SERVICE#]</b> service returned status [#STATUS#].
-   </p>
-   <div class="buttons-row">
-      <div class="buttons">
-         [#BUTTONS#]
-         <!-- The two diagnostic buttons do different things, so the labels have to say which is which:
-              the first shows what this failed request already returned, the second re-issues the request
-              in a new tab (a fresh GET, so it will not reproduce a failure that depended on the original
-              request's method or body). -->
-         <a class="btn btn-success" href="javascript:;" title="Show the response this failed request returned, without leaving the page." onclick="alert($('.ajax-error-content').html())">Show response details here</a>&nbsp;
-         <a name="ShowMeTheError" class="btn btn-primary" href="[#URL#]" target="_blank" title="Request the failing URL again in a new tab, to see the full server error page." default-button="true">Open failing URL in a new tab</a>
+    // Only offered where there is something to suggest that the buttons do not already say. The fault view
+    // has no box: the one useful step is to try again, and that is a button.
+    exports.NEXT_STEPS_TEMPLATE = `
+    <div class="error-card-next">
+      <div class="error-card-next-title">[#NEXT_TITLE#]</div>
+      <ul>
+        [#NEXT_ITEMS#]
+      </ul>
+    </div>
+`;
+    // One button, with the caller choosing which one carries btn-primary. The useful action differs by view —
+    // Home where there is nothing to retry, Try again where there is — and the primary style is what says
+    // which one that is. The card lays the row out with a flex gap, so no separator is needed between them.
+    exports.BUTTON_TEMPLATE = `<a class="btn [#BUTTON_STYLE#]" href="[#BUTTON_URL#]">[#BUTTON_LABEL#]</a>`;
+    // 20px line icons drawn in currentColor, so the modifier's accent carries them without a second token.
+    exports.DENIED_ICON = `<svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="3.5" y="8.5" width="13" height="9" rx="2" stroke="currentColor" stroke-width="1.6"></rect><path d="M6.75 8.5V6.25a3.25 3.25 0 0 1 6.5 0V8.5" stroke="currentColor" stroke-width="1.6"></path></svg>`;
+    // A magnifier rather than a document: it says the page was looked for and not found, where a document
+    // on its own only says "page".
+    exports.MISSING_ICON = `<svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="9" cy="9" r="5.5" stroke="currentColor" stroke-width="1.6"></circle><path d="M13.2 13.2 17 17" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path></svg>`;
+    exports.FAULT_ICON = `<svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 3.2 2.8 16.2h14.4L10 3.2Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"></path><path d="M10 8.2v3.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path><path d="M10 14.1h.01" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path></svg>`;
+    exports.OFFLINE_ICON = `<svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M6.2 15.5h7.4a3.3 3.3 0 0 0 .5-6.56 4.5 4.5 0 0 0-8.2-1.7A3.4 3.4 0 0 0 6.2 15.5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"></path><path d="M3 3 17 17" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path></svg>`;
+    // ---------------------------------------------------------------------------------------------------
+    // 403. Not a fault: nothing was logged, nobody was notified, and the page the user asked for is exactly
+    // where they thought it was — they simply are not entitled to it. So this view says who they are signed
+    // in as and what to do about it, and offers no reference code: there is nothing to look up.
+    // ---------------------------------------------------------------------------------------------------
+    exports.ACCESS_DENIED_MODIFIER = `error-card--denied`;
+    exports.ACCESS_DENIED_EYEBROW = `Not available to your account`;
+    exports.ACCESS_DENIED_TITLE = `[#AREA#] is not open to your account`;
+    // Naming the account matters when someone is signed in as the wrong one of two, which is the common
+    // cause. The address is only shown when the server has told us what it is.
+    exports.ACCESS_DENIED_LEAD_WITH_ACCOUNT = `You are signed in as <span class="error-card-account">[#USER_EMAIL#]</span>, and this account does not include [#AREA_MID#]. The page still exists, so the link you followed is fine.`;
+    exports.ACCESS_DENIED_LEAD = `This account does not include [#AREA_MID#]. The page still exists, so the link you followed is fine.`;
+    exports.ACCESS_DENIED_NEXT_TITLE = `Two things worth trying`;
+    exports.ACCESS_DENIED_NEXT_ITEMS = `
+        <li>If you have a second account with wider access, <a href="[#LOGIN_URL#]">sign in as a different user</a>.</li>
+        <li>Otherwise, ask to have [#AREA_MID#] added to this account. Staff should speak to their team lead; applicants should contact Admissions.</li>
+`;
+    // ---------------------------------------------------------------------------------------------------
+    // 404. Also not a fault. Nobody has been notified, nothing was logged for support to find, and offering
+    // a reference code for it invites a conversation about a bug that never happened. The two suggestions
+    // split by how the user got here, because a stale internal link and a mistyped address need different
+    // answers.
+    // ---------------------------------------------------------------------------------------------------
+    exports.NOT_FOUND_MODIFIER = `error-card--missing`;
+    exports.NOT_FOUND_EYEBROW = `Page not found`;
+    exports.NOT_FOUND_TITLE = `[#AREA#] has no page at that address`;
+    exports.NOT_FOUND_LEAD = `The link may be out of date, or the page may have been renamed or removed. Nothing has gone wrong, and nothing has been logged.`;
+    exports.NOT_FOUND_NEXT_TITLE = `Two things worth trying`;
+    exports.NOT_FOUND_NEXT_ITEMS = `
+        <li>If you followed a link from inside the hub, the page it pointed at has probably moved. Search [#AREA_MID#] for it by name.</li>
+        <li>If you typed or pasted the address, check it for a missing or an extra character.</li>
+`;
+    // ---------------------------------------------------------------------------------------------------
+    // 500 and anything else. Something did break: the team has been notified and the user gets a code to
+    // quote. The same shape as FriendlyErrorPage in FS.Shared.Website, which renders this view's equivalent
+    // when a request fails outside the Hub. If you change one, change the other.
+    // ---------------------------------------------------------------------------------------------------
+    exports.FAULT_MODIFIER = `error-card--fault`;
+    exports.FAULT_EYEBROW = `Something went wrong`;
+    exports.FAULT_TITLE = `[#AREA#] could not load this page`;
+    exports.FAULT_LEAD = `The request reached [#AREA_MID#] and it answered with an error. Our technical team has been notified and is working on it.`;
+    // ---------------------------------------------------------------------------------------------------
+    // Status 0. The request got no reply at all, so nothing reached us to be logged or notified about and
+    // saying otherwise would be a lie. The likely cause is the user's own connection, which is the one thing
+    // on this list they can do something about.
+    // ---------------------------------------------------------------------------------------------------
+    exports.OFFLINE_MODIFIER = `error-card--offline`;
+    exports.OFFLINE_EYEBROW = `No connection`;
+    exports.OFFLINE_TITLE = `We could not reach [#AREA_MID#]`;
+    exports.OFFLINE_LEAD = `The request got no reply at all, which usually means the connection dropped rather than anything being wrong with [#AREA_MID#]. Nothing has been logged, because nothing reached us.`;
+    exports.OFFLINE_NEXT_TITLE = `Two things worth trying`;
+    exports.OFFLINE_NEXT_ITEMS = `
+        <li>Check you are still online, then try again.</li>
+        <li>If you are on a VPN or a patchy connection, reconnect and try again.</li>
+`;
+    // ---------------------------------------------------------------------------------------------------
+    // The employee aside. What an employee needs and a user does not: which service answered, with what, and
+    // two ways into the detail. It sits below the message rather than mixed into it, so the first thing an
+    // employee reads is still the thing the user is reading. Not shown on the access denied view: nothing is
+    // broken there, so there is nothing to diagnose.
+    // ---------------------------------------------------------------------------------------------------
+    exports.EMPLOYEE_DETAIL_TEMPLATE = `
+    <div class="error-card-detail">
+      <p>The <b>[#SERVICE#]</b> service returned status [#STATUS#].</p>
+      <div class="buttons-row">
+        <!-- The two diagnostic buttons do different things, so the labels have to say which is which:
+             the first shows what this failed request already returned, the second re-issues the request
+             in a new tab (a fresh GET, so it will not reproduce a failure that depended on the original
+             request's method or body). It reads .text() rather than .html() because the response body is
+             escaped into the page below, and .html() would show the escaping rather than the response. -->
+        <a class="btn btn-outline-secondary" href="javascript:;" title="Show the response this failed request returned, without leaving the page." onclick="alert($('.ajax-error-content').text())">Show response details here</a>
+        [#OPEN_URL_BUTTON#]
       </div>
-   </div>
-   [#SUPPORT#]
-   <br/>
-  </div>
-</main>
+    </div>
+`;
+    // A status 0 has no status worth printing and no body to show, and the causes are worth naming because
+    // they look identical from the browser.
+    exports.EMPLOYEE_DETAIL_NO_RESPONSE_TEMPLATE = `
+    <div class="error-card-detail">
+      <p>The request to <b>[#SERVICE#]</b> returned no response at all, so there is nothing to show. A dropped connection, a CORS refusal and a service that is not running all look the same from here.</p>
+      <div class="buttons-row">
+        [#OPEN_URL_BUTTON#]
+      </div>
+    </div>
+`;
+    // No default-button attribute and no btn-primary, both of which this carried while the employee view was
+    // a page of its own. Olive triggers [default-button]:first anywhere in the document on Enter, so leaving
+    // it here would make Enter open a raw service URL in a new tab instead of pressing Try again — and the
+    // diagnostics must not outrank the action the user is actually meant to take.
+    exports.EMPLOYEE_OPEN_URL_BUTTON_TEMPLATE = `<a name="ShowMeTheError" class="btn btn-outline-secondary" href="[#URL#]" target="_blank" title="Request the failing URL again in a new tab, to see the full server error page.">Open failing URL in a new tab</a>`;
+    // Outside <main>, because it is not part of the view: it is the raw response body parked in the page for
+    // the "Show response details here" button to read back out.
+    exports.EMPLOYEE_RESPONSE_TEMPLATE = `
 <div class="ajax-error-content d-none">
-  <pre>
-    <code>
-      [#RESPONSE#]
-    </code>
-  </pre>
+  <pre><code>[#RESPONSE#]</code></pre>
 </div>
 `;
-    exports.BACK_BUTTON_TEMPLATE = `<a class="btn btn-primary" href="[#BACK_URL#]">Back</a>&nbsp;`;
-    exports.HOME_BUTTON_TEMPLATE = `<a class="btn btn-secondary" href="/">Home</a>&nbsp;`;
+    // ---------------------------------------------------------------------------------------------------
+    // The support line, on the fault view only. It sits BELOW the buttons, small and muted: a user who is
+    // stuck needs a code to quote, but it is not an invitation to write in — the message above has already
+    // told them the team knows.
+    // ---------------------------------------------------------------------------------------------------
     exports.SUPPORT_LINE_TEMPLATE = `<p class="support text-muted small">If you need to contact [#CONTACT#], quote reference <b>[#REFERENCE_CODE#]</b>.</p>`;
     // Employees get the code as a link to the audit service's Request logs page, which looks the request
     // up by exactly this code. In a new tab, so the error view (and the URL that produced it) is not lost.
     exports.AUDIT_LINK_TEMPLATE = `<a href="[#AUDIT_URL#]" target="_blank" title="Find this request in the audit log">[#REFERENCE_CODE#]</a>`;
     exports.SUPPORT_EMAIL_TEMPLATE = `<a href="mailto:[#SUPPORT_EMAIL#][#SUBJECT#]">[#SUPPORT_EMAIL#]</a>`;
     exports.SUPPORT_FALLBACK_CONTACT = `your system administrator`;
-    // A 403 is not a fault. Nothing was logged, nobody was notified, and the page the user asked for is
-    // exactly where they thought it was — they simply are not entitled to it. So this view says who they
-    // are signed in as and what to do about it, and offers no reference code: there is nothing to look up.
-    // The card is styled by the hub's base stylesheet (styles/common/components/access-denied.scss in
-    // Olive.Microservices.Hub), which is where its colour tokens live. Only class hooks appear here.
-    exports.ACCESS_DENIED_TEMPLATE = `
-<main>
-  <div class="error access-denied">
-    <div class="access-denied-eyebrow">
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-        <rect x="3.5" y="8.5" width="13" height="9" rx="2" stroke="currentColor" stroke-width="1.6"></rect>
-        <path d="M6.75 8.5V6.25a3.25 3.25 0 0 1 6.5 0V8.5" stroke="currentColor" stroke-width="1.6"></path>
-      </svg>
-      <span>Not available to your account</span>
-    </div>
-
-    <h1 class="access-denied-title">[#AREA#] is not open to your account</h1>
-
-    <p class="access-denied-lead">[#LEAD#] The page still exists, so the link you followed is fine.</p>
-
-    <div class="access-denied-next">
-      <div class="access-denied-next-title">Two things worth trying</div>
-      <ul>
-        <li>If you have a second account with wider access, <a href="[#LOGIN_URL#]">sign in as a different user</a>.</li>
-        <li>Otherwise, ask to have [#AREA_MID#] added to this account. Staff should speak to their team lead; applicants should contact Admissions.</li>
-      </ul>
-    </div>
-
-    <div class="buttons-row">
-      [#BUTTONS#]
-    </div>
-  </div>
-</main>
-`;
-    // Naming the account matters when someone is signed in as the wrong one of two, which is the common
-    // cause. The address is only shown when the server has told us what it is.
-    exports.ACCESS_DENIED_LEAD_WITH_ACCOUNT = `You are signed in as <span class="access-denied-account">[#USER_EMAIL#]</span>, and this account does not include [#AREA_MID#].`;
-    exports.ACCESS_DENIED_LEAD = `This account does not include [#AREA_MID#].`;
-    // Home leads here, unlike the fault view: there is nothing to retry on this page, so the way out is
-    // somewhere the user can actually go.
-    exports.ACCESS_DENIED_HOME_BUTTON_TEMPLATE = `<a class="btn btn-primary" href="/">Home</a>`;
-    exports.ACCESS_DENIED_BACK_BUTTON_TEMPLATE = `<a class="btn btn-secondary" href="[#BACK_URL#]">Back</a>`;
 });
 //# sourceMappingURL=errorTemplates.js.map;
 define('app/error/errorViewsNavigator',["require", "exports", "../model/service", "../model/currentUser", "../model/hubSettings", "./errorTemplates", "../model/service", "../extensions"], function (require, exports, service_1, currentUser_1, hubSettings_1, errorTemplates_1) {
@@ -37749,13 +37811,19 @@ define('app/error/errorViewsNavigator',["require", "exports", "../model/service"
     // Codes are 12 characters. The rollout that briefly allowed shorter (8-char) codes from
     // not-yet-upgraded services is complete, so anything other than 12 is no longer a valid code.
     const REFERENCE_CODE_FORMAT = /^REF-[A-Z2-9]{12}$/;
-    // A page that does not exist is not a fault. Nobody has been notified, nothing was logged for support to
-    // find, and offering a reference code for it invites a conversation about a bug that never happened.
-    const NOT_FOUND = 404;
-    // Nor is a page the user is not entitled to see. A 403 means the page is exactly where they expected
-    // and their account does not reach it, which is a different conversation from a fault, so it gets its
-    // own view rather than an apology and a reference code.
+    // Three of the statuses the hub lands on are not faults, and each gets its own view rather than an
+    // apology and a reference code, because none of them is a bug anyone could look up.
+    //
+    // A page the user is not entitled to see is exactly where they expected it to be; their account does not
+    // reach it, which is a different conversation from a failure.
     const FORBIDDEN = 403;
+    // A page that does not exist is not a fault either. Nobody has been notified, nothing was logged for
+    // support to find, and offering a reference code invites a conversation about a bug that never happened.
+    const NOT_FOUND = 404;
+    // jQuery reports status 0 when the request got no reply at all: the connection dropped, the origin
+    // refused it, or the service is not running. Nothing reached a server, so nothing was logged and nobody
+    // was notified, and the fault view's reassurance would be untrue.
+    const NETWORK_FAILURE = 0;
     // The audit service's Request logs page, reached through the Hub as /[service]/request-logs. It searches
     // by the whole code, REF- prefix included. Its own gate is Dev, DevOps and ViewLogs, so an employee
     // without one of those roles gets an access denied rather than the log — that is the audit service's
@@ -37765,38 +37833,32 @@ define('app/error/errorViewsNavigator',["require", "exports", "../model/service"
     // from whichever one is actually in window["services"] rather than hard-coded.
     const AUDIT_SERVICE_NAMES = ["Audit", "AuditLog"];
     class ErrorViewsNavigator {
-        static showServiceError(trigger, service, url, response, backUrl) {
-            this.showError(trigger, url, response, service.Name, backUrl);
+        static showServiceError(trigger, service, url, response, backUrl, retryUrl) {
+            this.showError(trigger, url, response, service.Name, backUrl, retryUrl);
         }
-        // The same view — message, support line and reference code — for a failure whose URL maps to no
-        // known service. Without this it would fall through to the base handler's bare confirm() dialog,
-        // showing the user neither the reassurance nor a code to quote. One failure, one error UX, however
-        // the request was routed, and matching FriendlyErrorPage in FS.Shared.Website.
+        // The same card for a failure whose URL maps to no known service. Without this it would fall through
+        // to the base handler's bare confirm() dialog, showing the user neither the reassurance nor a code to
+        // quote. One failure, one error UX, however the request was routed, and matching FriendlyErrorPage in
+        // FS.Shared.Website. There is no retry URL here: nothing was pushed into the address bar, so there is
+        // no hub address that would re-request the page that failed.
         static showGenericError(trigger, url, response, backUrl) {
             this.showError(trigger, url, response, null, backUrl);
         }
-        static showError(trigger, url, response, serviceName, backUrl) {
-            const errorContent = response.status == FORBIDDEN
-                ? this.getAccessDeniedContent(serviceName, backUrl)
-                : this.getFaultContent(url, response, serviceName, backUrl);
-            this.render(trigger, errorContent);
+        static showError(trigger, url, response, serviceName, backUrl, retryUrl) {
+            // jQuery reports status 0 for a request the page itself cancelled as well as for one that never
+            // got a reply, so the abort is checked before the status is. A user who clicked away mid
+            // navigation has not hit an error and must not be shown one.
+            if (response.statusText == "abort")
+                return;
+            this.render(trigger, this.getContent(url, response, serviceName, backUrl, retryUrl));
         }
-        // Something broke: the team has been notified and the user gets a code to quote.
-        static getFaultContent(url, response, serviceName, backUrl) {
-            let errorContent = currentUser_1.default.isEmployee
-                ? this.fill(errorTemplates_1.SERVICE_ERROR_TEMPLATE_FOR_EMPLOYEE, {
-                    "[#SERVICE#]": serviceName || this.hostOf(url),
-                    "[#STATUS#]": response.status.toString(),
-                    "[#URL#]": url,
-                    "[#RESPONSE#]": response.responseText || "No additional information is available."
-                })
-                : errorTemplates_1.SERVICE_ERROR_TEMPLATE;
-            const referenceCode = response.status == NOT_FOUND ? "" : this.getReferenceCode(response);
-            return this.fill(errorContent, {
-                "[#MESSAGE#]": this.getMessage(response),
-                "[#SUPPORT#]": this.getSupportLine(referenceCode),
-                "[#BUTTONS#]": this.getButtons(backUrl)
-            });
+        static getContent(url, response, serviceName, backUrl, retryUrl) {
+            switch (response.status) {
+                case FORBIDDEN: return this.getAccessDeniedContent(serviceName, backUrl);
+                case NOT_FOUND: return this.getNotFoundContent(url, response, serviceName, backUrl);
+                case NETWORK_FAILURE: return this.getOfflineContent(url, response, serviceName, backUrl, retryUrl);
+                default: return this.getFaultContent(url, response, serviceName, backUrl, retryUrl);
+            }
         }
         // Nothing broke: the page is fine and this account does not reach it. No reference code and no
         // "we have been notified", because neither is true — the way out is a different account or an
@@ -37813,12 +37875,88 @@ define('app/error/errorViewsNavigator',["require", "exports", "../model/service"
                     "[#AREA_MID#]": areaMid
                 })
                 : this.fill(errorTemplates_1.ACCESS_DENIED_LEAD, { "[#AREA_MID#]": areaMid });
-            return this.fill(errorTemplates_1.ACCESS_DENIED_TEMPLATE, {
-                "[#AREA#]": areaStart,
-                "[#AREA_MID#]": areaMid,
-                "[#LOGIN_URL#]": this.getLoginUrl(),
-                "[#BUTTONS#]": this.getAccessDeniedButtons(backUrl),
-                "[#LEAD#]": lead
+            return this.card({
+                modifier: errorTemplates_1.ACCESS_DENIED_MODIFIER,
+                icon: errorTemplates_1.DENIED_ICON,
+                eyebrow: errorTemplates_1.ACCESS_DENIED_EYEBROW,
+                title: this.fill(errorTemplates_1.ACCESS_DENIED_TITLE, { "[#AREA#]": areaStart }),
+                lead: lead,
+                next: this.getNextSteps(errorTemplates_1.ACCESS_DENIED_NEXT_TITLE, this.fill(errorTemplates_1.ACCESS_DENIED_NEXT_ITEMS, {
+                    "[#LOGIN_URL#]": this.escapeAttribute(this.getLoginUrl()),
+                    "[#AREA_MID#]": areaMid
+                })),
+                buttons: this.getButtons(backUrl)
+            });
+        }
+        // Nothing broke here either: the address simply has no page behind it. The two suggestions split by
+        // how the user got here, because a stale internal link and a mistyped address need different answers.
+        static getNotFoundContent(url, response, serviceName, backUrl) {
+            const area = this.getAreaName(serviceName);
+            const areaStart = area || "The hub";
+            const areaMid = area || "the hub";
+            return this.card({
+                modifier: errorTemplates_1.NOT_FOUND_MODIFIER,
+                icon: errorTemplates_1.MISSING_ICON,
+                eyebrow: errorTemplates_1.NOT_FOUND_EYEBROW,
+                title: this.fill(errorTemplates_1.NOT_FOUND_TITLE, { "[#AREA#]": areaStart }),
+                lead: errorTemplates_1.NOT_FOUND_LEAD,
+                next: this.getNextSteps(errorTemplates_1.NOT_FOUND_NEXT_TITLE, this.fill(errorTemplates_1.NOT_FOUND_NEXT_ITEMS, { "[#AREA_MID#]": areaMid })),
+                detail: this.getEmployeeDetail(url, response, serviceName),
+                buttons: this.getButtons(backUrl)
+            }) + this.getResponseAppendix(response);
+        }
+        // Something did break: the team has been notified and the user gets a code to quote. There is no next
+        // steps box, because the one useful step is to try again and that is already a button — a box saying
+        // so again would be padding.
+        static getFaultContent(url, response, serviceName, backUrl, retryUrl) {
+            const area = this.getAreaName(serviceName);
+            const areaStart = area || "The service";
+            const areaMid = area || "the service";
+            return this.card({
+                modifier: errorTemplates_1.FAULT_MODIFIER,
+                icon: errorTemplates_1.FAULT_ICON,
+                eyebrow: errorTemplates_1.FAULT_EYEBROW,
+                title: this.fill(errorTemplates_1.FAULT_TITLE, { "[#AREA#]": areaStart }),
+                lead: this.fill(errorTemplates_1.FAULT_LEAD, { "[#AREA_MID#]": areaMid }),
+                detail: this.getEmployeeDetail(url, response, serviceName),
+                buttons: this.getButtons(backUrl, retryUrl),
+                support: this.getSupportLine(this.getReferenceCode(response))
+            }) + this.getResponseAppendix(response);
+        }
+        // The request never got a reply, so no reference code exists and no support line is offered: there is
+        // nothing for support to search for. The likely cause is the user's own connection, which is the one
+        // thing on the page they can act on themselves.
+        static getOfflineContent(url, response, serviceName, backUrl, retryUrl) {
+            const area = this.getAreaName(serviceName);
+            const areaMid = area || "the service";
+            return this.card({
+                modifier: errorTemplates_1.OFFLINE_MODIFIER,
+                icon: errorTemplates_1.OFFLINE_ICON,
+                eyebrow: errorTemplates_1.OFFLINE_EYEBROW,
+                title: this.fill(errorTemplates_1.OFFLINE_TITLE, { "[#AREA_MID#]": areaMid }),
+                lead: this.fill(errorTemplates_1.OFFLINE_LEAD, { "[#AREA_MID#]": areaMid }),
+                next: this.getNextSteps(errorTemplates_1.OFFLINE_NEXT_TITLE, errorTemplates_1.OFFLINE_NEXT_ITEMS),
+                detail: this.getEmployeeDetail(url, response, serviceName),
+                buttons: this.getButtons(backUrl, retryUrl)
+            });
+        }
+        static card(card) {
+            return this.fill(errorTemplates_1.ERROR_CARD_TEMPLATE, {
+                "[#MODIFIER#]": card.modifier,
+                "[#ICON#]": card.icon,
+                "[#EYEBROW#]": card.eyebrow,
+                "[#TITLE#]": card.title,
+                "[#LEAD#]": card.lead,
+                "[#NEXT#]": card.next || "",
+                "[#DETAIL#]": card.detail || "",
+                "[#BUTTONS#]": card.buttons,
+                "[#SUPPORT#]": card.support || ""
+            });
+        }
+        static getNextSteps(title, items) {
+            return this.fill(errorTemplates_1.NEXT_STEPS_TEMPLATE, {
+                "[#NEXT_TITLE#]": title,
+                "[#NEXT_ITEMS#]": items
             });
         }
         static render(trigger, errorContent) {
@@ -37839,13 +37977,16 @@ define('app/error/errorViewsNavigator',["require", "exports", "../model/service"
             }
             $("main").html(errorContent);
         }
-        // The name of what they cannot reach, as the user knows it: the page they were heading for, which
-        // the breadcrumb names, falling back to the service it belongs to. Empty when neither is known.
+        // The name of what they could not reach, as the user knows it. The service the failing URL belongs to
+        // is the reliable source: Service.fromUrl resolved it from that URL, so it always describes the right
+        // thing. The breadcrumb is only a fallback, because it still describes the page the user came FROM —
+        // it is rebuilt on a successful navigation, and this navigation did not succeed. Empty when neither
+        // is known, and each view supplies its own wording for that case.
         static getAreaName(serviceName) {
+            if (serviceName)
+                return this.escape(serviceName);
             const breadcrumb = $(".breadcrumb").children().last().text().trim();
-            if (breadcrumb)
-                return this.escape(breadcrumb);
-            return serviceName ? this.escape(serviceName) : "";
+            return breadcrumb ? this.escape(breadcrumb) : "";
         }
         // Signing in again should land back on the page they were denied, in case the other account does
         // reach it. This is the plain returnUrl form (the one Url uses when it sends someone to the login
@@ -37854,18 +37995,90 @@ define('app/error/errorViewsNavigator',["require", "exports", "../model/service"
             const returnUrl = window.location.pathname + window.location.search;
             return "/login?returnUrl=" + encodeURIComponent(returnUrl);
         }
-        // Home comes first and takes the primary style here: there is nothing to retry on this page, so the
-        // useful action is leaving it, not going back to whatever linked here.
-        static getAccessDeniedButtons(backUrl) {
-            const back = backUrl
-                ? this.fill(errorTemplates_1.ACCESS_DENIED_BACK_BUTTON_TEMPLATE, { "[#BACK_URL#]": backUrl })
-                : "";
-            return errorTemplates_1.ACCESS_DENIED_HOME_BUTTON_TEMPLATE + back;
+        // Try again leads where there is something to retry; Home leads where there is not. Only one button
+        // ever carries the primary style, because two would say neither is the obvious one.
+        static getButtons(backUrl, retryUrl) {
+            const retry = this.retryButton(retryUrl);
+            return retry
+                ? retry + this.backButton(backUrl) + this.button("Home", "/", false)
+                : this.button("Home", "/", true) + this.backButton(backUrl);
         }
-        // The address and the area name are rendered into markup, and neither is ours to trust: the address
-        // comes from the server and the area name from whatever the breadcrumb happens to hold.
+        // Nothing to go back to when the user landed on the failing address directly.
+        static backButton(backUrl) {
+            return backUrl ? this.button("Back", backUrl, false) : "";
+        }
+        // A link to the failing hub address rather than a reload. A reload is only correct on the branch
+        // where HubAjaxRedirect pushed that address into the address bar; on the branch where it did not, a
+        // reload would quietly re-load the previous page and look to the user like the retry had failed.
+        static retryButton(retryUrl) {
+            return retryUrl ? this.button("Try again", retryUrl, true) : "";
+        }
+        static button(label, url, primary) {
+            return this.fill(errorTemplates_1.BUTTON_TEMPLATE, {
+                "[#BUTTON_STYLE#]": primary ? "btn-primary" : "btn-secondary",
+                "[#BUTTON_URL#]": this.escapeAttribute(url),
+                "[#BUTTON_LABEL#]": label
+            });
+        }
+        // What an employee needs and a user does not. Never shown on the access denied view: nothing is
+        // broken there, so there is nothing to diagnose.
+        static getEmployeeDetail(url, response, serviceName) {
+            if (!currentUser_1.default.isEmployee)
+                return "";
+            const service = this.escape(serviceName || this.hostOf(url));
+            const openUrlButton = this.getOpenUrlButton(url);
+            if (response.status == NETWORK_FAILURE)
+                return this.fill(errorTemplates_1.EMPLOYEE_DETAIL_NO_RESPONSE_TEMPLATE, {
+                    "[#SERVICE#]": service,
+                    "[#OPEN_URL_BUTTON#]": openUrlButton
+                });
+            return this.fill(errorTemplates_1.EMPLOYEE_DETAIL_TEMPLATE, {
+                "[#SERVICE#]": service,
+                "[#STATUS#]": response.status.toString(),
+                "[#OPEN_URL_BUTTON#]": openUrlButton
+            });
+        }
+        static getOpenUrlButton(url) {
+            const href = this.safeHref(url);
+            if (!href)
+                return "";
+            return this.fill(errorTemplates_1.EMPLOYEE_OPEN_URL_BUTTON_TEMPLATE, { "[#URL#]": href });
+        }
+        // The response body is whatever the failing service chose to send, which is very often an HTML error
+        // page. It is escaped rather than interpolated, so the pre shows the source an employee is looking
+        // for instead of the browser rendering a third party's markup — and script in it inside the hub page.
+        static getResponseAppendix(response) {
+            if (!currentUser_1.default.isEmployee)
+                return "";
+            return this.fill(errorTemplates_1.EMPLOYEE_RESPONSE_TEMPLATE, {
+                "[#RESPONSE#]": this.escape(response.responseText || "No additional information is available.")
+            });
+        }
+        // The failing URL goes into an href, and it is only ever worth linking when it is a web address.
+        // Anything else — a scheme we did not expect, or a URL that will not parse — is dropped rather than
+        // rendered, so a diagnostic button cannot become a way to run something.
+        static safeHref(url) {
+            try {
+                const parsed = new URL(url, window.location.origin);
+                if (parsed.protocol != "http:" && parsed.protocol != "https:")
+                    return "";
+                return this.escapeAttribute(parsed.href);
+            }
+            catch (_a) {
+                return "";
+            }
+        }
+        // Values that reach markup are not ours to trust: the address comes from the server, the area name
+        // from whatever the breadcrumb happens to hold, and the response body from the failing service.
         static escape(value) {
             return $("<div/>").text(value).html();
+        }
+        // escape() is for text between tags. It handles &, < and >, which is everything that can start or end
+        // an element, but it leaves quotes alone — harmless in a paragraph, not harmless in an attribute,
+        // where one quote closes the attribute and everything after it is markup we did not write. Every URL
+        // on this card comes from somewhere we do not control, so every one goes through here.
+        static escapeAttribute(value) {
+            return this.escape(value).split('"').join("&quot;").split("'").join("&#39;");
         }
         // A label for the failing target when it maps to no registered service (employee diagnostic view only).
         static hostOf(url) {
@@ -37875,13 +38088,6 @@ define('app/error/errorViewsNavigator',["require", "exports", "../model/service"
             catch (_a) {
                 return "the requested page";
             }
-        }
-        static getMessage(response) {
-            // A 404 is not a fault, so nobody has been notified and there is nothing to reassure anyone
-            // about. Only a real failure gets the "we know" message.
-            if (response.status == NOT_FOUND)
-                return "The page you are looking for is not available. It may have been moved or removed.";
-            return "Our technical team has been notified and is working on it. Please try again later.";
         }
         // Services running an older version of Olive do not send the header, and the response of a
         // failed cross-origin request is not necessarily one of ours, so the value is not trusted.
@@ -37944,12 +38150,6 @@ define('app/error/errorViewsNavigator',["require", "exports", "../model/service"
             }
             return "";
         }
-        static getButtons(backUrl) {
-            const back = backUrl
-                ? this.fill(errorTemplates_1.BACK_BUTTON_TEMPLATE, { "[#BACK_URL#]": backUrl })
-                : "";
-            return back + errorTemplates_1.HOME_BUTTON_TEMPLATE;
-        }
         // split/join rather than replace(): it replaces every occurrence (the support email appears
         // twice), and it does not treat '$' sequences in the values (e.g. main tag urls such as
         // '?$Body=...') as replacement patterns.
@@ -37990,6 +38190,11 @@ define('overrides/hubAjaxRedirect',["require", "exports", "olive/mvc/ajaxRedirec
             return true;
         }
         onRedirectionFailed(trigger, url, response) {
+            // A request the page itself cancelled is not a failure. Bailing out here rather than only in the
+            // error view keeps the address bar and the history entry alone as well, which a user who simply
+            // clicked away has no reason to see rewritten to "Error > ...".
+            if (response.statusText == "abort")
+                return;
             if (response.status == 401) {
                 this.url.goToUrlAfterLogin(this.url.current());
             }
@@ -38012,7 +38217,10 @@ define('overrides/hubAjaxRedirect',["require", "exports", "olive/mvc/ajaxRedirec
                         window.page.getService(services_1.default.MainTagHelper)
                             .changeUrl(relativeUrl, mainTag.attr("name").replace("$", ""), "Error > " + service.Name);
                     }
-                    errorViewsNavigator_1.default.showServiceError(trigger, service, url, response, backUrl);
+                    // The address bar now holds the failing page's hub address, so it is also the address
+                    // that would re-request it. The error view offers it as Try again; a reload would not do,
+                    // because the main tag branch above leaves the address bar on the surrounding page.
+                    errorViewsNavigator_1.default.showServiceError(trigger, service, url, response, backUrl, addressBar);
                 }
                 else
                     // No service maps to this url. Render the same error view (message + reference code)
@@ -38820,11 +39028,14 @@ define('app/boardComponents',["require", "exports", "olive/components/url"], fun
                         }
                         console.log(response);
                         console.log(x);
-                        // Build the failure message as elements so the fallback URL
-                        // doesn't need interpolation into an HTML string.
+                        // A widget is one tile on a board, so the failure is one line inside it rather than
+                        // the full error card a failed page navigation gets. Built as elements so the
+                        // fallback URL doesn't need interpolation into an HTML string.
                         const fallbackHref = this.input.attr("src") || '';
-                        const fallbackLink = $('<a target="_blank">').attr('href', fallbackHref).text('widget');
-                        placeholder.empty().append($('<div>').append('<br/><br/><br/>').append($('<center>').append('Failed to load ').append(fallbackLink)));
+                        const fallbackLink = $('<a target="_blank">').attr('href', fallbackHref).text('Open it directly');
+                        placeholder.empty().append($('<div class="board-error">')
+                            .append($('<span>').text('This widget could not be loaded. '))
+                            .append(fallbackLink));
                         resolve();
                     }
                 });
@@ -39405,11 +39616,11 @@ define('app/boardComponents',["require", "exports", "olive/components/url"], fun
         }
         onError(sender, boardHolder, jqXHR) {
             sender.state = AjaxState.failed;
-            const ulFail = $("<div class=\"item\">");
-            ulFail.append($("<a>")
-                .html("ajax failed Loading data from source [" + sender.url + "]"));
-            boardHolder.append(ulFail);
-            console.error(jqXHR);
+            // What the user is told and what a developer needs are different things. The board shows one
+            // line saying this part did not load; the failing URL and the response go to the console, where
+            // they are useful and where they are not read as an instruction to the person at the screen.
+            boardHolder.append($('<div class="item board-error">').text("This section could not be loaded."));
+            console.error("Board source failed: " + sender.url, jqXHR);
         }
     }
     BoardComponents.EMPTY_STATE_CLASS = 'board-empty-state';
