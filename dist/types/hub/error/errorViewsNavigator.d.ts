@@ -2,9 +2,10 @@
 /// <amd-dependency path="../extensions" />
 import Service from '../model/service';
 export default class ErrorViewsNavigator {
-    static showServiceError(trigger: JQuery, service: Service, url: string, response: JQueryXHR, backUrl?: string, retryUrl?: string): void;
-    static showGenericError(trigger: JQuery, url: string, response: JQueryXHR, backUrl?: string): void;
+    static showServiceError(trigger: JQuery, service: Service, url: string, response: JQueryXHR, backUrl?: string, retryUrl?: string): boolean;
+    static showGenericError(trigger: JQuery, url: string, response: JQueryXHR, backUrl?: string): boolean;
     private static showError;
+    static getWindowTitle(status: number): string;
     private static getContent;
     private static getAccessDeniedContent;
     private static getNotFoundContent;
@@ -13,6 +14,7 @@ export default class ErrorViewsNavigator {
     private static card;
     private static getNextSteps;
     private static render;
+    private static renderTarget;
     private static getAreaName;
     private static getLoginUrl;
     private static getButtons;

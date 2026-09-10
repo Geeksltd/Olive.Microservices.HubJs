@@ -7,7 +7,7 @@ export default class Service {
     static PriorServiceName: string;
     static PriorServiceUrl: string;
     static FirstPageLoad: boolean;
-    private static WindowTitlePrefix;
+    private static WindowTitleService;
     GetAddressBarValueFor(fullFeatureUrl: string): string;
     constructor(args: Service);
     static registerServices(): void;

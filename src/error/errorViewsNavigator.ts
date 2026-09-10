@@ -92,8 +92,8 @@ interface IErrorCard {
 }
 
 export default class ErrorViewsNavigator {
-    public static showServiceError(trigger: JQuery, service: Service, url: string, response: JQueryXHR, backUrl?: string, retryUrl?: string) {
-        this.showError(trigger, url, response, service.Name, backUrl, retryUrl);
+    public static showServiceError(trigger: JQuery, service: Service, url: string, response: JQueryXHR, backUrl?: string, retryUrl?: string): boolean {
+        return this.showError(trigger, url, response, service.Name, backUrl, retryUrl);
     }
 
     // The same card for a failure whose URL maps to no known service. Without this it would fall through
@@ -101,18 +101,38 @@ export default class ErrorViewsNavigator {
     // quote. One failure, one error UX, however the request was routed, and matching FriendlyErrorPage in
     // FS.Shared.Website. There is no retry URL here: nothing was pushed into the address bar, so there is
     // no hub address that would re-request the page that failed.
-    public static showGenericError(trigger: JQuery, url: string, response: JQueryXHR, backUrl?: string) {
-        this.showError(trigger, url, response, null, backUrl);
+    public static showGenericError(trigger: JQuery, url: string, response: JQueryXHR, backUrl?: string): boolean {
+        return this.showError(trigger, url, response, null, backUrl);
     }
 
-    private static showError(trigger: JQuery, url: string, response: JQueryXHR, serviceName: string | null, backUrl?: string, retryUrl?: string) {
+    // True when the card replaced the page itself, which is what leaves the window title and the
+    // breadcrumb describing something the user can no longer see. A card confined to a named main tag
+    // replaced one region of a page that is still on screen and still correctly named, so the caller
+    // is told to leave both alone.
+    private static showError(trigger: JQuery, url: string, response: JQueryXHR, serviceName: string | null, backUrl?: string, retryUrl?: string): boolean {
 
         // jQuery reports status 0 for a request the page itself cancelled as well as for one that never
         // got a reply, so the abort is checked before the status is. A user who clicked away mid
         // navigation has not hit an error and must not be shown one.
-        if (response.statusText == "abort") return;
+        if (response.statusText == "abort") return false;
 
-        this.render(trigger, this.getContent(url, response, serviceName, backUrl, retryUrl));
+        // The content is built first: it reads the breadcrumb of the page the user came from, which
+        // this render is about to replace.
+        const target = this.render(trigger, this.getContent(url, response, serviceName, backUrl, retryUrl));
+        const name = target.attr("name");
+
+        return !name || name[0] !== "$";
+    }
+
+    // What the window is called while the card is up. The card's own eyebrow, so the tab and the page
+    // say the same thing, and short enough to still read well behind a service name.
+    public static getWindowTitle(status: number): string {
+        switch (status) {
+            case FORBIDDEN: return ACCESS_DENIED_EYEBROW;
+            case NOT_FOUND: return NOT_FOUND_EYEBROW;
+            case NETWORK_FAILURE: return OFFLINE_EYEBROW;
+            default: return FAULT_EYEBROW;
+        }
     }
 
     private static getContent(url: string, response: JQueryXHR, serviceName: string | null, backUrl?: string, retryUrl?: string): string {
@@ -239,27 +259,27 @@ export default class ErrorViewsNavigator {
         });
     }
 
-    private static render(trigger: JQuery, errorContent: string) {
+    private static render(trigger: JQuery, errorContent: string): JQuery {
+        const target = this.renderTarget(trigger);
+        target.html(errorContent);
+
+        return target;
+    }
+
+    // Where the card goes: the main tag the failing request was aimed at, or the page's own content
+    // when the request came from outside one.
+    private static renderTarget(trigger: JQuery): JQuery {
 
         if (trigger && trigger.length > 0) {
-            if (trigger.prop("tagName") == "MAIN") {
-                trigger.html(errorContent);
-                return;
-            }
+            if (trigger.prop("tagName") == "MAIN") return trigger;
 
-            trigger = trigger.closest('main');
-            if (trigger && trigger.length > 0) {
-                trigger.html(errorContent);
-                return;
-            }
+            const main = trigger.closest('main');
+            if (main && main.length > 0) return main;
         }
 
-        if ($('[data-module-inner-container]').length > 0) {
-            $("[data-module-inner-container]").html(errorContent)
-            return;
-        }
+        if ($('[data-module-inner-container]').length > 0) return $("[data-module-inner-container]");
 
-        $("main").html(errorContent);
+        return $("main");
     }
 
     // The name of what they could not reach, as the user knows it. The service the failing URL belongs to

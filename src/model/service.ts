@@ -10,10 +10,10 @@ export default class Service {
     public static PriorServiceUrl: string;
     public static FirstPageLoad: boolean = true;
 
-    // "Repositories: " for a page of the repositories service, and so on. Kept because a view
+    // "Repositories" for a page of the repositories service, and so on. Kept because a view
     // change inside a page re-titles the window from the page alone, with no address to say
     // which service that page belongs to.
-    private static WindowTitlePrefix: string = "";
+    private static WindowTitleService: string = "";
 
     public GetAddressBarValueFor(fullFeatureUrl: string): string {
         let relativePath = fullFeatureUrl.trimStart(this.BaseUrl);
@@ -82,18 +82,22 @@ export default class Service {
     public static setWindowTitle(fullUrl: string, windowTitle: string): void {
         // fromUrl throws for an address that belongs to no registered service. A window title
         // is not worth failing a page load over, so fall back to the title on its own.
-        try { this.WindowTitlePrefix = this.fromUrl(fullUrl).Name + ": "; }
-        catch (e) { this.WindowTitlePrefix = ""; }
+        try { this.WindowTitleService = this.fromUrl(fullUrl).Name; }
+        catch (e) { this.WindowTitleService = ""; }
 
         this.applyWindowTitle(windowTitle);
     }
 
     // Titles a window from a page that carries no address of its own - a module reloaded in
-    // place, a modal - keeping the service the page belongs to in front of its name.
+    // place, a modal - keeping the service the page belongs to in front of its name. A page
+    // that declares no title still replaced the one before it, so the window falls back to the
+    // service alone rather than going on naming a page the user can no longer see.
     public static applyWindowTitle(windowTitle: string): void {
-        if (!windowTitle) return;
+        if (!windowTitle) { document.title = this.WindowTitleService; return; }
 
-        document.title = this.WindowTitlePrefix + windowTitle;
+        document.title = this.WindowTitleService
+            ? this.WindowTitleService + ": " + windowTitle
+            : windowTitle;
     }
 
     public static fromUrl(actualDestinationAddress: string): Service {

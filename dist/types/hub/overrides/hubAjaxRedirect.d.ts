@@ -8,5 +8,6 @@ export default class HubAjaxRedirect extends AjaxRedirect {
     protected onTitleChanged(title: string, url: string): void;
     protected onMainTagRedirected(trigger: JQuery, title: string, url: string): boolean;
     protected onRedirectionFailed(trigger: JQuery, url: string, response: JQueryXHR): void;
+    private onErrorShown;
     go(url: string, trigger?: JQuery, isBack?: boolean, keepScroll?: boolean, addToHistory?: boolean, onComplete?: (successful: boolean) => void, ajaxTarget?: string, ajaxhref?: string): boolean;
 }

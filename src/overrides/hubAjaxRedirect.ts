@@ -7,6 +7,8 @@ import ErrorViewsNavigator from "app/error/errorViewsNavigator";
 import OlivePage from "olive/olivePage";
 import { MainTagHelper } from "olive/components/mainTag";
 import Services from "olive/di/services";
+import HubServices from "app/hubServices";
+import BreadcrumbMenu from "app/featuresMenu/breadcrumbMenu";
 
 export default class HubAjaxRedirect extends AjaxRedirect {
     constructor(url: Url, responseProcessor: ResponseProcessor, waiting: Waiting) {
@@ -72,14 +74,28 @@ export default class HubAjaxRedirect extends AjaxRedirect {
                 // The address bar now holds the failing page's hub address, so it is also the address
                 // that would re-request it. The error view offers it as Try again; a reload would not do,
                 // because the main tag branch above leaves the address bar on the surrounding page.
-                ErrorViewsNavigator.showServiceError(trigger, service, url, response, backUrl, addressBar);
+                if (ErrorViewsNavigator.showServiceError(trigger, service, url, response, backUrl, addressBar))
+                    this.onErrorShown(url, response.status);
             }
-            else
+            else {
                 // No service maps to this url. Render the same error view (message + reference code)
                 // rather than the base class's confirm() dialog, so every failure looks the same to the
                 // user. 401 is already handled above, so we are not swallowing the login redirect.
-                ErrorViewsNavigator.showGenericError(trigger, url, response);
+                if (ErrorViewsNavigator.showGenericError(trigger, url, response))
+                    this.onErrorShown(url, response.status);
+            }
         }
+    }
+
+    // An error card is written straight into the page, so none of the steps that normally follow a
+    // navigation run. The window and the breadcrumb are both still describing the page that was on
+    // screen before, which has gone and is no longer what the address bar names, so they are named
+    // for the card instead of left pointing at something the user cannot get back to.
+    private onErrorShown(url: string, status: number) {
+        const title = ErrorViewsNavigator.getWindowTitle(status);
+
+        Service.setWindowTitle(url, title);
+        (window.page as OlivePage).getService<BreadcrumbMenu>(HubServices.BreadcrumbMenu).refresh(title);
     }
 
     public go(
