@@ -154,6 +154,10 @@ export default class HubPage extends OlivePage {
         super.initialize();
         this.getService<FeaturesMenuFactory>(HubServices.FeaturesMenuFactory).bindItemListClick();
         this.getService<BreadcrumbMenu>(HubServices.BreadcrumbMenu).bindItemListClick();
+        // Every ajax view change lands here, including ones no menu click started: the back button,
+        // an in page link, a redirect. The address bar is already updated by this point, so the
+        // breadcrumb is redrawn from it rather than from whichever link was last clicked.
+        this.getService<BreadcrumbMenu>(HubServices.BreadcrumbMenu).refresh();
         ToggleCheckbox.enableToggleCheckbox($("input[class='form-check']"));
 
         const currentPath = this.getPathName();

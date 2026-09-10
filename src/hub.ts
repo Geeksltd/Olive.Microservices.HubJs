@@ -24,7 +24,12 @@ export default class Hub implements IService {
         window["resolveServiceUrl"] = this.url.effectiveUrlProvider;
 
         CrossDomainEvent.handle("setViewFrameHeight", h => this.setViewFrameHeight(h));
-        CrossDomainEvent.handle("setServiceUrl", u => Service.onNavigated(u.url, u.title));
+        CrossDomainEvent.handle("setServiceUrl", u => {
+            Service.onNavigated(u.url, u.title);
+            // A page inside the view frame has navigated, so the address bar now names a different
+            // feature. Without this the breadcrumb would keep describing the page the frame started on.
+            this.breadcrumbMenu.refresh();
+        });
         CrossDomainEvent.handle("openModal", u => {
             if (u.url) {
                 window.page.modal.close();
