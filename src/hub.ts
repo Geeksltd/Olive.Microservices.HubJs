@@ -28,7 +28,9 @@ export default class Hub implements IService {
             Service.onNavigated(u.url, u.title);
             // A page inside the view frame has navigated, so the address bar now names a different
             // feature. Without this the breadcrumb would keep describing the page the frame started on.
-            this.breadcrumbMenu.refresh();
+            // The title comes from the frame, never from the hub document, which holds the shell's
+            // own title. An empty one is passed on as empty so nothing else is mistaken for it.
+            this.breadcrumbMenu.refresh(u.title || "");
         });
         CrossDomainEvent.handle("openModal", u => {
             if (u.url) {

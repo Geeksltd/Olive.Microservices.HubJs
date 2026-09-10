@@ -8,7 +8,9 @@ export default class BreadcrumbMenu implements IService {
     bindItemListClick(): void;
     bindFeatureMenuItemsClicks(selector: JQuery): void;
     onLinkClicked(link: JQuery): void;
-    refresh(): void;
+    refresh(pageTitle?: string): void;
+    private currentPageTitle;
+    private namesAddress;
     onBreadcrumbLinkClicked(link: JQuery): boolean;
     private menuLinkOf;
     private menuLinks;
@@ -17,6 +19,7 @@ export default class BreadcrumbMenu implements IService {
     private normalizeUrl;
     private normalizePath;
     private trailOf;
-    render(node: Element, address: string): void;
+    render(node: Element, address: string, pageTitle: string): void;
+    private appendPageTitle;
     private escape;
 }

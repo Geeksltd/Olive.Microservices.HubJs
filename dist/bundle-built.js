@@ -37510,28 +37510,57 @@ define('app/featuresMenu/breadcrumbMenu',["require", "exports"], function (requi
             selector.off("click.breadcrumb").on("click.breadcrumb", e => this.onLinkClicked($(e.currentTarget)));
         }
         onLinkClicked(link) {
-            this.render(this.findNodeForLink(link), this.normalizePath(link.attr("href")));
+            // A menu item names its own page, so there is no sub page title to add here. The view
+            // change that follows re-draws the trail anyway, and by then the page is known.
+            this.render(this.findNodeForLink(link), this.normalizePath(link.attr("href")), null);
         }
         // Re-draws the trail for whatever the address bar now holds. Called after every view change,
-        // so navigations that no menu click started - the back button, an in page link, a redirect,
-        // a page loaded directly by its address - get a trail that matches the page on screen.
-        refresh() {
+        // so navigations that no menu click started - the back button, a row opened from a list, an
+        // in page link, a page loaded directly by its address - get a trail that matches the screen.
+        // A page opened inside the view frame passes its own title, which the hub document does not hold.
+        refresh(pageTitle = undefined) {
             // The side menu can be replaced by an ajax update, taking its handlers with it, so the
             // links are bound again here. Handlers are namespaced and replaced, so they never stack.
             this.bindFeatureMenuItemsClicks($(".features-side-menu .feature-menu-item > a:not([href=''])"));
             const address = window.location.pathname + window.location.search;
+            const path = this.normalizePath(address);
+            const title = pageTitle === undefined ? this.currentPageTitle() : (pageTitle || "");
             const node = this.findNodeForUrl(address);
             if (node) {
-                this.render(node, this.normalizePath(address));
+                // A page the menu names needs no title of its own; the menu item already is its name.
+                // Anything below one - a row opened for viewing or editing - does, so it is added.
+                this.render(node, path, this.namesAddress(node, address) ? null : title);
                 return;
             }
             // The menu holds nothing for this address. If the click that brought us here drew a
             // trail for this very address, that trail is still the right one.
             if (this.renderedNode && document.body.contains(this.renderedNode)
-                && this.renderedFor === this.normalizePath(address))
+                && this.renderedFor === path)
                 return;
-            // Otherwise show Home alone rather than leaving the previous page's trail up.
-            this.render(null, this.normalizePath(address));
+            // Otherwise name the page on its own rather than leaving the previous page's trail up.
+            this.render(null, path, title);
+        }
+        // The title of the page now on screen, as the view itself declared it. Titles inside a modal
+        // are skipped: a modal leaves the address bar alone, so it is not the page the trail describes.
+        currentPageTitle() {
+            const outsideModal = (i, el) => $(el).closest(".modal, .modal-dialog").length === 0;
+            // The page content declares its own title inside main. Only if nothing there does is the
+            // rest of the document consulted, so a module that reloads in place cannot rename the page.
+            let holders = $("main [id='page_meta_title']").filter(outsideModal);
+            if (!holders.length)
+                holders = $("[id='page_meta_title']").filter(outsideModal);
+            if (!holders.length)
+                return "";
+            const holder = holders.first();
+            const declared = holder.attr("value");
+            return ((declared === undefined ? holder.val() : declared) || "").toString().trim();
+        }
+        // Whether the menu node is the page at this address, rather than a feature it sits under.
+        namesAddress(node, url) {
+            if (!node)
+                return false;
+            const href = $(node).children("a").first().attr("href");
+            return !!href && this.normalizePath(href) === this.normalizePath(url);
         }
         onBreadcrumbLinkClicked(link) {
             const menuLink = this.menuLinkOf(link);
@@ -37666,7 +37695,7 @@ define('app/featuresMenu/breadcrumbMenu',["require", "exports"], function (requi
             levels.push(node);
             return levels.filter((el, i) => levels.indexOf(el) === i);
         }
-        render(node, address) {
+        render(node, address, pageTitle) {
             const bar = $(".breadcrumb");
             if (!bar.length)
                 return;
@@ -37692,6 +37721,7 @@ define('app/featuresMenu/breadcrumbMenu',["require", "exports"], function (requi
                 if (!path.startsWith("/under/"))
                     item.find("a").removeAttr("data-redirect");
             });
+            this.appendPageTitle(bar, pageTitle);
             this.renderedNode = node;
             this.renderedFor = address;
             this.ajaxRedirect.enableRedirect(bar.find("a[data-redirect=ajax]"));
@@ -37700,6 +37730,18 @@ define('app/featuresMenu/breadcrumbMenu',["require", "exports"], function (requi
                 e.preventDefault();
                 this.onBreadcrumbLinkClicked($(e.currentTarget));
             });
+        }
+        // The page the trail ends on, when it is a page the menu does not list: a row opened for
+        // viewing or editing, or anything else reached from within a feature. It closes the trail
+        // rather than linking anywhere, because it is already the page on screen.
+        appendPageTitle(bar, pageTitle) {
+            const title = (pageTitle || "").trim();
+            if (!title)
+                return;
+            const last = bar.children().last().text().trim();
+            if (last.toLowerCase() === title.toLowerCase())
+                return;
+            bar.append(`<li class="breadcrumb-item active" aria-current="page">${this.escape(title)}</li>`);
         }
         escape(value) {
             return $("<div/>").text(value == null ? "" : value).html().replace(/"/g, "&quot;");
@@ -38485,7 +38527,9 @@ define('app/hub',["require", "exports", "olive/components/crossDomainEvent", "./
                 service_1.default.onNavigated(u.url, u.title);
                 // A page inside the view frame has navigated, so the address bar now names a different
                 // feature. Without this the breadcrumb would keep describing the page the frame started on.
-                this.breadcrumbMenu.refresh();
+                // The title comes from the frame, never from the hub document, which holds the shell's
+                // own title. An empty one is passed on as empty so nothing else is mistaken for it.
+                this.breadcrumbMenu.refresh(u.title || "");
             });
             crossDomainEvent_1.default.handle("openModal", u => {
                 if (u.url) {
