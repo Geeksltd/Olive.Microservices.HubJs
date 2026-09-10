@@ -37701,27 +37701,9 @@ define('app/featuresMenu/breadcrumbMenu',["require", "exports"], function (requi
                 return;
             bar.show().empty();
             bar.append(`<li class="breadcrumb-item"><a href="${window.location.origin}/under/" data-redirect="ajax">Home</a></li>`);
-            this.trailOf(node).forEach(el => {
-                const level = $(el);
-                const anchor = level.children("a").first();
-                const text = anchor.text().trim();
-                if (!text)
-                    return;
-                const path = anchor.attr("href");
-                if (!path) {
-                    // A grouping level with nothing to navigate to. It still names a step of the trail.
-                    bar.append(`<li class="breadcrumb-item">${this.escape(text)}</li>`);
-                    return;
-                }
-                const nodeId = level.attr("id") || "";
-                const item = $(`<li class="breadcrumb-item"><a href="${this.escape(path)}" data-redirect="ajax" data-itemid="${this.escape(nodeId)}">${this.escape(text)}</a></li>`)
-                    .appendTo(bar);
-                // Only hub pages are fetched by ajax. Anything else is a service page, which the menu
-                // item itself knows how to open, so the click is handed to the menu instead.
-                if (!path.startsWith("/under/"))
-                    item.find("a").removeAttr("data-redirect");
-            });
-            this.appendPageTitle(bar, pageTitle);
+            const trail = this.trailOf(node);
+            trail.forEach(el => this.appendMenuCrumb(bar, el));
+            this.appendPageTrail(bar, pageTitle, trail.length > 0);
             this.renderedNode = node;
             this.renderedFor = address;
             this.ajaxRedirect.enableRedirect(bar.find("a[data-redirect=ajax]"));
@@ -37731,17 +37713,78 @@ define('app/featuresMenu/breadcrumbMenu',["require", "exports"], function (requi
                 this.onBreadcrumbLinkClicked($(e.currentTarget));
             });
         }
-        // The page the trail ends on, when it is a page the menu does not list: a row opened for
-        // viewing or editing, or anything else reached from within a feature. It closes the trail
-        // rather than linking anywhere, because it is already the page on screen.
-        appendPageTitle(bar, pageTitle) {
-            const title = (pageTitle || "").trim();
-            if (!title)
+        // One step of the trail, taken from a menu item.
+        appendMenuCrumb(bar, level) {
+            const anchor = $(level).children("a").first();
+            const text = anchor.text().trim();
+            if (!text)
                 return;
-            const last = bar.children().last().text().trim();
-            if (last.toLowerCase() === title.toLowerCase())
+            const path = anchor.attr("href");
+            if (!path) {
+                // A grouping level with nothing to navigate to. It still names a step of the trail.
+                this.appendStep(bar, text);
                 return;
-            bar.append(`<li class="breadcrumb-item active" aria-current="page">${this.escape(title)}</li>`);
+            }
+            const nodeId = $(level).attr("id") || "";
+            const item = $(`<li class="breadcrumb-item"><a href="${this.escape(path)}" data-redirect="ajax" data-itemid="${this.escape(nodeId)}">${this.escape(text)}</a></li>`)
+                .appendTo(bar);
+            // Only hub pages are fetched by ajax. Anything else is a service page, which the menu
+            // item itself knows how to open, so the click is handed to the menu instead.
+            if (!path.startsWith("/under/"))
+                item.find("a").removeAttr("data-redirect");
+        }
+        // The steps the menu could not supply, read from the page's own title. An auto generated one
+        // names the service and every level above the page: "CRM > Customers > Edit customer". Below a
+        // menu trail only what comes after it is added, and a page the menu does not list at all -
+        // reached by a direct address, or from another service - gets its whole trail from here.
+        appendPageTrail(bar, pageTitle, underMenuTrail) {
+            const parts = this.titleParts(pageTitle);
+            if (!parts.length)
+                return;
+            const steps = underMenuTrail ? this.partsBelowTrail(bar, parts) : parts;
+            steps.forEach((step, i) => {
+                // A level the menu trail already named is not repeated.
+                if (step.toLowerCase() === bar.children().last().text().trim().toLowerCase())
+                    return;
+                // The page itself closes the trail, so it names the page rather than linking anywhere.
+                if (i === steps.length - 1) {
+                    bar.append(`<li class="breadcrumb-item active" aria-current="page">${this.escape(step)}</li>`);
+                    return;
+                }
+                // A level above it is only worth a link when the menu holds one item by that name.
+                // Anything less certain would send the user somewhere the title never promised.
+                const named = this.menuNodeNamed(step);
+                if (named)
+                    this.appendMenuCrumb(bar, named);
+                else
+                    this.appendStep(bar, step);
+            });
+        }
+        // The parts of the title that sit below the trail the menu already drew. They are lined up by
+        // the deepest menu item's name; a title that does not mention it contributes the page alone.
+        partsBelowTrail(bar, parts) {
+            const deepest = bar.children().last().text().trim().toLowerCase();
+            const at = parts.map(p => p.toLowerCase()).lastIndexOf(deepest);
+            if (at === -1)
+                return parts.slice(parts.length - 1);
+            return parts.slice(at + 1);
+        }
+        titleParts(pageTitle) {
+            return (pageTitle || "").split(" > ").map(p => p.trim()).filter(p => p.length > 0);
+        }
+        // The menu item of that name, when exactly one carries it.
+        menuNodeNamed(name) {
+            const wanted = name.trim().toLowerCase();
+            if (!wanted)
+                return null;
+            const matches = this.menuLinks().filter((i, el) => $(el).text().trim().toLowerCase() === wanted);
+            if (matches.length !== 1)
+                return null;
+            const level = matches.closest(".features-side-menu li");
+            return level.length ? level[0] : null;
+        }
+        appendStep(bar, text) {
+            bar.append(`<li class="breadcrumb-item">${this.escape(text)}</li>`);
         }
         escape(value) {
             return $("<div/>").text(value == null ? "" : value).html().replace(/"/g, "&quot;");

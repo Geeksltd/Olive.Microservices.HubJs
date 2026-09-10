@@ -20,6 +20,11 @@ export default class BreadcrumbMenu implements IService {
     private normalizePath;
     private trailOf;
     render(node: Element, address: string, pageTitle: string): void;
-    private appendPageTitle;
+    private appendMenuCrumb;
+    private appendPageTrail;
+    private partsBelowTrail;
+    private titleParts;
+    private menuNodeNamed;
+    private appendStep;
     private escape;
 }
