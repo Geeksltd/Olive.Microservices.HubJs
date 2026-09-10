@@ -65,13 +65,17 @@ export default class BreadcrumbMenu implements IService {
 
     // The title of the page now on screen, as the view itself declared it. Titles inside a modal
     // are skipped: a modal leaves the address bar alone, so it is not the page the trail describes.
+    // So are titles inside a named main tag, which is a region of the page rather than the page:
+    // several such regions can sit on one page, each declaring a title of its own, and document
+    // order would otherwise decide which of them named the trail.
     private currentPageTitle(): string {
-        const outsideModal = (i: number, el: Element) => $(el).closest(".modal, .modal-dialog").length === 0;
+        const namesThePage = (i: number, el: Element) =>
+            $(el).closest(".modal, .modal-dialog, main[name^='$']").length === 0;
 
         // The page content declares its own title inside main. Only if nothing there does is the
         // rest of the document consulted, so a module that reloads in place cannot rename the page.
-        let holders = $("main [id='page_meta_title']").filter(outsideModal);
-        if (!holders.length) holders = $("[id='page_meta_title']").filter(outsideModal);
+        let holders = $("main [id='page_meta_title']").filter(namesThePage);
+        if (!holders.length) holders = $("[id='page_meta_title']").filter(namesThePage);
 
         if (!holders.length) return "";
 
