@@ -37930,6 +37930,11 @@ define('app/error/errorTemplates',["require", "exports"], function (require, exp
     // repo), which is where its colour tokens live. Only class hooks appear here. The modifier picks the
     // accent for the status; the stylesheet defaults every modifier to the same colour, so a theme that has
     // not been updated still renders all four views correctly.
+    //
+    // The card carries no landmark tag of its own. It is rendered into the region that failed — the main tag
+    // the request was aimed at, or the module container when the request came from a module — so a <main>
+    // here would nest inside the one it replaces, which is invalid, and would leave a second unnamed main in
+    // the page for the next failure's $("main") lookup to match.
     exports.ERROR_CARD_TEMPLATE = `
 <div class="error error-card [#MODIFIER#]">
   <div class="error-card-eyebrow">
@@ -38063,8 +38068,8 @@ define('app/error/errorTemplates',["require", "exports"], function (require, exp
     // it here would make Enter open a raw service URL in a new tab instead of pressing Try again — and the
     // diagnostics must not outrank the action the user is actually meant to take.
     exports.EMPLOYEE_OPEN_URL_BUTTON_TEMPLATE = `<a name="ShowMeTheError" class="btn btn-outline-secondary" href="[#URL#]" target="_blank" title="Request the failing URL again in a new tab, to see the full server error page.">Open failing URL in a new tab</a>`;
-    // Outside <main>, because it is not part of the view: it is the raw response body parked in the page for
-    // the "Show response details here" button to read back out.
+    // A sibling of the card rather than part of it, because it is not part of the view: it is the raw
+    // response body parked in the page for the "Show response details here" button to read back out.
     exports.EMPLOYEE_RESPONSE_TEMPLATE = `
 <div class="ajax-error-content d-none">
   <pre><code>[#RESPONSE#]</code></pre>
