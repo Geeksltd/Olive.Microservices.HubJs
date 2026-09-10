@@ -1,5 +1,6 @@
 import { getMainDomain } from "app/hub";
 import ResponseProcessor from "olive/mvc/responseProcessor";
+import Service from "app/model/service";
 
 
 export default class HubResponseProcessor extends ResponseProcessor {
@@ -63,6 +64,13 @@ export default class HubResponseProcessor extends ResponseProcessor {
         }
         return asElement;
     }
+    // A view change re-titles the window from the page it just rendered, which names the page
+    // but not the service it belongs to. Every other title in the hub carries that name, so it
+    // is put back here rather than left to whichever navigation happened to set it last.
+    protected setWindowTitle(title: string) {
+        Service.applyWindowTitle(title);
+    }
+
     public processAjaxResponse(response: any, containerModule: JQuery, trigger: JQuery, args: any, ajaxTarget?: string, ajaxhref?: string) {
         let asElement = $(response);
         asElement = this.fixUrlsForOpenNewWindows(response, trigger);

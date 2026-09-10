@@ -20,6 +20,13 @@ export default class HubAjaxRedirect extends AjaxRedirect {
         Service.onNavigated(url, title);
     }
 
+    // The hub shell renders the page, then loads the service's own content into it by ajax
+    // without touching the address bar. That load carries the page's title, and nothing else
+    // will supply one until the next navigation, so it is applied here.
+    protected onTitleChanged(title: string, url: string) {
+        Service.setWindowTitle(url, title);
+    }
+
     protected onMainTagRedirected(trigger: JQuery, title: string, url: string): boolean {
         // if trigger is a main tag with name starting by $ character or it has a parent with this conditions
         // we need to edit a query string parameter as _{main tag name without $}={url pathname}

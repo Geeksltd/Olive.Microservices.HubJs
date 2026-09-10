@@ -10,6 +10,11 @@ export default class Service {
     public static PriorServiceUrl: string;
     public static FirstPageLoad: boolean = true;
 
+    // "Repositories: " for a page of the repositories service, and so on. Kept because a view
+    // change inside a page re-titles the window from the page alone, with no address to say
+    // which service that page belongs to.
+    private static WindowTitlePrefix: string = "";
+
     public GetAddressBarValueFor(fullFeatureUrl: string): string {
         let relativePath = fullFeatureUrl.trimStart(this.BaseUrl);
 
@@ -68,8 +73,27 @@ export default class Service {
         if (this.FirstPageLoad)
             this.FirstPageLoad = false;
 
-        if (windowTitle)
-            document.title = service.Name + ": " + windowTitle;
+        this.setWindowTitle(fullUrl, windowTitle);
+    }
+
+    // The window title for a page of a service, named the way every other page in the hub
+    // names it. Split out of onNavigated because the first load of a service page has no
+    // address to push - the browser is already on it - but still needs its title.
+    public static setWindowTitle(fullUrl: string, windowTitle: string): void {
+        // fromUrl throws for an address that belongs to no registered service. A window title
+        // is not worth failing a page load over, so fall back to the title on its own.
+        try { this.WindowTitlePrefix = this.fromUrl(fullUrl).Name + ": "; }
+        catch (e) { this.WindowTitlePrefix = ""; }
+
+        this.applyWindowTitle(windowTitle);
+    }
+
+    // Titles a window from a page that carries no address of its own - a module reloaded in
+    // place, a modal - keeping the service the page belongs to in front of its name.
+    public static applyWindowTitle(windowTitle: string): void {
+        if (!windowTitle) return;
+
+        document.title = this.WindowTitlePrefix + windowTitle;
     }
 
     public static fromUrl(actualDestinationAddress: string): Service {
