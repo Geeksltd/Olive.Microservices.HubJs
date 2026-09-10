@@ -37931,28 +37931,26 @@ define('app/error/errorTemplates',["require", "exports"], function (require, exp
     // accent for the status; the stylesheet defaults every modifier to the same colour, so a theme that has
     // not been updated still renders all four views correctly.
     exports.ERROR_CARD_TEMPLATE = `
-<main>
-  <div class="error error-card [#MODIFIER#]">
-    <div class="error-card-eyebrow">
-      [#ICON#]
-      <span>[#EYEBROW#]</span>
-    </div>
-
-    <h1 class="error-card-title">[#TITLE#]</h1>
-
-    <p class="error-card-lead">[#LEAD#]</p>
-
-    [#NEXT#]
-
-    [#DETAIL#]
-
-    <div class="buttons-row">
-      [#BUTTONS#]
-    </div>
-
-    [#SUPPORT#]
+<div class="error error-card [#MODIFIER#]">
+  <div class="error-card-eyebrow">
+    [#ICON#]
+    <span>[#EYEBROW#]</span>
   </div>
-</main>
+
+  <h1 class="error-card-title">[#TITLE#]</h1>
+
+  <p class="error-card-lead">[#LEAD#]</p>
+
+  [#NEXT#]
+
+  [#DETAIL#]
+
+  <div class="buttons-row">
+    [#BUTTONS#]
+  </div>
+
+  [#SUPPORT#]
+</div>
 `;
     // Only offered where there is something to suggest that the buttons do not already say. The fault view
     // has no box: the one useful step is to try again, and that is a button.
