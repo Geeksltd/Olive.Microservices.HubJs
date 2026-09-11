@@ -25,6 +25,7 @@ export default class BoardComponents implements IService {
     protected createHeaderAction(boxTitle: String, addableButtons: IButtonDto[]): JQuery;
     protected createAddableItems(sender: IAjaxObject, context: IBoardContext, items: IMenuDto[]): JQuery;
     protected createBoardIntro(sender: IAjaxObject, context: IBoardContext, intro: IIntroDto): JQuery;
+    protected nameThePage(intro: IIntroDto): void;
     protected relocateBoardComponentsHeaderActions(): void;
     protected removeBoardGap(): void;
     protected createManageItems(sender: IAjaxObject, context: IBoardContext, items: IMenuDto[]): JQuery;
@@ -137,6 +138,7 @@ export interface IIntroDto {
     Name: string;
     ImageUrl?: string;
     Description?: string;
+    WindowTitle?: string;
 }
 export interface IWidgetDto {
     BoxColour: string;

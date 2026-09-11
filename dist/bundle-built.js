@@ -38924,7 +38924,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-define('app/boardComponents',["require", "exports", "olive/components/url"], function (require, exports, url_1) {
+define('app/boardComponents',["require", "exports", "olive/components/url", "./model/service", "app/hubServices"], function (require, exports, url_1, service_1, hubServices_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ActionEnum = exports.AjaxState = void 0;
@@ -39247,7 +39247,33 @@ define('app/boardComponents',["require", "exports", "olive/components/url"], fun
                 .append($('<div class="text-gray">').html(intro.Description)));
             $('.board-header').show();
             $(".board-header [data-original-title]").tooltip();
+            this.nameThePage(intro);
             return result;
+        }
+        // A board page is rendered before its entity is known - the entity lives in the service that
+        // owns the board and only arrives with the intro - so the page is named here rather than by
+        // the view, which had nothing but the board type to go on. The service names the window if it
+        // wants to (WindowTitle), because it is the only party that knows what the board is about;
+        // otherwise the heading it sent serves as the name.
+        nameThePage(intro) {
+            const named = (intro.WindowTitle || "").trim();
+            // Name is server-controlled HTML and can carry markup, so only the text of it is a title.
+            const text = named || $('<div>').html(intro.Name || "").text().trim();
+            if (!text)
+                return;
+            // The title the page declares, which is read back whenever something re-titles the window
+            // from the page rather than from a navigation - a modal closing, a breadcrumb refresh.
+            const declared = $("main [id='page_meta_title']").first();
+            // A page that titled itself server side knew more than the heading does, so its title
+            // stands - unless the service named the window, which is more specific still.
+            if (!named && (declared.attr("value") || "").trim())
+                return;
+            // Both the attribute and the value are set: the two readers do not read the same one.
+            declared.attr("value", text).val(text);
+            // Titled the way every other page in the hub is, so that the service it belongs to still
+            // heads the trail and one hub tab can be told from another.
+            service_1.default.applyWindowTitle(text);
+            window.page.getService(hubServices_1.default.BreadcrumbMenu).refresh(text);
         }
         relocateBoardComponentsHeaderActions() {
             const boardPanel = this.input.parent();
@@ -39439,6 +39465,9 @@ define('app/boardComponents',["require", "exports", "olive/components/url"], fun
             return (yiq >= 128) ? 'black' : 'white';
         }
         showIntroImage(intro) {
+            const pinned = (this.input.attr("data-image-url") || "").trim();
+            if (pinned)
+                intro = $.extend({}, intro, { ImageUrl: pinned });
             var iconText = "";
             if (intro.Name !== null && intro.Name !== undefined && intro.Name !== "") {
                 iconText = intro.Name.substr(0, 2);
