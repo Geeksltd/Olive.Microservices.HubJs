@@ -523,6 +523,9 @@ export default class BoardComponents implements IService {
         return (yiq >= 128) ? 'black' : 'white';
     }
     protected showIntroImage(intro: any): JQuery {
+        const pinned = (this.input.attr("data-image-url") || "").trim();
+        if (pinned) intro = $.extend({}, intro, { ImageUrl: pinned });
+
         var iconText = "";
         if (intro.Name !== null && intro.Name !== undefined && intro.Name !== "") {
             iconText = intro.Name.substr(0, 2);
