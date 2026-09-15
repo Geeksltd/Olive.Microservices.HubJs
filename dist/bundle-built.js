@@ -37059,30 +37059,7 @@ define('app/model/service',["require", "exports", "app/extensions"], function (r
         // it twice. A page that declares no title still replaced the one before it, so the window
         // falls back to the service alone rather than going on naming a page the user can no longer see.
         static applyWindowTitle(windowTitle) {
-            if (!windowTitle) {
-                document.title = this.WindowTitleService;
-                return;
-            }
-            document.title = this.leadsWithService(windowTitle)
-                ? windowTitle
-                : this.WindowTitleService + " > " + windowTitle;
-        }
-        // Whether the title already opens with the service the page belongs to. Only the head of the
-        // title counts: a title is a trail read left to right, so a service named further along it
-        // ("Search results > People") is part of what the page is about rather than a statement of
-        // where the page lives, and the trail still wants its root. The name has to end on a word
-        // boundary, because a short one is otherwise found at the head of a longer word - "AI" opens
-        // "Airports" - and would suppress a prefix the title actually needed. A title for no known
-        // service is treated as leading with it, there being nothing to put in front of it.
-        static leadsWithService(windowTitle) {
-            if (!this.WindowTitleService)
-                return true;
-            const title = windowTitle.toLowerCase();
-            const name = this.WindowTitleService.toLowerCase();
-            if (title.indexOf(name) !== 0)
-                return false;
-            const after = title[name.length];
-            return !after || !/[a-z0-9]/.test(after);
+            document.title = !windowTitle ? this.WindowTitleService : windowTitle;
         }
         static fromUrl(actualDestinationAddress) {
             for (var service of this.Services) {
