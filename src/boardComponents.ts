@@ -583,10 +583,17 @@ export default class BoardComponents implements IService {
                 .append(projectNameIcon);
         }
         else {
-            const img = $('<img>').attr('src', intro.ImageUrl).on('error', function () {
-                $(this).hide();
-                $(this).parent().parent().find('.project-icon-text').removeClass('d-none');
-            });
+            const defaultImage = (this.input.attr("data-default-image-url") || "").trim();
+            const img = $('<img>').attr('src', intro.ImageUrl);
+            if (defaultImage) {              
+                img.one('error', function () { this.src = defaultImage; });
+            }
+            else {
+                img.on('error', function () {
+                    $(this).hide();
+                    $(this).parent().parent().find('.project-icon-text').removeClass('d-none');
+                });
+            }
             return $('<div>').append($("<div class='project-icon'>").append(img))
                 .append(projectNameIcon);
         }
