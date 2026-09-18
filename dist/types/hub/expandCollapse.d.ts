@@ -6,6 +6,8 @@ export default class ExpandCollapse {
     side: string;
     key: string;
     cookies: any;
+    static readonly EXPANDED = "expanded";
+    static readonly COLLAPSED = "collapsed";
     constructor(side: string);
     static enableExpandCollapse(side: string): void;
     static autoCloseOnMobile(): void;
@@ -13,7 +15,7 @@ export default class ExpandCollapse {
     isExpanded(): boolean;
     initialize(): void;
     toggle(): void;
-    apply(): void;
+    apply(expanded?: boolean): void;
     applyIcon(): void;
     syncHubFrame(): void;
 }

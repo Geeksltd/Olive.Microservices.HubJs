@@ -9,6 +9,9 @@ export default class ExpandCollapse {
     key: string;
     cookies: any;
 
+    static readonly EXPANDED = "expanded";
+    static readonly COLLAPSED = "collapsed";
+
     constructor(side: string) {
         this.button = $(".side-bar-handle." + side);
         this.backdrop = $(".side-bar-backdrop." + side);
@@ -35,8 +38,12 @@ export default class ExpandCollapse {
     }
 
     isExpanded() {
-        if (this.panel.length && this.cookies.get(this.key) === 'expanded') return true;
-        else return false;
+        if (!this.panel.length) return false;
+
+        // On mobile the side bars start collapsed and the user's desktop choice is left untouched.
+        if (ExpandCollapse.isMobile()) return this.page.hasClass("expanded-" + this.side);
+
+        return this.cookies.get(this.key) === ExpandCollapse.EXPANDED;
     }
 
     initialize(): void {
@@ -47,26 +54,24 @@ export default class ExpandCollapse {
             this.button.click(() => this.toggle());
             this.backdrop.click(() => this.toggle());
 
-            if (ExpandCollapse.isMobile()) {
-                this.page.removeClass("expanded-left");
-                this.cookies.set(".side-bar.left", "", { expires: 7 });
-
-                this.page.removeClass("expanded-right");
-                this.cookies.set(".side-bar.right", "", { expires: 7 });
-            } else {
-                this.apply();
-            }
+            if (ExpandCollapse.isMobile()) this.page.removeClass("expanded-" + this.side);
+            else this.apply();
             this.page.attr("data-js-init", "true");
         });
     }
 
     toggle() {
-        this.cookies.set(this.key, this.isExpanded() ? "" : "expanded", { expires: 7 });
-        this.apply();
+        const expand = !this.isExpanded();
+
+        // Never store an empty value: ASP.NET Core drops empty cookies, so the server would lose the choice.
+        if (!ExpandCollapse.isMobile())
+            this.cookies.set(this.key, expand ? ExpandCollapse.EXPANDED : ExpandCollapse.COLLAPSED, { expires: 365 });
+
+        this.apply(expand);
     }
 
-    apply() {
-        if (this.isExpanded()) {
+    apply(expanded: boolean = this.isExpanded()) {
+        if (expanded) {
             this.page.addClass("expanded-" + this.side);
         }
         else {
