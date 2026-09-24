@@ -13,6 +13,7 @@ export default class ExpandCollapse {
     static autoCloseOnMobile(): void;
     static isMobile(): boolean;
     isExpanded(): boolean;
+    collapse(): void;
     initialize(): void;
     toggle(): void;
     apply(expanded?: boolean): void;

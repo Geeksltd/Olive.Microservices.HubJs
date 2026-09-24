@@ -37431,10 +37431,13 @@ define('app/expandCollapse',["require", "exports"], function (require, exports) 
         isExpanded() {
             if (!this.panel.length)
                 return false;
-            // On mobile the side bars start collapsed and the user's desktop choice is left untouched.
-            if (ExpandCollapse.isMobile())
-                return this.page.hasClass("expanded-" + this.side);
-            return this.cookies.get(this.key) === ExpandCollapse.EXPANDED;
+            // Read the page, not the cookie: the server renders the class from the cookie, and collapse() can close the side bar without a change to the cookie.
+            return this.page.hasClass("expanded-" + this.side);
+        }
+        // Collapses the side bar for the current page only. The user's saved choice stays unchanged.
+        collapse() {
+            if (this.isExpanded())
+                this.apply(false);
         }
         initialize() {
             requirejs(["js-cookie"], x => {
