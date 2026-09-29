@@ -5,7 +5,6 @@ import BadgeNumber from './badgeNumber';
 import ToggleCheckbox from './toggleCheckbox';
 import ExpandCollapse from './expandCollapse';
 import BreadcrumbMenu from './featuresMenu/breadcrumbMenu';
-import FullMenuFiltering from './featuresMenu/FullMenuFiltering';
 import { ServiceContainer } from 'olive/di/serviceContainer';
 import Services from 'olive/di/services';
 import HubAjaxRedirect from './overrides/hubAjaxRedirect';
@@ -76,7 +75,6 @@ export default class HubPage extends OlivePage {
     public board: BoardComponents = null;
     constructor() {
         super();
-        new FullMenuFiltering();
         // var myChart = echarts.init('');
         // myChart.setOption({});
         this.getService<Hub>(HubServices.Hub).initialize();
