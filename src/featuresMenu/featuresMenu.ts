@@ -86,18 +86,31 @@ export default class FeaturesMenu {
                 url = url.substring(serviceName.length + 3)
                 url = this.url.makeAbsolute(baseUrl, url);
 
-                targetIframe.attr("src", url);
-                $("main").hide();
+                // A click before the previous page finished loading replaces it, so that
+                // page's hold on the spinner is released rather than left to leak.
+                // hide() with no token clears every holder, so only call it with one.
+                const previousToken = targetIframe.data("waitToken");
+                if (previousToken) this.waiting.hide(previousToken);
 
-                this.waiting.show();
+                // Hold the spinner by token, so the iframe loading does not take it away from
+                // an ajax navigation still running, and skip form validation, which would
+                // otherwise refuse to show it while any form on the hub page is invalid.
+                const waitToken = this.waiting.show(false, false);
+                targetIframe.data("waitToken", waitToken);
 
-                targetIframe.on("load", null, null, e => {
-                    this.waiting.hide();
+                // Namespaced and re-bound per click: a plain .on("load") added another
+                // handler every time a menu item was clicked.
+                targetIframe.off("load.featuresMenu").one("load.featuresMenu", () => {
+                    this.waiting.hide(waitToken);
+                    targetIframe.removeData("waitToken");
                     if (targetIframe.attr("src") !== "")
                         iFrameHolder.attr("style", "").show();
                     else
                         iFrameHolder.hide().attr("style", "height: 0;");
                 });
+
+                targetIframe.attr("src", url);
+                $("main").hide();
 
                 return false;
             });
