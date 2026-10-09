@@ -157,9 +157,9 @@ export const EMPLOYEE_DETAIL_TEMPLATE = `
         <!-- The two diagnostic buttons do different things, so the labels have to say which is which:
              the first shows what this failed request already returned, the second re-issues the request
              in a new tab (a fresh GET, so it will not reproduce a failure that depended on the original
-             request's method or body). It reads .text() rather than .html() because the response body is
-             escaped into the page below, and .html() would show the escaping rather than the response. -->
-        <a class="btn btn-outline-secondary" href="javascript:;" title="Show the response this failed request returned, without leaving the page." onclick="alert($('.ajax-error-content').text())">Show response details here</a>
+             request's method or body). The first is wired up by ErrorViewsNavigator, which also adds a Copy
+             button to the dialog it opens. -->
+        <a class="btn btn-outline-secondary show-error-response" href="javascript:;" title="Show the response this failed request returned, without leaving the page.">Show response details here</a>
         [#OPEN_URL_BUTTON#]
       </div>
     </div>

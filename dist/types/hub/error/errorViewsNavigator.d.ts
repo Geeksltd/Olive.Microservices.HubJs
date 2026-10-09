@@ -14,6 +14,8 @@ export default class ErrorViewsNavigator {
     private static card;
     private static getNextSteps;
     private static render;
+    private static showResponse;
+    private static copyToClipboard;
     private static renderTarget;
     private static getAreaName;
     private static getLoginUrl;

@@ -38016,9 +38016,9 @@ define('app/error/errorTemplates',["require", "exports"], function (require, exp
         <!-- The two diagnostic buttons do different things, so the labels have to say which is which:
              the first shows what this failed request already returned, the second re-issues the request
              in a new tab (a fresh GET, so it will not reproduce a failure that depended on the original
-             request's method or body). It reads .text() rather than .html() because the response body is
-             escaped into the page below, and .html() would show the escaping rather than the response. -->
-        <a class="btn btn-outline-secondary" href="javascript:;" title="Show the response this failed request returned, without leaving the page." onclick="alert($('.ajax-error-content').text())">Show response details here</a>
+             request's method or body). The first is wired up by ErrorViewsNavigator, which also adds a Copy
+             button to the dialog it opens. -->
+        <a class="btn btn-outline-secondary show-error-response" href="javascript:;" title="Show the response this failed request returned, without leaving the page.">Show response details here</a>
         [#OPEN_URL_BUTTON#]
       </div>
     </div>
@@ -38235,7 +38235,40 @@ define('app/error/errorViewsNavigator',["require", "exports", "../model/service"
         static render(trigger, errorContent) {
             const target = this.renderTarget(trigger);
             target.html(errorContent);
+            target.find(".show-error-response").on("click", () => this.showResponse(target.find(".ajax-error-content").text()));
             return target;
+        }
+        // The response in Olive's alert dialog, with a Copy button beside OK. A long server error page is
+        // painful to select by hand inside a dialog, and what an employee wants to do with it is paste it
+        // somewhere. alertify builds the dialog synchronously, so its button row exists once alert() returns.
+        static showResponse(text) {
+            alert(text);
+            const copy = $('<button type="button" class="alertify-button alertify-button-copy">Copy</button>');
+            copy.on("click", e => {
+                e.preventDefault();
+                e.stopPropagation();
+                this.copyToClipboard(text)
+                    .then(() => copy.text("Copied"))
+                    .catch(() => copy.text("Copy failed"))
+                    .then(() => setTimeout(() => copy.text("Copy"), 2000));
+            });
+            $("#alertify .alertify-buttons").prepend(copy);
+        }
+        // The Clipboard API is only available in a secure context, so plain http hosts (local dev) fall back to
+        // the older execCommand route.
+        static copyToClipboard(text) {
+            if (navigator.clipboard && window.isSecureContext)
+                return navigator.clipboard.writeText(text);
+            return new Promise((resolve, reject) => {
+                const area = $("<textarea readonly></textarea>")
+                    .css({ position: "fixed", top: 0, left: 0, opacity: 0 })
+                    .val(text)
+                    .appendTo("body");
+                area[0].select();
+                const copied = document.execCommand("copy");
+                area.remove();
+                copied ? resolve() : reject();
+            });
         }
         // Where the card goes: the main tag the failing request was aimed at, or the page's own content
         // when the request came from outside one.

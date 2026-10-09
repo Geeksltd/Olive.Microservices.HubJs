@@ -263,7 +263,50 @@ export default class ErrorViewsNavigator {
         const target = this.renderTarget(trigger);
         target.html(errorContent);
 
+        target.find(".show-error-response").on("click", () => this.showResponse(target.find(".ajax-error-content").text()));
+
         return target;
+    }
+
+    // The response in Olive's alert dialog, with a Copy button beside OK. A long server error page is
+    // painful to select by hand inside a dialog, and what an employee wants to do with it is paste it
+    // somewhere. alertify builds the dialog synchronously, so its button row exists once alert() returns.
+    private static showResponse(text: string) {
+        alert(text);
+
+        const copy = $('<button type="button" class="alertify-button alertify-button-copy">Copy</button>');
+
+        copy.on("click", e => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            this.copyToClipboard(text)
+                .then(() => copy.text("Copied"))
+                .catch(() => copy.text("Copy failed"))
+                .then(() => setTimeout(() => copy.text("Copy"), 2000));
+        });
+
+        $("#alertify .alertify-buttons").prepend(copy);
+    }
+
+    // The Clipboard API is only available in a secure context, so plain http hosts (local dev) fall back to
+    // the older execCommand route.
+    private static copyToClipboard(text: string): Promise<void> {
+        if (navigator.clipboard && window.isSecureContext)
+            return navigator.clipboard.writeText(text);
+
+        return new Promise<void>((resolve, reject) => {
+            const area = $("<textarea readonly></textarea>")
+                .css({ position: "fixed", top: 0, left: 0, opacity: 0 })
+                .val(text)
+                .appendTo("body");
+
+            (area[0] as HTMLTextAreaElement).select();
+            const copied = document.execCommand("copy");
+            area.remove();
+
+            copied ? resolve() : reject();
+        });
     }
 
     // Where the card goes: the main tag the failing request was aimed at, or the page's own content
