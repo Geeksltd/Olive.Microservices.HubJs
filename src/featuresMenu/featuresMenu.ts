@@ -233,8 +233,58 @@ export default class FeaturesMenu {
             }
 
         // Set the active item
-        $(".active").removeClass("active");
-        wrapper.addClass("active");
+        if (wrapper.closest(".features-side-menu").length)
+            FeaturesMenu.select(wrapper[0]);
+        else {
+            $(".active").removeClass("active");
+            wrapper.addClass("active");
+        }
+    }
+
+    // Makes the node the selected side menu item: the previous one is deselected, every branch
+    // the node does not sit under is collapsed, and the branches above it are opened. The node's
+    // own expand state is left alone, as a click on it has just decided that. With no node, the
+    // selection is cleared and the menu left as it is.
+    static select(node: Element) {
+        const menu = $(".features-side-menu");
+        if (!menu.length) return;
+
+        menu.find(".feature-menu-item.active").filter((i, el) => el !== node).removeClass("active");
+        if (!node) return;
+
+        const ancestors = $(node).parents(".feature-menu-item").filter((i, el) => $.contains(menu[0], el));
+
+        menu.find(".feature-menu-item[expand='true']")
+            .filter((i, el) => el !== node && ancestors.index(el) === -1)
+            .attr("expand", "false");
+
+        ancestors.attr("expand", "true");
+        $(node).addClass("active");
+
+        FeaturesMenu.scrollIntoView($(node).children("a").first());
+    }
+
+    // Scrolls the side bar, and only the side bar, just far enough to show the link. Done after the
+    // branches are collapsed and opened, since that moves the link; collapsed branches are hidden
+    // with display: none, so the new layout can be measured straight away. The link rather than
+    // its item is measured, as an opened item also holds its whole subtree.
+    static scrollIntoView(link: JQuery) {
+        if (!link.length) return;
+
+        const container = link.closest(".scrolling-content");
+        if (!container.length) {
+            link[0].scrollIntoView({ block: "nearest" });
+            return;
+        }
+
+        const box = container[0].getBoundingClientRect();
+        if (!box.height) return; // The side bar is hidden, e.g. collapsed on a phone.
+
+        const target = link[0].getBoundingClientRect();
+        if (target.top < box.top)
+            container[0].scrollTop -= box.top - target.top;
+        else if (target.bottom > box.bottom)
+            container[0].scrollTop += Math.min(target.bottom - box.bottom, target.top - box.top);
     }
 
     // generatePageBreadcrumb(data) {

@@ -1,4 +1,5 @@
 ﻿import AjaxRedirect from "olive/mvc/ajaxRedirect";
+import FeaturesMenu from "./featuresMenu";
 
 export default class BreadcrumbMenu implements IService {
 
@@ -255,6 +256,11 @@ export default class BreadcrumbMenu implements IService {
 
         this.renderedNode = node;
         this.renderedFor = address;
+
+        // A side menu click selects its item itself, but a navigation started anywhere else - an
+        // in page link, the back button, a redirect - would otherwise leave the previous page
+        // selected until the next full page load.
+        FeaturesMenu.select(node);
 
         this.ajaxRedirect.enableRedirect(bar.find("a[data-redirect=ajax]"));
 

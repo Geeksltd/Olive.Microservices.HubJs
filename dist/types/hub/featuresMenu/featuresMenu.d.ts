@@ -27,5 +27,7 @@ export default class FeaturesMenu {
         pathnameWithBrackets: string;
     };
     onLinkClicked(link: JQuery): boolean;
+    static select(node: Element): void;
+    static scrollIntoView(link: JQuery): void;
     getObjects(obj: any, key: any, val: any): any[];
 }

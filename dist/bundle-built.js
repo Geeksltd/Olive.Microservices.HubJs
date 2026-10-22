@@ -37319,8 +37319,52 @@ define('app/featuresMenu/featuresMenu',["require", "exports", "app/model/service
                     wrapper.attr("expand", "true");
                 }
             // Set the active item
-            $(".active").removeClass("active");
-            wrapper.addClass("active");
+            if (wrapper.closest(".features-side-menu").length)
+                FeaturesMenu.select(wrapper[0]);
+            else {
+                $(".active").removeClass("active");
+                wrapper.addClass("active");
+            }
+        }
+        // Makes the node the selected side menu item: the previous one is deselected, every branch
+        // the node does not sit under is collapsed, and the branches above it are opened. The node's
+        // own expand state is left alone, as a click on it has just decided that. With no node, the
+        // selection is cleared and the menu left as it is.
+        static select(node) {
+            const menu = $(".features-side-menu");
+            if (!menu.length)
+                return;
+            menu.find(".feature-menu-item.active").filter((i, el) => el !== node).removeClass("active");
+            if (!node)
+                return;
+            const ancestors = $(node).parents(".feature-menu-item").filter((i, el) => $.contains(menu[0], el));
+            menu.find(".feature-menu-item[expand='true']")
+                .filter((i, el) => el !== node && ancestors.index(el) === -1)
+                .attr("expand", "false");
+            ancestors.attr("expand", "true");
+            $(node).addClass("active");
+            FeaturesMenu.scrollIntoView($(node).children("a").first());
+        }
+        // Scrolls the side bar, and only the side bar, just far enough to show the link. Done after the
+        // branches are collapsed and opened, since that moves the link; collapsed branches are hidden
+        // with display: none, so the new layout can be measured straight away. The link rather than
+        // its item is measured, as an opened item also holds its whole subtree.
+        static scrollIntoView(link) {
+            if (!link.length)
+                return;
+            const container = link.closest(".scrolling-content");
+            if (!container.length) {
+                link[0].scrollIntoView({ block: "nearest" });
+                return;
+            }
+            const box = container[0].getBoundingClientRect();
+            if (!box.height)
+                return; // The side bar is hidden, e.g. collapsed on a phone.
+            const target = link[0].getBoundingClientRect();
+            if (target.top < box.top)
+                container[0].scrollTop -= box.top - target.top;
+            else if (target.bottom > box.bottom)
+                container[0].scrollTop += Math.min(target.bottom - box.bottom, target.top - box.top);
         }
         // generatePageBreadcrumb(data) {
         //     $(".breadcrumb").html("");
@@ -37544,7 +37588,7 @@ define('app/expandCollapse',["require", "exports"], function (require, exports) 
     exports.default = ExpandCollapse;
 });
 //# sourceMappingURL=expandCollapse.js.map;
-define('app/featuresMenu/breadcrumbMenu',["require", "exports"], function (require, exports) {
+define('app/featuresMenu/breadcrumbMenu',["require", "exports", "./featuresMenu"], function (require, exports, featuresMenu_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     class BreadcrumbMenu {
@@ -37769,6 +37813,10 @@ define('app/featuresMenu/breadcrumbMenu',["require", "exports"], function (requi
             this.appendPageTrail(bar, pageTitle, trail.length > 0);
             this.renderedNode = node;
             this.renderedFor = address;
+            // A side menu click selects its item itself, but a navigation started anywhere else - an
+            // in page link, the back button, a redirect - would otherwise leave the previous page
+            // selected until the next full page load.
+            featuresMenu_1.default.select(node);
             this.ajaxRedirect.enableRedirect(bar.find("a[data-redirect=ajax]"));
             // The Home item is left to its ajax redirect; the rest are handed to the menu.
             bar.find(".breadcrumb-item > a[data-itemid]").off("click.breadcrumb").on("click.breadcrumb", e => {
