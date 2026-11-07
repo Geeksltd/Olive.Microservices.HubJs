@@ -45,13 +45,17 @@ export default class BreadcrumbMenu implements IService {
 
         const address = window.location.pathname + window.location.search;
         const path = this.normalizePath(address);
-        const title = pageTitle === undefined ? this.currentPageTitle() : (pageTitle || "");
+        const holder = pageTitle === undefined ? this.currentTitleHolder() : $();
+        const title = pageTitle === undefined ? this.titleOf(holder) : (pageTitle || "");
+        // Only a title the page declared itself can say where its steps lead. One handed in - from
+        // the view frame or an error card - is a bare string, so its steps stay plain.
+        const stepLinks = this.stepLinksOf(holder);
         const node = this.findNodeForUrl(address);
 
         if (node) {
             // A page the menu names needs no title of its own; the menu item already is its name.
             // Anything below one - a row opened for viewing or editing - does, so it is added.
-            this.render(node, path, this.namesAddress(node, address) ? null : title);
+            this.render(node, path, this.namesAddress(node, address) ? null : title, stepLinks);
             return;
         }
 
@@ -61,15 +65,15 @@ export default class BreadcrumbMenu implements IService {
             && this.renderedFor === path) return;
 
         // Otherwise name the page on its own rather than leaving the previous page's trail up.
-        this.render(null, path, title);
+        this.render(null, path, title, stepLinks);
     }
 
-    // The title of the page now on screen, as the view itself declared it. Titles inside a modal
-    // are skipped: a modal leaves the address bar alone, so it is not the page the trail describes.
-    // So are titles inside a named main tag, which is a region of the page rather than the page:
-    // several such regions can sit on one page, each declaring a title of its own, and document
-    // order would otherwise decide which of them named the trail.
-    private currentPageTitle(): string {
+    // The element holding the title of the page now on screen, as the view itself declared it.
+    // Titles inside a modal are skipped: a modal leaves the address bar alone, so it is not the page
+    // the trail describes. So are titles inside a named main tag, which is a region of the page
+    // rather than the page: several such regions can sit on one page, each declaring a title of its
+    // own, and document order would otherwise decide which of them named the trail.
+    private currentTitleHolder(): JQuery {
         const namesThePage = (i: number, el: Element) =>
             $(el).closest(".modal, .modal-dialog, main[name^='$']").length === 0;
 
@@ -78,12 +82,43 @@ export default class BreadcrumbMenu implements IService {
         let holders = $("main [id='page_meta_title']").filter(namesThePage);
         if (!holders.length) holders = $("[id='page_meta_title']").filter(namesThePage);
 
-        if (!holders.length) return "";
+        return holders.first();
+    }
 
-        const holder = holders.first();
+    private titleOf(holder: JQuery): string {
+        if (!holder.length) return "";
+
         const declared = holder.attr("value");
 
         return ((declared === undefined ? holder.val() : declared) || "").toString().trim();
+    }
+
+    // Where the steps of the title lead, when the page says so: a data-links attribute on the title
+    // holding a JSON object from a step's name to its address, such as
+    // {"ags-hub": "/[devops]/repositories/1f2e...", "Deploys to lsi-hub": "/[devops]/repositories/deploys?cd=9a8b..."}.
+    // An id in an address is what a title leaves out, so only the page can supply these. Keyed by
+    // lower cased name, as steps are matched to the menu. Anything unreadable is ignored: the trail
+    // then reads as it did before, with those steps as plain text.
+    private stepLinksOf(holder: JQuery): { [step: string]: string } {
+        const links: { [step: string]: string } = {};
+
+        const declared = holder.length ? holder.attr("data-links") : null;
+        if (!declared) return links;
+
+        let parsed: any;
+        try { parsed = JSON.parse(declared); }
+        catch (e) { return links; }
+
+        if (!parsed || typeof parsed !== "object") return links;
+
+        Object.keys(parsed).forEach(step => {
+            const address = parsed[step];
+            // Only an address within the hub: a site relative path, never a scheme such as "javascript:".
+            if (typeof address === "string" && address.startsWith("/") && !address.startsWith("//"))
+                links[step.trim().toLowerCase()] = address;
+        });
+
+        return links;
     }
 
     // Whether the menu node is the page at this address, rather than a feature it sits under.
@@ -242,7 +277,7 @@ export default class BreadcrumbMenu implements IService {
         return levels.filter((el, i) => levels.indexOf(el) === i);
     }
 
-    render(node: Element, address: string, pageTitle: string) {
+    render(node: Element, address: string, pageTitle: string, stepLinks: { [step: string]: string } = {}) {
         const bar = $(".breadcrumb");
         if (!bar.length) return;
 
@@ -252,7 +287,7 @@ export default class BreadcrumbMenu implements IService {
         const trail = this.trailOf(node);
         trail.forEach(el => this.appendMenuCrumb(bar, el));
 
-        this.appendPageTrail(bar, pageTitle, trail.length > 0);
+        this.appendPageTrail(bar, pageTitle, trail.length > 0, stepLinks);
 
         this.renderedNode = node;
         this.renderedFor = address;
@@ -298,7 +333,7 @@ export default class BreadcrumbMenu implements IService {
     // names the service and every level above the page: "CRM > Customers > Edit customer". Below a
     // menu trail only what comes after it is added, and a page the menu does not list at all -
     // reached by a direct address, or from another service - gets its whole trail from here.
-    private appendPageTrail(bar: JQuery, pageTitle: string, underMenuTrail: boolean) {
+    private appendPageTrail(bar: JQuery, pageTitle: string, underMenuTrail: boolean, stepLinks: { [step: string]: string }) {
         const parts = this.titleParts(pageTitle);
         if (!parts.length) return;
 
@@ -314,8 +349,16 @@ export default class BreadcrumbMenu implements IService {
                 return;
             }
 
-            // A level above it is only worth a link when the menu holds one item by that name.
-            // Anything less certain would send the user somewhere the title never promised.
+            // A level the page itself gave an address for links there. A record's own page - a
+            // repository, a customer - is one the menu cannot name, since its address holds an id.
+            const declared = stepLinks[step.toLowerCase()];
+            if (declared) {
+                bar.append(`<li class="breadcrumb-item"><a href="${this.escape(declared)}" data-redirect="ajax">${this.escape(step)}</a></li>`);
+                return;
+            }
+
+            // Otherwise a level above it is only worth a link when the menu holds one item by that
+            // name. Anything less certain would send the user somewhere the title never promised.
             const named = this.menuNodeNamed(step);
             if (named) this.appendMenuCrumb(bar, named);
             else this.appendStep(bar, step);
