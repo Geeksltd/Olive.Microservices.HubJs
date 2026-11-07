@@ -37023,13 +37023,6 @@ define('app/model/service',["require", "exports", "app/extensions"], function (r
     Object.defineProperty(exports, "__esModule", { value: true });
     /// <amd-dependency path='app/extensions' />
     class Service {
-        GetAddressBarValueFor(fullFeatureUrl) {
-            let relativePath = fullFeatureUrl.trimStart(this.BaseUrl);
-            if (relativePath.startsWith("/under") || relativePath.startsWith("/hub")) {
-                return relativePath.trim();
-            }
-            return this.AddressBarPrefix.trimEnd("/") + "/" + relativePath.trimStart("/");
-        }
         constructor(args) {
             if (args) {
                 this.BaseUrl = args.BaseUrl;
@@ -37040,6 +37033,13 @@ define('app/model/service',["require", "exports", "app/extensions"], function (r
                 throw new Error("BaseUrl cannot be undefined");
             if (!this.Name)
                 throw new Error("Name cannot be undefined");
+        }
+        GetAddressBarValueFor(fullFeatureUrl) {
+            let relativePath = fullFeatureUrl.trimStart(this.BaseUrl);
+            if (relativePath.startsWith("/under") || relativePath.startsWith("/hub")) {
+                return relativePath.trim();
+            }
+            return this.AddressBarPrefix.trimEnd("/") + "/" + relativePath.trimStart("/");
         }
         static registerServices() {
             let services = window["services"];
@@ -37109,13 +37109,13 @@ define('app/model/service',["require", "exports", "app/extensions"], function (r
             throw new Error("Could not find a service named '" + name + "'");
         }
     }
+    exports.default = Service;
     Service.Services = [];
     Service.FirstPageLoad = true;
     // "Repositories" for a page of the repositories service, and so on. Kept because a view
     // change inside a page re-titles the window from the page alone, with no address to say
     // which service that page belongs to.
     Service.WindowTitleService = "";
-    exports.default = Service;
 });
 //# sourceMappingURL=service.js.map;
 define('app/featuresMenu/featuresMenu',["require", "exports", "app/model/service"], function (require, exports, service_1) {
@@ -37583,9 +37583,9 @@ define('app/expandCollapse',["require", "exports"], function (require, exports) 
             window.parent.postMessage(JSON.stringify(paramW), "*");
         }
     }
+    exports.default = ExpandCollapse;
     ExpandCollapse.EXPANDED = "expanded";
     ExpandCollapse.COLLAPSED = "collapsed";
-    exports.default = ExpandCollapse;
 });
 //# sourceMappingURL=expandCollapse.js.map;
 define('app/featuresMenu/breadcrumbMenu',["require", "exports", "./featuresMenu"], function (require, exports, featuresMenu_1) {
@@ -37628,12 +37628,16 @@ define('app/featuresMenu/breadcrumbMenu',["require", "exports", "./featuresMenu"
             this.bindFeatureMenuItemsClicks($(".features-side-menu .feature-menu-item > a:not([href=''])"));
             const address = window.location.pathname + window.location.search;
             const path = this.normalizePath(address);
-            const title = pageTitle === undefined ? this.currentPageTitle() : (pageTitle || "");
+            const holder = pageTitle === undefined ? this.currentTitleHolder() : $();
+            const title = pageTitle === undefined ? this.titleOf(holder) : (pageTitle || "");
+            // Only a title the page declared itself can say where its steps lead. One handed in - from
+            // the view frame or an error card - is a bare string, so its steps stay plain.
+            const stepLinks = this.stepLinksOf(holder);
             const node = this.findNodeForUrl(address);
             if (node) {
                 // A page the menu names needs no title of its own; the menu item already is its name.
                 // Anything below one - a row opened for viewing or editing - does, so it is added.
-                this.render(node, path, this.namesAddress(node, address) ? null : title);
+                this.render(node, path, this.namesAddress(node, address) ? null : title, stepLinks);
                 return;
             }
             // The menu holds nothing for this address. If the click that brought us here drew a
@@ -37642,25 +37646,55 @@ define('app/featuresMenu/breadcrumbMenu',["require", "exports", "./featuresMenu"
                 && this.renderedFor === path)
                 return;
             // Otherwise name the page on its own rather than leaving the previous page's trail up.
-            this.render(null, path, title);
+            this.render(null, path, title, stepLinks);
         }
-        // The title of the page now on screen, as the view itself declared it. Titles inside a modal
-        // are skipped: a modal leaves the address bar alone, so it is not the page the trail describes.
-        // So are titles inside a named main tag, which is a region of the page rather than the page:
-        // several such regions can sit on one page, each declaring a title of its own, and document
-        // order would otherwise decide which of them named the trail.
-        currentPageTitle() {
+        // The element holding the title of the page now on screen, as the view itself declared it.
+        // Titles inside a modal are skipped: a modal leaves the address bar alone, so it is not the page
+        // the trail describes. So are titles inside a named main tag, which is a region of the page
+        // rather than the page: several such regions can sit on one page, each declaring a title of its
+        // own, and document order would otherwise decide which of them named the trail.
+        currentTitleHolder() {
             const namesThePage = (i, el) => $(el).closest(".modal, .modal-dialog, main[name^='$']").length === 0;
             // The page content declares its own title inside main. Only if nothing there does is the
             // rest of the document consulted, so a module that reloads in place cannot rename the page.
             let holders = $("main [id='page_meta_title']").filter(namesThePage);
             if (!holders.length)
                 holders = $("[id='page_meta_title']").filter(namesThePage);
-            if (!holders.length)
+            return holders.first();
+        }
+        titleOf(holder) {
+            if (!holder.length)
                 return "";
-            const holder = holders.first();
             const declared = holder.attr("value");
             return ((declared === undefined ? holder.val() : declared) || "").toString().trim();
+        }
+        // Where the steps of the title lead, when the page says so: a data-links attribute on the title
+        // holding a JSON object from a step's name to its address, such as
+        // {"ags-hub": "/[devops]/repositories/1f2e...", "Deploys to lsi-hub": "/[devops]/repositories/deploys?cd=9a8b..."}.
+        // An id in an address is what a title leaves out, so only the page can supply these. Keyed by
+        // lower cased name, as steps are matched to the menu. Anything unreadable is ignored: the trail
+        // then reads as it did before, with those steps as plain text.
+        stepLinksOf(holder) {
+            const links = {};
+            const declared = holder.length ? holder.attr("data-links") : null;
+            if (!declared)
+                return links;
+            let parsed;
+            try {
+                parsed = JSON.parse(declared);
+            }
+            catch (e) {
+                return links;
+            }
+            if (!parsed || typeof parsed !== "object")
+                return links;
+            Object.keys(parsed).forEach(step => {
+                const address = parsed[step];
+                // Only an address within the hub: a site relative path, never a scheme such as "javascript:".
+                if (typeof address === "string" && address.startsWith("/") && !address.startsWith("//"))
+                    links[step.trim().toLowerCase()] = address;
+            });
+            return links;
         }
         // Whether the menu node is the page at this address, rather than a feature it sits under.
         namesAddress(node, url) {
@@ -37802,7 +37836,7 @@ define('app/featuresMenu/breadcrumbMenu',["require", "exports", "./featuresMenu"
             levels.push(node);
             return levels.filter((el, i) => levels.indexOf(el) === i);
         }
-        render(node, address, pageTitle) {
+        render(node, address, pageTitle, stepLinks = {}) {
             const bar = $(".breadcrumb");
             if (!bar.length)
                 return;
@@ -37810,7 +37844,7 @@ define('app/featuresMenu/breadcrumbMenu',["require", "exports", "./featuresMenu"
             bar.append(`<li class="breadcrumb-item"><a href="${window.location.origin}/under/" data-redirect="ajax">Home</a></li>`);
             const trail = this.trailOf(node);
             trail.forEach(el => this.appendMenuCrumb(bar, el));
-            this.appendPageTrail(bar, pageTitle, trail.length > 0);
+            this.appendPageTrail(bar, pageTitle, trail.length > 0, stepLinks);
             this.renderedNode = node;
             this.renderedFor = address;
             // A side menu click selects its item itself, but a navigation started anywhere else - an
@@ -37848,7 +37882,7 @@ define('app/featuresMenu/breadcrumbMenu',["require", "exports", "./featuresMenu"
         // names the service and every level above the page: "CRM > Customers > Edit customer". Below a
         // menu trail only what comes after it is added, and a page the menu does not list at all -
         // reached by a direct address, or from another service - gets its whole trail from here.
-        appendPageTrail(bar, pageTitle, underMenuTrail) {
+        appendPageTrail(bar, pageTitle, underMenuTrail, stepLinks) {
             const parts = this.titleParts(pageTitle);
             if (!parts.length)
                 return;
@@ -37862,8 +37896,15 @@ define('app/featuresMenu/breadcrumbMenu',["require", "exports", "./featuresMenu"
                     bar.append(`<li class="breadcrumb-item active" aria-current="page">${this.escape(step)}</li>`);
                     return;
                 }
-                // A level above it is only worth a link when the menu holds one item by that name.
-                // Anything less certain would send the user somewhere the title never promised.
+                // A level the page itself gave an address for links there. A record's own page - a
+                // repository, a customer - is one the menu cannot name, since its address holds an id.
+                const declared = stepLinks[step.toLowerCase()];
+                if (declared) {
+                    bar.append(`<li class="breadcrumb-item"><a href="${this.escape(declared)}" data-redirect="ajax">${this.escape(step)}</a></li>`);
+                    return;
+                }
+                // Otherwise a level above it is only worth a link when the menu holds one item by that
+                // name. Anything less certain would send the user somewhere the title never promised.
                 const named = this.menuNodeNamed(step);
                 if (named)
                     this.appendMenuCrumb(bar, named);
@@ -39723,8 +39764,8 @@ define('app/boardComponents',["require", "exports", "olive/components/url", "./m
         // options.skipFade: caller has already-visible items (cached path, late-arrival
         // recovery) — skip the stability wait and the fade, just sort + apply columns.
         revealBoard(context, options) {
+            var _a;
             return __awaiter(this, void 0, void 0, function* () {
-                var _a;
                 if (this.destroyed)
                     return;
                 const holder = context.boardHolder[0];
@@ -40039,22 +40080,22 @@ define('app/boardComponents',["require", "exports", "olive/components/url", "./m
             console.error("Board source failed: " + sender.url, jqXHR);
         }
     }
+    exports.default = BoardComponents;
     BoardComponents.EMPTY_STATE_CLASS = 'board-empty-state';
     BoardComponents.DOC_CLICK_NAMESPACE = 'click.boardComponents';
     BoardComponents.SKEL_HEIGHT_CACHE_KEY = 'boardSkelHeights';
-    exports.default = BoardComponents;
     var AjaxState;
     (function (AjaxState) {
         AjaxState[AjaxState["pending"] = 0] = "pending";
         AjaxState[AjaxState["success"] = 1] = "success";
         AjaxState[AjaxState["failed"] = 2] = "failed";
-    })(AjaxState || (exports.AjaxState = AjaxState = {}));
+    })(AjaxState = exports.AjaxState || (exports.AjaxState = {}));
     var ActionEnum;
     (function (ActionEnum) {
         ActionEnum[ActionEnum["Redirect"] = 0] = "Redirect";
         ActionEnum[ActionEnum["Popup"] = 1] = "Popup";
         ActionEnum[ActionEnum["NewWindow"] = 2] = "NewWindow";
-    })(ActionEnum || (exports.ActionEnum = ActionEnum = {}));
+    })(ActionEnum = exports.ActionEnum || (exports.ActionEnum = {}));
 });
 //var boardComponents = new BoardComponents($(".board-components"));
 //# sourceMappingURL=boardComponents.js.map;
@@ -126107,7 +126148,7 @@ define('app/overrides/hubResponseProcessor',["require", "exports", "app/hub", "o
                     trigger.empty();
                     trigger.append($("<iframe name='dashboard-frame'>"));
                     trigger = $("iframe[name='dashboard-frame']");
-                    trigger.attr("src", ajaxhref.replace("hub." + (0, hub_1.getMainDomain)() + "/dashboard", "dashboard." + (0, hub_1.getMainDomain)()));
+                    trigger.attr("src", ajaxhref.replace("hub." + hub_1.getMainDomain() + "/dashboard", "dashboard." + hub_1.getMainDomain()));
                     trigger.attr("class", "view-frame embed-responsive-item w-100 h-100");
                     trigger.attr("frameBorder", "0");
                     history.pushState({}, "", currentPath + "?$" + ajaxTarget + "=" + ajaxhref);
@@ -169193,9 +169234,9 @@ define('app/hubPage',["require", "exports", "olive/olivePage", "./featuresMenu/f
                     if (initialized)
                         return;
                     $(".board-components").attr("data-initialized", "true");
-                    this.board = new boardComponents_1.default($(".board-components"), this.getService(services_1.default.ModalHelper), this.getService(services_1.default.AjaxRedirect), (currentPath.pathname.startsWith("https://hub." + (0, hub_1.getMainDomain)())
+                    this.board = new boardComponents_1.default($(".board-components"), this.getService(services_1.default.ModalHelper), this.getService(services_1.default.AjaxRedirect), (currentPath.pathname.startsWith("https://hub." + hub_1.getMainDomain())
                         ? currentPath.pathname
-                        : "https://hub." + (0, hub_1.getMainDomain)() + currentPath.pathname));
+                        : "https://hub." + hub_1.getMainDomain() + currentPath.pathname));
                 }
                 else {
                     var hubserv = $(".board-components");
@@ -169251,10 +169292,10 @@ define('app/hubPage',["require", "exports", "olive/olivePage", "./featuresMenu/f
             // Any custom initiation goes here.
         }
     }
+    exports.default = HubPage;
     // Here you can override any of the base standard functions.
     // e.g: To use a different AutoComplete library, simply override handleAutoComplete(input).
     HubPage.IsFirstPageLoad = true;
-    exports.default = HubPage;
 });
 //# sourceMappingURL=hubPage.js.map;
 ﻿//requirejs(["app/appPage"], function () { });
